@@ -1,0 +1,38 @@
+<div class="auth-container">
+    <h1>Đăng nhập</h1>
+    
+    <% if (error) { %>
+        <div class="alert alert-danger">
+            <%= error %>
+        </div>
+    <% } %>
+    
+    <form action="/auth/login" method="POST">
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Mật khẩu</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Đăng nhập</button>
+        </div>
+    </form>
+    
+    <div class="social-login">
+        <hr>
+        <p>Hoặc đăng nhập với</p>
+        <a href="/auth/google" class="btn btn-google">
+            <i class="fab fa-google"></i> Google
+        </a>
+    </div>
+    
+    <div class="auth-links">
+        <a href="/auth/forgot-password">Quên mật khẩu?</a>
+        <p>Bạn chưa có tài khoản? <a href="/auth/register">Đăng ký</a></p>
+    </div>
+</div>

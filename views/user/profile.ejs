@@ -1,0 +1,113 @@
+<div class="user-profile-page">
+    <div class="page-header">
+        <h1>Thông tin tài khoản</h1>
+    </div>
+    
+    <div class="profile-grid">
+        <div class="profile-sidebar">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3><%= user.name %></h3>
+                <p><%= user.email %></p>
+                <p class="loyalty-points">
+                    <i class="fas fa-award"></i> Điểm tích lũy: <strong><%= user.loyaltyPoints %></strong>
+                </p>
+            </div>
+            
+            <nav class="profile-nav">
+                <ul>
+                    <li class="active"><a href="/user/profile"><i class="fas fa-user"></i> Thông tin tài khoản</a></li>
+                    <li><a href="/user/orders"><i class="fas fa-shopping-bag"></i> Lịch sử đơn hàng</a></li>
+                    <li><a href="/user/addresses"><i class="fas fa-map-marker-alt"></i> Địa chỉ</a></li>
+                    <li><a href="/user/loyalty-points"><i class="fas fa-award"></i> Điểm tích lũy</a></li>
+                    <li><a href="/user/change-password"><i class="fas fa-key"></i> Đổi mật khẩu</a></li>
+                </ul>
+            </nav>
+        </div>
+        
+        <div class="profile-content">
+            <div class="profile-card">
+                <h2>Thông tin cá nhân</h2>
+                
+                <form action="/user/profile" method="POST">
+                    <div class="form-group">
+                        <label for="name">Họ tên</label>
+                        <input type="text" id="name" name="name" value="<%= user.name %>" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" value="<%= user.email %>" readonly disabled>
+                        <small>Email không thể thay đổi</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Số điện thoại</label>
+                        <input type="tel" id="phone" name="phone" value="<%= user.phone || '' %>">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Cập nhật thông tin</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="profile-card">
+                <h2>Đơn hàng gần đây</h2>
+                
+                <% if (recentOrders && recentOrders.length > 0) { %>
+                    <div class="recent-orders">
+                        <table class="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn hàng</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% recentOrders.forEach(order => { %>
+                                    <tr>
+                                        <td><%= order.orderNumber %></td>
+                                        <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
+                                        <td><%= order.totalAmount.toLocaleString('vi-VN') %> ₫</td>
+                                        <td>
+                                            <span class="status-badge <%= order.status %>">
+                                                <% let statusText; %>
+                                                <% switch(order.status) { 
+                                                    case 'processing': statusText = 'Đang xử lý'; break;
+                                                    case 'confirmed': statusText = 'Đã xác nhận'; break;
+                                                    case 'shipped': statusText = 'Đang giao hàng'; break;
+                                                    case 'delivered': statusText = 'Đã giao hàng'; break;
+                                                    case 'cancelled': statusText = 'Đã hủy'; break;
+                                                    default: statusText = order.status;
+                                                } %>
+                                                <%= statusText %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                        
+                        <div class="view-all-orders">
+                            <a href="/user/orders">Xem tất cả đơn hàng</a>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="no-orders">
+                        <p>Bạn chưa có đơn hàng nào.</p>
+                        <a href="/products" class="btn btn-primary">Mua sắm ngay</a>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>

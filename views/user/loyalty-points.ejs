@@ -1,0 +1,90 @@
+<div class="user-profile-page">
+    <div class="page-header">
+        <h1>Điểm tích lũy</h1>
+    </div>
+    
+    <div class="profile-grid">
+        <div class="profile-sidebar">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3><%= user.name %></h3>
+                <p><%= user.email %></p>
+                <p class="loyalty-points">
+                    <i class="fas fa-award"></i> Điểm tích lũy: <strong><%= user.loyaltyPoints %></strong>
+                </p>
+            </div>
+            
+            <nav class="profile-nav">
+                <ul>
+                    <li><a href="/user/profile"><i class="fas fa-user"></i> Thông tin tài khoản</a></li>
+                    <li><a href="/user/orders"><i class="fas fa-shopping-bag"></i> Lịch sử đơn hàng</a></li>
+                    <li><a href="/user/addresses"><i class="fas fa-map-marker-alt"></i> Địa chỉ</a></li>
+                    <li class="active"><a href="/user/loyalty-points"><i class="fas fa-award"></i> Điểm tích lũy</a></li>
+                    <li><a href="/user/change-password"><i class="fas fa-key"></i> Đổi mật khẩu</a></li>
+                </ul>
+            </nav>
+        </div>
+        
+        <div class="profile-content">
+            <div class="profile-card">
+                <h2>Điểm tích lũy của bạn</h2>
+                
+                <div class="loyalty-summary">
+                    <div class="loyalty-balance">
+                        <div class="balance-value"><%= currentPoints %></div>
+                        <div class="balance-label">Điểm hiện có</div>
+                    </div>
+                    <div class="loyalty-info">
+                        <p>1 điểm = 1,000 VNĐ khi thanh toán</p>
+                        <p>Tích lũy 10% giá trị đơn hàng cho mỗi lần mua</p>
+                        <p>Điểm tích lũy không có thời hạn sử dụng</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="profile-card">
+                <h2>Lịch sử điểm</h2>
+                
+                <% if (pointsHistory && pointsHistory.length > 0) { %>
+                    <table class="loyalty-table">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Đơn hàng</th>
+                                <th>Điểm nhận</th>
+                                <th>Điểm tiêu</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% pointsHistory.forEach(record => { %>
+                                <tr>
+                                    <td><%= new Date(record.createdAt).toLocaleDateString('vi-VN') %></td>
+                                    <td><a href="/orders/<%= record._id %>">#<%= record.orderNumber %></a></td>
+                                    <td class="points-earned"><%= record.loyaltyPointsEarned > 0 ? '+' + record.loyaltyPointsEarned : '-' %></td>
+                                    <td class="points-used"><%= record.loyaltyPointsUsed > 0 ? '-' + record.loyaltyPointsUsed : '-' %></td>
+                                    <td>
+                                        <% if (record.loyaltyPointsEarned > 0 && record.loyaltyPointsUsed > 0) { %>
+                                            Nhận và sử dụng điểm
+                                        <% } else if (record.loyaltyPointsEarned > 0) { %>
+                                            Nhận điểm từ đơn hàng
+                                        <% } else if (record.loyaltyPointsUsed > 0) { %>
+                                            Sử dụng điểm cho đơn hàng
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <div class="no-history">
+                        <p>Bạn chưa có lịch sử điểm tích lũy nào.</p>
+                        <a href="/products" class="btn btn-primary">Mua sắm ngay để tích điểm</a>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>

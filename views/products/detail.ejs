@@ -1,0 +1,542 @@
+<div class="product-detail">
+    <div class="breadcrumb">
+        <a href="/">Trang chủ</a> &gt;
+        <a href="/products?category=<%= product.category %>"><%= product.category %></a> &gt;
+        <% if (product.subcategory) { %>
+            <a href="/products?category=<%= product.category %>&subcategory=<%= product.subcategory %>"><%= product.subcategory %></a> &gt;
+        <% } %>
+        <span><%= product.name %></span>
+    </div>
+    
+    <div class="product-detail-grid">
+        <div class="product-images">
+            <div class="main-image">
+                <% if (product.images && product.images.length > 0) { %>
+                    <img src="/uploads/products/<%= product.images[0] %>" alt="<%= product.name %>" id="mainProductImage">
+                <% } else { %>
+                    <img src="/images/no-image.png" alt="No Image Available">
+                <% } %>
+            </div>
+            
+            <% if (product.images && product.images.length > 0) { %>
+                <div class="thumbnails">
+                    <% product.images.forEach((image, index) => { %>
+                        <div class="thumbnail <%= index === 0 ? 'active' : '' %>" data-index="<%= index %>">
+                            <img src="/uploads/products/<%= image %>" alt="<%= product.name %> - Image <%= index + 1 %>">
+                        </div>
+                    <% }) %>
+                </div>
+            <% } %>
+        </div>
+        
+        <div class="product-info">
+            <h1><%= product.name %></h1>
+            
+            <div class="brand">
+                Thương hiệu: <strong><%= product.brand %></strong> | 
+                <% if (product.ratings.length > 0) { %>
+                    <div class="rating">
+                        <% for (let i = 1; i <= 5; i++) { %>
+                            <% if (i <= Math.round(product.averageRating)) { %>
+                                <i class="fas fa-star"></i>
+                            <% } else { %>
+                                <i class="far fa-star"></i>
+                            <% } %>
+                        <% } %>
+                        <span>(<%= product.ratings.length %> đánh giá)</span>
+                    </div>
+                <% } else { %>
+                    <span>Chưa có đánh giá</span>
+                <% } %>
+            </div>
+            
+            <div class="price">
+                <% if (product.discountPrice) { %>
+                    <span class="discount-price"><%= product.discountPrice.toLocaleString('vi-VN') %> ₫</span>
+                    <span class="original-price"><%= product.price.toLocaleString('vi-VN') %> ₫</span>
+                    <span class="discount-percent">-<%= Math.round((1 - product.discountPrice/product.price) * 100) %>%</span>
+                <% } else { %>
+                    <span class="current-price"><%= product.price.toLocaleString('vi-VN') %> ₫</span>
+                <% } %>
+            </div>
+            
+            <div class="stock <%= product.stock > 0 ? 'in-stock' : 'out-of-stock' %>">
+                <% if (product.stock > 0) { %>
+                    <i class="fas fa-check-circle"></i> Còn hàng
+                <% } else { %>
+                    <i class="fas fa-times-circle"></i> Hết hàng
+                <% } %>
+            </div>
+            
+            <div class="description">
+                <p><%= product.description %></p>
+            </div>
+            
+            <form id="addToCartForm">
+                <% if (product.variants && product.variants.length > 0) { %>
+                    <div class="variants">
+                        <% product.variants.forEach(variant => { %>
+                            <div class="variant-option">
+                                <label for="variant-<%= variant.name %>"><%= variant.name %>:</label>
+                                <select id="variant-<%= variant.name %>" name="variant" class="variant-select" data-name="<%= variant.name %>">
+                                    <% variant.options.forEach(option => { %>
+                                        <option value="<%= option.value %>" data-price="<%= option.additionalPrice %>" data-stock="<%= option.stock %>">
+                                            <%= option.value %> 
+                                            <% if (option.additionalPrice > 0) { %>
+                                                (+ <%= option.additionalPrice.toLocaleString('vi-VN') %> ₫)
+                                            <% } else if (option.additionalPrice < 0) { %>
+                                                (- <%= Math.abs(option.additionalPrice).toLocaleString('vi-VN') %> ₫)
+                                            <% } %>
+                                        </option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } %>
+                
+                <div class="quantity">
+                    <label for="quantity">Số lượng:</label>
+                    <div class="quantity-input">
+                        <button type="button" class="minus">-</button>
+                        <input type="number" id="quantity" name="quantity" value="1" min="1" 
+                               max="<%= product.stock %>" data-stock="<%= product.stock %>">
+                        <button type="button" class="plus">+</button>
+                    </div>
+                </div>
+                
+                <div class="actions">
+                    <% if (product.stock > 0) { %>
+                        <button type="button" id="addToCartBtn" class="btn btn-primary btn-lg" data-id="<%= product._id %>">
+                            <i class="fas fa-shopping-cart"></i> Thêm vào giỏ hàng
+                        </button>
+                        <button type="button" id="buyNowBtn" class="btn btn-danger btn-lg" data-id="<%= product._id %>">
+                            Mua ngay
+                        </button>
+                    <% } else { %>
+                        <button type="button" class="btn btn-secondary btn-lg" disabled>
+                            Hết hàng
+                        </button>
+                    <% } %>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="product-tabs">
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="specifications">Thông số kỹ thuật</button>
+            <button class="tab-btn" data-tab="description">Mô tả chi tiết</button>
+            <button class="tab-btn" data-tab="reviews">Đánh giá (<%= product.ratings.length %>)</button>
+        </div>
+        
+        <div class="tab-content">
+            <div id="specifications" class="tab-pane active">
+                <div class="specifications">
+                    <table>
+                        <% if (product.specifications && product.specifications.length > 0) { %>
+                            <% product.specifications.forEach(spec => { %>
+                                <tr>
+                                    <th><%= spec.name %></th>
+                                    <td><%= spec.value %></td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="2">Không có thông số kỹ thuật.</td>
+                            </tr>
+                        <% } %>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="description" class="tab-pane">
+                <div class="full-description">
+                    <p><%= product.description %></p>
+                </div>
+            </div>
+            
+            <div id="reviews" class="tab-pane">
+                <div class="reviews-list">
+                    <% if (product.ratings && product.ratings.length > 0) { %>
+                        <% product.ratings.forEach(rating => { %>
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <span class="author"><%= rating.user ? rating.user.name : 'Ẩn danh' %></span>
+                                    <span class="date"><%= new Date(rating.date).toLocaleDateString('vi-VN') %></span>
+                                </div>
+                                <div class="review-rating">
+                                    <% for (let i = 1; i <= 5; i++) { %>
+                                        <% if (i <= rating.rating) { %>
+                                            <i class="fas fa-star"></i>
+                                        <% } else { %>
+                                            <i class="far fa-star"></i>
+                                        <% } %>
+                                    <% } %>
+                                </div>
+                                <div class="review-content">
+                                    <%= rating.review %>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+                    <% } %>
+                </div>
+                
+                <div class="write-review">
+                    <h3>Viết đánh giá</h3>
+                    <form action="/products/<%= product.slug %>/review" method="POST">
+                        <div class="form-group">
+                            <label>Đánh giá:</label>
+                            <div class="rating-input">
+                                <input type="hidden" name="rating" id="rating-value" value="5">
+                                <div class="stars">
+                                    <i class="fas fa-star" data-value="1"></i>
+                                    <i class="fas fa-star" data-value="2"></i>
+                                    <i class="fas fa-star" data-value="3"></i>
+                                    <i class="fas fa-star" data-value="4"></i>
+                                    <i class="fas fa-star" data-value="5"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="review">Nhận xét:</label>
+                            <textarea id="review" name="review" rows="4" required placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                Gửi đánh giá
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <% if (relatedProducts && relatedProducts.length > 0) { %>
+        <div class="related-products">
+            <h2>Sản phẩm liên quan</h2>
+            <div class="product-grid">
+                <% relatedProducts.forEach(relatedProduct => { %>
+                    <%- include('../partials/product-card', { product: relatedProduct }) %>
+                <% }) %>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Product image gallery
+        const mainImage = document.getElementById('mainProductImage');
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        
+        thumbnails.forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                // Update main image
+                const imgSrc = this.querySelector('img').src;
+                mainImage.src = imgSrc;
+                
+                // Update active class
+                thumbnails.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Tab switching
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const tabId = this.dataset.tab;
+                
+                // Update active tab button
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show active tab content
+                tabPanes.forEach(pane => pane.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Rating input handling
+        const stars = document.querySelectorAll('.rating-input .stars i');
+        const ratingValue = document.getElementById('rating-value');
+        
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const value = this.dataset.value;
+                ratingValue.value = value;
+                
+                // Update UI
+                stars.forEach(s => {
+                    if (s.dataset.value <= value) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+            });
+            
+            // Initialize all stars as active for initial 5-star rating
+            star.classList.add('active');
+        });
+        
+        // Quantity input handling
+        const quantityInput = document.getElementById('quantity');
+        const minusBtn = document.querySelector('.quantity-input .minus');
+        const plusBtn = document.querySelector('.quantity-input .plus');
+        
+        if (minusBtn && plusBtn && quantityInput) {
+            minusBtn.addEventListener('click', function() {
+                const currentValue = parseInt(quantityInput.value);
+                if (currentValue > 1) {
+                    quantityInput.value = currentValue - 1;
+                }
+            });
+            
+            plusBtn.addEventListener('click', function() {
+                const currentValue = parseInt(quantityInput.value);
+                const maxStock = parseInt(quantityInput.dataset.stock);
+                if (currentValue < maxStock) {
+                    quantityInput.value = currentValue + 1;
+                }
+            });
+        }
+        
+        // Add to Cart functionality
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener('click', function() {
+                const productId = this.dataset.id;
+                const quantity = parseInt(document.getElementById('quantity').value);
+                
+                // Get selected variant if available
+                let variant = null;
+                const variantSelects = document.querySelectorAll('.variant-select');
+                if (variantSelects.length > 0) {
+                    variant = {
+                        name: variantSelects[0].dataset.name,
+                        value: variantSelects[0].value
+                    };
+                }
+                
+                fetch('/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        productId,
+                        quantity,
+                        variant
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message with toast
+                        showToast(data.message, 'success');
+                        
+                        // Update cart count in header
+                        const cartCountElement = document.querySelector('.cart-count');
+                        if (cartCountElement) {
+                            cartCountElement.textContent = data.cartCount;
+                        } else {
+                            const cartIcon = document.querySelector('.cart-icon');
+                            const newCartCount = document.createElement('span');
+                            newCartCount.classList.add('cart-count');
+                            newCartCount.textContent = data.cartCount;
+                            cartIcon.appendChild(newCartCount);
+                        }
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng.', 'error');
+                });
+            });
+        }
+        
+        // Buy Now functionality
+        const buyNowBtn = document.getElementById('buyNowBtn');
+        if (buyNowBtn) {
+            buyNowBtn.addEventListener('click', function() {
+                const productId = this.dataset.id;
+                const quantity = parseInt(document.getElementById('quantity').value);
+                
+                // Get selected variant if available
+                let variant = null;
+                const variantSelects = document.querySelectorAll('.variant-select');
+                if (variantSelects.length > 0) {
+                    variant = {
+                        name: variantSelects[0].dataset.name,
+                        value: variantSelects[0].value
+                    };
+                }
+                
+                fetch('/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        productId,
+                        quantity,
+                        variant,
+                        buyNow: true
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Redirect to checkout
+                        window.location.href = '/orders/checkout';
+                    } else {
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Đã xảy ra lỗi khi mua sản phẩm.', 'error');
+                });
+            });
+        }
+        
+        // Setup WebSocket for real-time reviews (if the server supports it)
+        const setupReviewsWebsocket = () => {
+            if ('WebSocket' in window) {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = `${protocol}//${window.location.host}/ws/reviews/${encodeURIComponent('<%= product.slug %>')}`;
+                
+                const socket = new WebSocket(wsUrl);
+                
+                socket.onopen = function() {
+                    console.log('WebSocket connected for reviews');
+                };
+                
+                socket.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.type === 'new_review') {
+                            // Add the new review to the reviews list without page refresh
+                            const reviewsList = document.querySelector('.reviews-list');
+                            const newReview = createReviewElement(data.review);
+                            reviewsList.insertBefore(newReview, reviewsList.firstChild);
+                            
+                            // Update the review count
+                            const reviewCount = document.querySelector('.tab-btn[data-tab="reviews"]');
+                            const countMatch = reviewCount.textContent.match(/\((\d+)\)/);
+                            if (countMatch) {
+                                const count = parseInt(countMatch[1]) + 1;
+                                reviewCount.textContent = `Đánh giá (${count})`;
+                            }
+                            
+                            // Show success message
+                            showToast('Đánh giá mới đã được thêm vào.', 'info');
+                        }
+                    } catch (error) {
+                        console.error('Error parsing WebSocket message:', error);
+                    }
+                };
+                
+                socket.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                };
+                
+                socket.onclose = function() {
+                    console.log('WebSocket connection closed');
+                    // Try to reconnect after a delay
+                    setTimeout(setupReviewsWebsocket, 5000);
+                };
+                
+                // Store socket reference for cleanup
+                window.reviewsSocket = socket;
+            }
+        };
+        
+        // Helper function to create a review element
+        function createReviewElement(review) {
+            const reviewItem = document.createElement('div');
+            reviewItem.className = 'review-item';
+            
+            const reviewHeader = document.createElement('div');
+            reviewHeader.className = 'review-header';
+            
+            const author = document.createElement('span');
+            author.className = 'author';
+            author.textContent = review.user ? review.user.name : 'Ẩn danh';
+            
+            const date = document.createElement('span');
+            date.className = 'date';
+            date.textContent = new Date(review.date).toLocaleDateString('vi-VN');
+            
+            reviewHeader.appendChild(author);
+            reviewHeader.appendChild(date);
+            
+            const reviewRating = document.createElement('div');
+            reviewRating.className = 'review-rating';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('i');
+                star.className = i <= review.rating ? 'fas fa-star' : 'far fa-star';
+                reviewRating.appendChild(star);
+            }
+            
+            const reviewContent = document.createElement('div');
+            reviewContent.className = 'review-content';
+            reviewContent.textContent = review.review;
+            
+            reviewItem.appendChild(reviewHeader);
+            reviewItem.appendChild(reviewRating);
+            reviewItem.appendChild(reviewContent);
+            
+            return reviewItem;
+        }
+        
+        // Try to setup WebSocket connection for real-time reviews
+        setupReviewsWebsocket();
+    });
+    
+    // Toast notification function
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.classList.add('toast', `toast-${type}`);
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'info' ? 'fa-info-circle' : 'fa-exclamation-circle'}"></i>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Show toast
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+        
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+        
+        // Close button
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', function() {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        });
+    }
+</script>

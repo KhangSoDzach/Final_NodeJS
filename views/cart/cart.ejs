@@ -1,0 +1,334 @@
+<div class="cart-page">
+    <div class="page-header">
+        <h1>Giỏ hàng</h1>
+    </div>
+    
+    <% if (!cart || cart.items.length === 0) { %>
+        <div class="cart-empty">
+            <i class="fas fa-shopping-cart"></i>
+            <h2>Giỏ hàng trống</h2>
+            <p>Bạn chưa có sản phẩm nào trong giỏ hàng.</p>
+            <a href="/products" class="btn btn-primary">Tiếp tục mua sắm</a>
+        </div>
+    <% } else { %>
+        <div class="cart-container">
+            <div class="cart-items">
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Giá</th>
+                            <th>Số lượng</th>
+                            <th>Tổng</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% cart.items.forEach(item => { %>
+                            <tr class="cart-item" data-item-id="<%= item._id %>">
+                                <td class="product">
+                                    <% if (item.product && item.product.images && item.product.images.length > 0) { %>
+                                        <img src="/uploads/products/<%= item.product.images[0] %>" alt="<%= item.product.name %>">
+                                    <% } else { %>
+                                        <img src="/images/no-image.png" alt="No Image Available">
+                                    <% } %>
+                                    <div class="product-info">
+                                        <h3><%= item.product ? item.product.name : 'Sản phẩm đã bị xóa' %></h3>
+                                        <% if (item.variant) { %>
+                                            <p class="variant"><%= item.variant.name %>: <%= item.variant.value %></p>
+                                        <% } %>
+                                    </div>
+                                </td>
+                                <td class="price"><%= item.price.toLocaleString('vi-VN') %> ₫</td>
+                                <td class="quantity">
+                                    <div class="quantity-input">
+                                        <button type="button" class="decrease-quantity">-</button>
+                                        <input type="number" class="cart-quantity-input" value="<%= item.quantity %>" min="1" 
+                                               data-item-id="<%= item._id %>" data-price="<%= item.price %>">
+                                        <button type="button" class="increase-quantity">+</button>
+                                    </div>
+                                </td>
+                                <td class="subtotal item-subtotal" data-item-id="<%= item._id %>">
+                                    <%= (item.price * item.quantity).toLocaleString('vi-VN') %> ₫
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-danger remove-cart-item" data-item-id="<%= item._id %>">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="cart-summary">
+                <div class="summary-card">
+                    <h3>Tổng giỏ hàng</h3>
+                    <div class="summary-row">
+                        <span>Tạm tính</span>
+                        <span class="cart-subtotal"><%= cart.calculateTotal().toLocaleString('vi-VN') %> ₫</span>
+                    </div>
+                    
+                    <% if (cart.coupon) { %>
+                        <div class="summary-row discount">
+                            <span>Giảm giá (<%= cart.coupon.code %> - <%= cart.coupon.discount %>%)</span>
+                            <span>-<%= (cart.calculateTotal() - cart.calculateTotalWithDiscount()).toLocaleString('vi-VN') %> ₫</span>
+                        </div>
+                    <% } %>
+                    
+                    <div class="summary-row total">
+                        <span>Tổng cộng</span>
+                        <span class="cart-total">
+                            <%= (cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal()).toLocaleString('vi-VN') %> ₫
+                        </span>
+                    </div>
+                    
+                    <div class="coupon-section">
+                        <% if (cart.coupon) { %>
+                            <div class="coupon-info">
+                                <p>Mã giảm giá: <strong><%= cart.coupon.code %></strong> (-<%= cart.coupon.discount %>%)</p>
+                                <p>Giảm: <strong><%= (cart.calculateTotal() - cart.calculateTotalWithDiscount()).toLocaleString('vi-VN') %> ₫</strong></p>
+                                <button type="button" id="remove-coupon" class="btn btn-sm btn-danger">Xóa</button>
+                            </div>
+                        <% } else { %>
+                            <form id="apply-coupon-form">
+                                <div class="form-group">
+                                    <label for="coupon-code">Mã giảm giá</label>
+                                    <div class="coupon-input">
+                                        <input type="text" id="coupon-code" name="couponCode" placeholder="Nhập mã giảm giá">
+                                        <button type="submit" class="btn btn-primary">Áp dụng</button>
+                                    </div>
+                                </div>
+                            </form>
+                        <% } %>
+                    </div>
+                    
+                    <div class="checkout-button">
+                        <a href="/orders/checkout" class="btn btn-primary btn-block">Tiến hành thanh toán</a>
+                    </div>
+                    
+                    <div class="continue-shopping">
+                        <a href="/products">
+                            <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Quantity change buttons
+        const decreaseBtns = document.querySelectorAll('.decrease-quantity');
+        const increaseBtns = document.querySelectorAll('.increase-quantity');
+        
+        decreaseBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = this.nextElementSibling;
+                let value = parseInt(input.value);
+                if (value > 1) {
+                    input.value = value - 1;
+                    updateCartItem(input);
+                }
+            });
+        });
+        
+        increaseBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                let value = parseInt(input.value);
+                input.value = value + 1;
+                updateCartItem(input);
+            });
+        });
+        
+        // Quantity input change
+        const quantityInputs = document.querySelectorAll('.cart-quantity-input');
+        quantityInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                updateCartItem(this);
+            });
+        });
+        
+        // Remove item
+        const removeButtons = document.querySelectorAll('.remove-cart-item');
+        removeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.getAttribute('data-item-id');
+                removeCartItem(itemId);
+            });
+        });
+        
+        // Apply coupon
+        const couponForm = document.getElementById('apply-coupon-form');
+        if (couponForm) {
+            couponForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                applyCoupon();
+            });
+        }
+        
+        // Remove coupon
+        const removeCouponBtn = document.getElementById('remove-coupon');
+        if (removeCouponBtn) {
+            removeCouponBtn.addEventListener('click', function() {
+                removeCoupon();
+            });
+        }
+    });
+    
+    function updateCartItem(input) {
+        const itemId = input.getAttribute('data-item-id');
+        const quantity = parseInt(input.value);
+        
+        fetch('/cart/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                itemId,
+                quantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update subtotal
+                const price = parseFloat(input.getAttribute('data-price'));
+                const subtotalElement = document.querySelector(`.item-subtotal[data-item-id="${itemId}"]`);
+                subtotalElement.textContent = (price * quantity).toLocaleString('vi-VN') + ' ₫';
+                
+                // Update cart total
+                document.querySelector('.cart-subtotal').textContent = data.cartTotal.toLocaleString('vi-VN') + ' ₫';
+                document.querySelector('.cart-total').textContent = data.cartTotal.toLocaleString('vi-VN') + ' ₫';
+                
+                showToast('Giỏ hàng đã được cập nhật.', 'success');
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Đã xảy ra lỗi khi cập nhật giỏ hàng.', 'error');
+        });
+    }
+    
+    function removeCartItem(itemId) {
+        fetch(`/cart/remove/${itemId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove item from DOM
+                const itemRow = document.querySelector(`.cart-item[data-item-id="${itemId}"]`);
+                itemRow.remove();
+                
+                // Update cart total
+                document.querySelector('.cart-subtotal').textContent = data.cartTotal.toLocaleString('vi-VN') + ' ₫';
+                document.querySelector('.cart-total').textContent = data.cartTotal.toLocaleString('vi-VN') + ' ₫';
+                
+                showToast(data.message, 'success');
+                
+                // Reload if cart is empty
+                if (data.cartCount === 0) {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Đã xảy ra lỗi khi xóa sản phẩm khỏi giỏ hàng.', 'error');
+        });
+    }
+    
+    function applyCoupon() {
+        const couponCode = document.getElementById('coupon-code').value;
+        
+        fetch('/cart/apply-coupon', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                couponCode
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload page to show updated cart with coupon
+                window.location.reload();
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Đã xảy ra lỗi khi áp dụng mã giảm giá.', 'error');
+        });
+    }
+    
+    function removeCoupon() {
+        fetch('/cart/remove-coupon', {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload page to show updated cart without coupon
+                window.location.reload();
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Đã xảy ra lỗi khi xóa mã giảm giá.', 'error');
+        });
+    }
+    
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.classList.add('toast', `toast-${type}`);
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button type="button" class="toast-close">&times;</button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Show toast
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+        
+        // Auto hide after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+        
+        // Close button
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', function() {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        });
+    }
+</script>

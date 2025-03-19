@@ -1,0 +1,136 @@
+<div class="user-profile-page">
+    <div class="page-header">
+        <h1>Lịch sử đơn hàng</h1>
+    </div>
+    
+    <div class="profile-grid">
+        <div class="profile-sidebar">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3><%= user.name %></h3>
+                <p><%= user.email %></p>
+                <p class="loyalty-points">
+                    <i class="fas fa-award"></i> Điểm tích lũy: <strong><%= user.loyaltyPoints %></strong>
+                </p>
+            </div>
+            
+            <nav class="profile-nav">
+                <ul>
+                    <li><a href="/user/profile"><i class="fas fa-user"></i> Thông tin tài khoản</a></li>
+                    <li class="active"><a href="/user/orders"><i class="fas fa-shopping-bag"></i> Lịch sử đơn hàng</a></li>
+                    <li><a href="/user/addresses"><i class="fas fa-map-marker-alt"></i> Địa chỉ</a></li>
+                    <li><a href="/user/loyalty-points"><i class="fas fa-award"></i> Điểm tích lũy</a></li>
+                    <li><a href="/user/change-password"><i class="fas fa-key"></i> Đổi mật khẩu</a></li>
+                </ul>
+            </nav>
+        </div>
+        
+        <div class="profile-content">
+            <div class="profile-card">
+                <h2>Đơn hàng của bạn</h2>
+                
+                <% if (orders && orders.length > 0) { %>
+                    <div class="orders-list">
+                        <table class="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn hàng</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Sản phẩm</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% orders.forEach(order => { %>
+                                    <tr>
+                                        <td><%= order.orderNumber %></td>
+                                        <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
+                                        <td>
+                                            <div class="order-items-summary">
+                                                <%= order.items.length %> sản phẩm
+                                                <span class="order-items-tooltip">
+                                                    <% order.items.slice(0, 3).forEach(item => { %>
+                                                        <%= item.name %> x <%= item.quantity %><br>
+                                                    <% }) %>
+                                                    <% if (order.items.length > 3) { %>
+                                                        ... và <%= order.items.length - 3 %> sản phẩm khác
+                                                    <% } %>
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td><%= order.totalAmount.toLocaleString('vi-VN') %> ₫</td>
+                                        <td>
+                                            <span class="status-badge <%= order.status %>">
+                                                <% let statusText; %>
+                                                <% switch(order.status) { 
+                                                    case 'processing': statusText = 'Đang xử lý'; break;
+                                                    case 'confirmed': statusText = 'Đã xác nhận'; break;
+                                                    case 'shipped': statusText = 'Đang giao hàng'; break;
+                                                    case 'delivered': statusText = 'Đã giao hàng'; break;
+                                                    case 'cancelled': statusText = 'Đã hủy'; break;
+                                                    default: statusText = order.status;
+                                                } %>
+                                                <%= statusText %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <% if (totalPages > 1) { %>
+                        <div class="pagination-container">
+                            <ul class="pagination">
+                                <% if (currentPage > 1) { %>
+                                    <li class="page-item">
+                                        <a class="page-link" href="/user/orders?page=1">Đầu</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="/user/orders?page=<%= currentPage - 1 %>">Trước</a>
+                                    </li>
+                                <% } %>
+                                
+                                <% 
+                                let startPage = Math.max(1, currentPage - 2);
+                                let endPage = Math.min(totalPages, startPage + 4);
+                                if (endPage - startPage < 4 && startPage > 1) {
+                                    startPage = Math.max(1, endPage - 4);
+                                }
+                                %>
+                                
+                                <% for (let i = startPage; i <= endPage; i++) { %>
+                                    <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                        <a class="page-link" href="/user/orders?page=<%= i %>"><%= i %></a>
+                                    </li>
+                                <% } %>
+                                
+                                <% if (currentPage < totalPages) { %>
+                                    <li class="page-item">
+                                        <a class="page-link" href="/user/orders?page=<%= currentPage + 1 %>">Tiếp</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="/user/orders?page=<%= totalPages %>">Cuối</a>
+                                    </li>
+                                <% } %>
+                            </ul>
+                        </div>
+                    <% } %>
+                <% } else { %>
+                    <div class="no-orders">
+                        <p>Bạn chưa có đơn hàng nào.</p>
+                        <a href="/products" class="btn btn-primary">Mua sắm ngay</a>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>

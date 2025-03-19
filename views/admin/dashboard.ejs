@@ -1,0 +1,264 @@
+<div class="admin-layout">
+    <%- include('./partials/sidebar') %>
+    
+    <div class="admin-content">
+        <div class="admin-header">
+            <h1>Dashboard</h1>
+            <div class="admin-header-actions">
+                <div class="date-filter">
+                    <select id="date-range">
+                        <option value="today">Hôm nay</option>
+                        <option value="week">Tuần này</option>
+                        <option value="month" selected>Tháng này</option>
+                        <option value="year">Năm nay</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card primary">
+                <div class="label">Doanh thu</div>
+                <div class="value"><%= totalRevenue.toLocaleString('vi-VN') %> ₫</div>
+                <div class="change">+15% so với tháng trước</div>
+            </div>
+            
+            <div class="stat-card success">
+                <div class="label">Đơn hàng</div>
+                <div class="value"><%= totalOrders %></div>
+                <div class="change">+5% so với tháng trước</div>
+            </div>
+            
+            <div class="stat-card warning">
+                <div class="label">Khách hàng</div>
+                <div class="value"><%= totalUsers %></div>
+                <div class="change">+8% so với tháng trước</div>
+            </div>
+            
+            <div class="stat-card danger">
+                <div class="label">Đơn hàng chờ xử lý</div>
+                <div class="value"><%= pendingOrders %></div>
+                <div class="change">Cần xử lý ngay</div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-8">
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h3>Doanh thu theo thời gian</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-4">
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h3>Danh mục sản phẩm</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="admin-card">
+            <div class="card-header">
+                <h3>Đơn hàng gần đây</h3>
+            </div>
+            <div class="card-body">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn hàng</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% recentOrders.forEach(order => { %>
+                            <tr>
+                                <td><%= order.orderNumber %></td>
+                                <td><%= order.user ? order.user.name : 'Khách vãng lai' %></td>
+                                <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
+                                <td><%= order.totalAmount.toLocaleString('vi-VN') %> ₫</td>
+                                <td>
+                                    <span class="status-badge <%= order.status %>">
+                                        <% let statusText; %>
+                                        <% switch(order.status) { 
+                                            case 'processing': statusText = 'Đang xử lý'; break;
+                                            case 'confirmed': statusText = 'Đã xác nhận'; break;
+                                            case 'shipped': statusText = 'Đang giao hàng'; break;
+                                            case 'delivered': statusText = 'Đã giao hàng'; break;
+                                            case 'cancelled': statusText = 'Đã hủy'; break;
+                                            default: statusText = order.status;
+                                        } %>
+                                        <%= statusText %>
+                                    </span>
+                                </td>
+                                <td class="actions">
+                                    <a href="/admin/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+                
+                <div class="view-all">
+                    <a href="/admin/orders">Xem tất cả đơn hàng</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="admin-card">
+            <div class="card-header">
+                <h3>Sản phẩm bán chạy</h3>
+            </div>
+            <div class="card-body">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Danh mục</th>
+                            <th>Giá</th>
+                            <th>Đã bán</th>
+                            <th>Tồn kho</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% bestSellers.forEach(product => { %>
+                            <tr>
+                                <td>
+                                    <div class="product-cell">
+                                        <% if (product.images && product.images.length > 0) { %>
+                                            <img src="/uploads/products/<%= product.images[0] %>" alt="<%= product.name %>">
+                                        <% } else { %>
+                                            <img src="/images/no-image.png" alt="No Image">
+                                        <% } %>
+                                        <span><%= product.name %></span>
+                                    </div>
+                                </td>
+                                <td><%= product.category %></td>
+                                <td><%= (product.discountPrice || product.price).toLocaleString('vi-VN') %> ₫</td>
+                                <td><%= product.sold %></td>
+                                <td><%= product.stock %></td>
+                                <td class="actions">
+                                    <a href="/admin/products/edit/<%= product._id %>" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+                
+                <div class="view-all">
+                    <a href="/admin/products">Xem tất cả sản phẩm</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Revenue chart
+        const revenueData = {
+            labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+            datasets: [{
+                label: 'Doanh thu (triệu đồng)',
+                data: [12, 19, 13, 15, 22, 27, 30, 35, 40, 45, 50, 55],
+                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                borderColor: 'rgba(52, 152, 219, 1)',
+                borderWidth: 2,
+                tension: 0.4
+            }]
+        };
+        
+        const revenueConfig = {
+            type: 'line',
+            data: revenueData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+        
+        new Chart(
+            document.getElementById('revenueChart'),
+            revenueConfig
+        );
+        
+        // Category chart
+        const categoryData = {
+            labels: ['Laptop', 'PC', 'Màn hình', 'Linh kiện', 'Phụ kiện'],
+            datasets: [{
+                label: 'Số lượng sản phẩm',
+                data: [42, 28, 18, 35, 25],
+                backgroundColor: [
+                    'rgba(52, 152, 219, 0.7)',
+                    'rgba(46, 204, 113, 0.7)',
+                    'rgba(241, 196, 15, 0.7)',
+                    'rgba(230, 126, 34, 0.7)',
+                    'rgba(231, 76, 60, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(52, 152, 219, 1)',
+                    'rgba(46, 204, 113, 1)',
+                    'rgba(241, 196, 15, 1)',
+                    'rgba(230, 126, 34, 1)',
+                    'rgba(231, 76, 60, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+        
+        const categoryConfig = {
+            type: 'doughnut',
+            data: categoryData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        };
+        
+        new Chart(
+            document.getElementById('categoryChart'),
+            categoryConfig
+        );
+        
+        // Date filter change event
+        document.getElementById('date-range').addEventListener('change', function() {
+            // In a real application, this would reload the data based on the selected date range
+            // For this example, we'll just show an alert
+            alert('In a real application, this would fetch data for the selected date range: ' + this.value);
+        });
+    });
+</script>

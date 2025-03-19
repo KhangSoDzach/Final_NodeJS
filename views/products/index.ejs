@@ -1,0 +1,257 @@
+<div class="product-listing">
+    <div class="page-header">
+        <h1>Sản phẩm</h1>
+        <p>Tìm thấy <%= totalProducts %> sản phẩm</p>
+    </div>
+    
+    <div class="product-container">
+        <!-- Sidebar filters -->
+        <div class="product-filters">
+            <form action="/products" method="GET" id="filterForm">
+                <!-- Hidden inputs for maintaining pagination and sort -->
+                <% if(filter.page) { %>
+                    <input type="hidden" name="page" value="<%= filter.page %>">
+                <% } %>
+                <% if(filter.sort) { %>
+                    <input type="hidden" name="sort" value="<%= filter.sort %>">
+                <% } %>
+                
+                <div class="filter-section">
+                    <h3>Danh mục</h3>
+                    <div class="filter-options">
+                        <% categories.forEach(category => { %>
+                            <div class="filter-option">
+                                <input type="radio" name="category" id="cat-<%= category %>" 
+                                    value="<%= category %>" 
+                                    <%= filter.category === category ? 'checked' : '' %>
+                                    onchange="document.getElementById('filterForm').submit()">
+                                <label for="cat-<%= category %>"><%= category %></label>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+                
+                <% if(subcategories && subcategories.length > 0) { %>
+                <div class="filter-section">
+                    <h3>Phụ mục</h3>
+                    <div class="filter-options">
+                        <% subcategories.forEach(subcategory => { %>
+                            <div class="filter-option">
+                                <input type="checkbox" name="subcategory" id="subcat-<%= subcategory %>" 
+                                    value="<%= subcategory %>" 
+                                    <%= filter.subcategory === subcategory ? 'checked' : '' %>
+                                    onchange="document.getElementById('filterForm').submit()">
+                                <label for="subcat-<%= subcategory %>"><%= subcategory %></label>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+                <% } %>
+                
+                <div class="filter-section">
+                    <h3>Thương hiệu</h3>
+                    <div class="filter-options">
+                        <% brands.forEach(brand => { %>
+                            <div class="filter-option">
+                                <input type="checkbox" name="brand" id="brand-<%= brand %>" 
+                                    value="<%= brand %>" 
+                                    <%= (Array.isArray(filter.brand) && filter.brand.includes(brand)) || filter.brand === brand ? 'checked' : '' %>
+                                    onchange="document.getElementById('filterForm').submit()">
+                                <label for="brand-<%= brand %>"><%= brand %></label>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h3>Giá (VNĐ)</h3>
+                    <div class="price-filter">
+                        <input type="number" name="minPrice" placeholder="Giá thấp nhất" 
+                               value="<%= filter.minPrice || '' %>" min="0" step="100000">
+                        <span>đến</span>
+                        <input type="number" name="maxPrice" placeholder="Giá cao nhất" 
+                               value="<%= filter.maxPrice || '' %>" min="0" step="100000">
+                        <button type="submit" class="btn btn-sm btn-primary">Áp dụng</button>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <button type="button" class="btn btn-outline-danger" id="clearFilters">Xóa bộ lọc</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Product grid and sorting options -->
+        <div class="product-content">
+            <div class="product-sorting">
+                <div class="sort-options">
+                    <span>Sắp xếp theo:</span>
+                    <select id="sortSelect" onchange="sortProducts(this.value)">
+                        <option value="newest" <%= filter.sort === 'newest' || !filter.sort ? 'selected' : '' %>>Mới nhất</option>
+                        <option value="price-asc" <%= filter.sort === 'price-asc' ? 'selected' : '' %>>Giá tăng dần</option>
+                        <option value="price-desc" <%= filter.sort === 'price-desc' ? 'selected' : '' %>>Giá giảm dần</option>
+                        <option value="name-asc" <%= filter.sort === 'name-asc' ? 'selected' : '' %>>Tên A-Z</option>
+                        <option value="name-desc" <%= filter.sort === 'name-desc' ? 'selected' : '' %>>Tên Z-A</option>
+                        <option value="rating-desc" <%= filter.sort === 'rating-desc' ? 'selected' : '' %>>Đánh giá cao nhất</option>
+                    </select>
+                </div>
+                
+                <div class="view-options">
+                    <button class="btn btn-sm btn-outline-secondary view-btn grid-view active" data-view="grid">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary view-btn list-view" data-view="list">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <% if (products.length > 0) { %>
+                <div class="products grid-view-active" id="productContainer">
+                    <% products.forEach(product => { %>
+                        <div class="product-item">
+                            <div class="product-card">
+                                <a href="/products/<%= product.slug %>">
+                                    <div class="image">
+                                        <% if (product.images && product.images.length > 0) { %>
+                                            <img src="/uploads/products/<%= product.images[0] %>" alt="<%= product.name %>">
+                                        <% } else { %>
+                                            <img src="/images/no-image.png" alt="No Image Available">
+                                        <% } %>
+                                    </div>
+                                    
+                                    <div class="content">
+                                        <h3><%= product.name %></h3>
+                                        
+                                        <div class="price">
+                                            <% if (product.discountPrice) { %>
+                                                <span class="discount-price"><%= product.discountPrice.toLocaleString('vi-VN') %> ₫</span>
+                                                <span class="original-price"><%= product.price.toLocaleString('vi-VN') %> ₫</span>
+                                            <% } else { %>
+                                                <%= product.price.toLocaleString('vi-VN') %> ₫
+                                            <% } %>
+                                        </div>
+                                        
+                                        <div class="rating">
+                                            <% for (let i = 1; i <= 5; i++) { %>
+                                                <% if (i <= Math.round(product.averageRating)) { %>
+                                                    <i class="fas fa-star"></i>
+                                                <% } else { %>
+                                                    <i class="far fa-star"></i>
+                                                <% } %>
+                                            <% } %>
+                                            (<%= product.ratings.length %>)
+                                        </div>
+                                        
+                                        <div class="description">
+                                            <%= product.description.substring(0, 150) %>...
+                                        </div>
+                                        
+                                        <div class="actions">
+                                            <button class="btn btn-primary add-to-cart" data-id="<%= product._id %>">
+                                                <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
+                                            </button>
+                                            <a href="/products/<%= product.slug %>" class="btn btn-outline-primary">
+                                                Chi tiết
+                                            </a>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+                
+                <!-- Pagination -->
+                <% if (totalPages > 0) { %>
+                    <div class="pagination-container">
+                        <ul class="pagination">
+                            <% if (currentPage > 1) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="<%= getPaginationUrl(1) %>">Đầu</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="<%= getPaginationUrl(currentPage - 1) %>">Trước</a>
+                                </li>
+                            <% } %>
+                            
+                            <% 
+                            let startPage = Math.max(1, currentPage - 2);
+                            let endPage = Math.min(totalPages, startPage + 4);
+                            if (endPage - startPage < 4 && startPage > 1) {
+                                startPage = Math.max(1, endPage - 4);
+                            }
+                            %>
+                            
+                            <% for (let i = startPage; i <= endPage; i++) { %>
+                                <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                    <a class="page-link" href="<%= getPaginationUrl(i) %>"><%= i %></a>
+                                </li>
+                            <% } %>
+                            
+                            <% if (currentPage < totalPages) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="<%= getPaginationUrl(currentPage + 1) %>">Tiếp</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="<%= getPaginationUrl(totalPages) %>">Cuối</a>
+                                </li>
+                            <% } %>
+                        </ul>
+                    </div>
+                <% } %>
+            <% } else { %>
+                <div class="no-products">
+                    <p>Không tìm thấy sản phẩm nào phù hợp với tiêu chí tìm kiếm.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to build pagination URL
+    function getPaginationUrl(page) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', page);
+        return url.search;
+    }
+    
+    // Function to handle sorting
+    function sortProducts(sortValue) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('sort', sortValue);
+        url.searchParams.delete('page'); // Reset to page 1 when sorting changes
+        window.location.href = url.href;
+    }
+    
+    // Function to handle view switching (grid/list)
+    document.addEventListener('DOMContentLoaded', function() {
+        const viewButtons = document.querySelectorAll('.view-btn');
+        const productContainer = document.getElementById('productContainer');
+        
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const view = this.dataset.view;
+                
+                // Update buttons
+                viewButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update view
+                if (view === 'grid') {
+                    productContainer.classList.add('grid-view-active');
+                    productContainer.classList.remove('list-view-active');
+                } else {
+                    productContainer.classList.add('list-view-active');
+                    productContainer.classList.remove('grid-view-active');
+                }
+            });
+        });
+        
+        // Clear all filters
+        document.getElementById('clearFilters').addEventListener('click', function() {
+            window.location.href = '/products';
+        });
+    });
+</script>

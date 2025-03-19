@@ -1,0 +1,325 @@
+<div class="checkout-page">
+    <div class="page-header">
+        <h1>Thanh toán</h1>
+    </div>
+    
+    <div class="checkout-container">
+        <form action="/orders/create" method="POST" id="checkout-form">
+            <div class="checkout-grid">
+                <div class="checkout-details">
+                    <div class="checkout-section">
+                        <h2>Thông tin giao hàng</h2>
+                        
+                        <% if (!user) { %>
+                            <div class="guest-message">
+                                <p>Bạn đã có tài khoản? <a href="/auth/login?returnTo=/orders/checkout">Đăng nhập</a></p>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email">Email <span class="required">*</span></label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            
+                            <div class="form-group password-group">
+                                <label for="password">Mật khẩu (tùy chọn)</label>
+                                <input type="password" id="password" name="password">
+                                <small>Tạo mật khẩu để đăng ký tài khoản và theo dõi đơn hàng sau này</small>
+                            </div>
+                        <% } %>
+                        
+                        <div class="form-group">
+                            <label for="name">Họ tên <span class="required">*</span></label>
+                            <input type="text" id="name" name="name" value="<%= user ? user.name : '' %>" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">Số điện thoại <span class="required">*</span></label>
+                            <input type="tel" id="phone" name="phone" value="<%= user && user.phone ? user.phone : '' %>" required>
+                        </div>
+                        
+                        <% if (user && user.addresses && user.addresses.length > 0) { %>
+                            <div class="form-group">
+                                <label>Địa chỉ đã lưu</label>
+                                <div class="saved-addresses">
+                                    <select id="saved-address" class="form-control">
+                                        <option value="">-- Chọn địa chỉ --</option>
+                                        <% user.addresses.forEach((address, index) => { %>
+                                            <option value="<%= index %>" <%= address.default ? 'selected' : '' %>>
+                                                <%= address.street %>, <%= address.city %>, <%= address.state %>, <%= address.zipCode %>
+                                            </option>
+                                        <% }) %>
+                                    </select>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <div class="form-group">
+                            <label for="street">Địa chỉ <span class="required">*</span></label>
+                            <input type="text" id="street" name="street" 
+                                value="<%= user && user.addresses && user.addresses.find(a => a.default) ? user.addresses.find(a => a.default).street : '' %>" 
+                                required>
+                        </div>
+                        
+                        <div class="address-grid">
+                            <div class="form-group">
+                                <label for="city">Thành phố <span class="required">*</span></label>
+                                <input type="text" id="city" name="city" 
+                                    value="<%= user && user.addresses && user.addresses.find(a => a.default) ? user.addresses.find(a => a.default).city : '' %>" 
+                                    required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="state">Tỉnh/Thành <span class="required">*</span></label>
+                                <input type="text" id="state" name="state" 
+                                    value="<%= user && user.addresses && user.addresses.find(a => a.default) ? user.addresses.find(a => a.default).state : '' %>" 
+                                    required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="zipCode">Mã bưu điện <span class="required">*</span></label>
+                                <input type="text" id="zipCode" name="zipCode" 
+                                    value="<%= user && user.addresses && user.addresses.find(a => a.default) ? user.addresses.find(a => a.default).zipCode : '' %>" 
+                                    required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="checkout-section">
+                        <h2>Phương thức thanh toán</h2>
+                        
+                        <div class="payment-methods">
+                            <div class="payment-method">
+                                <input type="radio" id="cod" name="paymentMethod" value="cod" checked>
+                                <label for="cod">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    Thanh toán khi nhận hàng (COD)
+                                </label>
+                            </div>
+                            
+                            <div class="payment-method">
+                                <input type="radio" id="bank_transfer" name="paymentMethod" value="bank_transfer">
+                                <label for="bank_transfer">
+                                    <i class="fas fa-university"></i>
+                                    Chuyển khoản ngân hàng
+                                </label>
+                                <div class="payment-details bank-transfer-details" style="display: none;">
+                                    <p>Vui lòng chuyển khoản đến tài khoản sau:</p>
+                                    <p><strong>Ngân hàng:</strong> Vietcombank</p>
+                                    <p><strong>Số tài khoản:</strong> 1234567890</p>
+                                    <p><strong>Chủ tài khoản:</strong> Source Computer</p>
+                                    <p><strong>Nội dung:</strong> Thanh toán đơn hàng - [Họ tên của bạn]</p>
+                                </div>
+                            </div>
+                            
+                            <div class="payment-method">
+                                <input type="radio" id="credit_card" name="paymentMethod" value="credit_card">
+                                <label for="credit_card">
+                                    <i class="fas fa-credit-card"></i>
+                                    Thẻ tín dụng / Thẻ ghi nợ
+                                </label>
+                                <div class="payment-details credit-card-details" style="display: none;">
+                                    <div class="form-group">
+                                        <label>Số thẻ</label>
+                                        <input type="text" placeholder="1234 5678 9012 3456">
+                                    </div>
+                                    
+                                    <div class="card-info-grid">
+                                        <div class="form-group">
+                                            <label>Tên trên thẻ</label>
+                                            <input type="text" placeholder="NGUYEN VAN A">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label>Hết hạn</label>
+                                            <input type="text" placeholder="MM/YY">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label>CVV</label>
+                                            <input type="text" placeholder="123">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <% if (user && user.loyaltyPoints > 0) { %>
+                        <div class="checkout-section">
+                            <h2>Điểm tích lũy</h2>
+                            
+                            <div class="loyalty-points">
+                                <p>Bạn có <strong><%= user.loyaltyPoints %> điểm</strong> (tương đương <%= (user.loyaltyPoints * 1000).toLocaleString('vi-VN') %> ₫)</p>
+                                
+                                <div class="form-group">
+                                    <input type="checkbox" id="useLoyaltyPoints" name="useLoyaltyPoints">
+                                    <label for="useLoyaltyPoints">Sử dụng điểm tích lũy cho đơn hàng này</label>
+                                </div>
+                            </div>
+                        </div>
+                    <% } %>
+                    
+                    <div class="checkout-section">
+                        <h2>Ghi chú đơn hàng</h2>
+                        
+                        <div class="form-group">
+                            <textarea id="note" name="note" rows="4" placeholder="Ghi chú về đơn hàng, ví dụ: thời gian hay chỉ dẫn địa điểm giao hàng chi tiết hơn."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="checkout-summary">
+                    <div class="summary-card">
+                        <h3>Đơn hàng của bạn</h3>
+                        
+                        <div class="summary-products">
+                            <table class="summary-table">
+                                <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% cart.items.forEach(item => { %>
+                                        <tr>
+                                            <td>
+                                                <%= item.product ? item.product.name : 'Sản phẩm đã bị xóa' %> 
+                                                <% if (item.variant) { %>
+                                                    (<%= item.variant.name %>: <%= item.variant.value %>)
+                                                <% } %>
+                                                <span class="item-quantity">× <%= item.quantity %></span>
+                                            </td>
+                                            <td><%= (item.price * item.quantity).toLocaleString('vi-VN') %> ₫</td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="summary-totals">
+                            <div class="summary-row">
+                                <span>Tạm tính</span>
+                                <span><%= cart.calculateTotal().toLocaleString('vi-VN') %> ₫</span>
+                            </div>
+                            
+                            <% if (cart.coupon) { %>
+                                <div class="summary-row discount">
+                                    <span>Giảm giá (<%= cart.coupon.code %> - <%= cart.coupon.discount %>%)</span>
+                                    <span>-<%= (cart.calculateTotal() - cart.calculateTotalWithDiscount()).toLocaleString('vi-VN') %> ₫</span>
+                                </div>
+                            <% } %>
+                            
+                            <% if (user && user.loyaltyPoints > 0) { %>
+                                <div class="summary-row discount loyalty-discount" style="display: none;">
+                                    <span>Điểm tích lũy (<%= user.loyaltyPoints %> điểm)</span>
+                                    <span>-<%= (Math.min(user.loyaltyPoints * 1000, cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal())).toLocaleString('vi-VN') %> ₫</span>
+                                </div>
+                            <% } %>
+                            
+                            <div class="summary-row total">
+                                <span>Tổng cộng</span>
+                                <span class="order-total">
+                                    <%= (cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal()).toLocaleString('vi-VN') %> ₫
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="checkout-actions">
+                            <button type="submit" class="btn btn-primary btn-block">Đặt hàng</button>
+                            <a href="/cart" class="back-to-cart">
+                                <i class="fas fa-arrow-left"></i> Quay lại giỏ hàng
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle saved addresses
+        const savedAddressSelect = document.getElementById('saved-address');
+        if (savedAddressSelect) {
+            savedAddressSelect.addEventListener('change', function() {
+                if (this.value !== '') {
+                    const index = parseInt(this.value);
+                    //const addresses = <%- JSON.stringify(user ? user.addresses : []) %>;
+                    const address = addresses[index];
+                    
+                    document.getElementById('street').value = address.street;
+                    document.getElementById('city').value = address.city;
+                    document.getElementById('state').value = address.state;
+                    document.getElementById('zipCode').value = address.zipCode;
+                }
+            });
+        }
+        
+        // Handle payment method selection
+        const paymentMethods = document.querySelectorAll('input[name="paymentMethod"]');
+        paymentMethods.forEach(method => {
+            method.addEventListener('change', function() {
+                // Hide all payment details
+                document.querySelectorAll('.payment-details').forEach(el => {
+                    el.style.display = 'none';
+                });
+                
+                // Show selected payment details
+                const detailsEl = document.querySelector(`.${this.value}-details`);
+                if (detailsEl) {
+                    detailsEl.style.display = 'block';
+                }
+            });
+        });
+        
+        // Handle loyalty points checkbox
+        <!-- const loyaltyCheckbox = document.getElementById('useLoyaltyPoints');
+        if (loyaltyCheckbox) {
+            loyaltyCheckbox.addEventListener('change', function() {
+                const loyaltyDiscount = document.querySelector('.loyalty-discount');
+                const orderTotal = document.querySelector('.order-total');
+                
+                if (this.checked) {
+                    loyaltyDiscount.style.display = 'flex';
+                    
+                    // Calculate new total
+                    const loyaltyPoints = <%= user ? user.loyaltyPoints : 0 %>;
+                    const loyaltyValue = loyaltyPoints * 1000;
+                    const currentTotal = <%= cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal() %>;
+                    
+                    let newTotal = currentTotal - loyaltyValue;
+                    if (newTotal < 0) newTotal = 0;
+                    
+                    orderTotal.textContent = newTotal.toLocaleString('vi-VN') + ' ₫';
+                } else {
+                    loyaltyDiscount.style.display = 'none';
+                    
+                    // Restore original total
+                    const originalTotal = <%= cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal() %>;
+                    orderTotal.textContent = originalTotal.toLocaleString('vi-VN') + ' ₫';
+                }
+            }); 
+        }-->
+        
+        // Form validation
+        const checkoutForm = document.getElementById('checkout-form');
+        checkoutForm.addEventListener('submit', function(e) {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const street = document.getElementById('street').value;
+            const city = document.getElementById('city').value;
+            const state = document.getElementById('state').value;
+            const zipCode = document.getElementById('zipCode').value;
+            
+            if (!name || !phone || !street || !city || !state || !zipCode) {
+                e.preventDefault();
+                alert('Vui lòng điền đầy đủ thông tin giao hàng.');
+                return false;
+            }
+            
+            return true;
+        });
+    });
+</script>

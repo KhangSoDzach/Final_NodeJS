@@ -1,0 +1,77 @@
+<header>
+    <div class="container">
+        <div class="top-header">
+            <div class="logo">
+                <a href="/">
+                    <h1>Source Computer</h1>
+                </a>
+            </div>
+            
+            <div class="search-bar">
+                <form action="/products" method="GET">
+                    <input type="text" name="search" placeholder="Tìm kiếm sản phẩm..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>">
+                    <button type="submit"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+            
+            <div class="user-actions">
+                <a href="/cart" class="cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <% if (typeof cartCount !== 'undefined' && cartCount > 0) { %>
+                        <span class="cart-count"><%= cartCount %></span>
+                    <% } %>
+                </a>
+                
+                <% if (user) { %>
+                    <div class="dropdown">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="fas fa-user"></i> <%= user.name %>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="/user/profile">Thông tin tài khoản</a>
+                            <a href="/user/orders">Đơn hàng của tôi</a>
+                            <a href="/user/addresses">Địa chỉ</a>
+                            <a href="/user/loyalty-points">Điểm tích lũy</a>
+                            <% if (user.role === 'admin') { %>
+                                <a href="/admin">Quản trị</a>
+                            <% } %>
+                            <a href="/auth/logout">Đăng xuất</a>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <a href="/auth/login"><i class="fas fa-sign-in-alt"></i> Đăng nhập</a>
+                    <a href="/auth/register"><i class="fas fa-user-plus"></i> Đăng ký</a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    
+    <nav class="main-nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li><a href="/"><i class="fas fa-home"></i> Trang chủ</a></li>
+                
+                <li class="dropdown">
+                    <a href="/products">
+                        <i class="fas fa-laptop"></i> Sản phẩm <i class="fas fa-angle-down"></i>
+                    </a>
+                    <div class="dropdown-content">
+                        <a href="/products?category=laptop">Laptop</a>
+                        <a href="/products?category=pc">PC</a>
+                        <a href="/products?category=monitor">Màn hình</a>
+                        <a href="/products?category=component">Linh kiện</a>
+                        <a href="/products?category=accessory">Phụ kiện</a>
+                    </div>
+                </li>
+                
+                <li><a href="/products?category=laptop"><i class="fas fa-laptop"></i> Laptop</a></li>
+                <li><a href="/products?category=pc"><i class="fas fa-desktop"></i> PC</a></li>
+                <li><a href="/products?category=monitor"><i class="fas fa-tv"></i> Màn hình</a></li>
+                <li><a href="/products?category=component"><i class="fas fa-microchip"></i> Linh kiện</a></li>
+                <li><a href="/products?category=accessory"><i class="fas fa-keyboard"></i> Phụ kiện</a></li>
+                
+                <li><a href="/contact"><i class="fas fa-phone-alt"></i> Liên hệ</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>

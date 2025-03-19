@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  # MongoDB service
+  mongo:
+    image: mongo:latest
+    container_name: sourcecomputer-mongo
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+
+  # Node.js backend service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sourcecomputer-backend
+    restart: always
+    env_file: .env
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/sourcecomputer
+      - NODE_ENV=production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local

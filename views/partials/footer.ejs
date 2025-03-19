@@ -1,0 +1,57 @@
+<footer>
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Source Computer</h3>
+                <p>Website thương mại điện tử chuyên cung cấp các sản phẩm máy tính và linh kiện chính hãng.</p>
+                <div class="contact-info">
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Đường ABC, Quận XYZ, TP. HCM</p>
+                    <p><i class="fas fa-phone"></i> 0912 345 678</p>
+                    <p><i class="fas fa-envelope"></i> info@sourcecomputer.vn</p>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Danh mục</h3>
+                <ul>
+                    <li><a href="/products?category=laptop">Laptop</a></li>
+                    <li><a href="/products?category=pc">PC</a></li>
+                    <li><a href="/products?category=monitor">Màn hình</a></li>
+                    <li><a href="/products?category=component">Linh kiện</a></li>
+                    <li><a href="/products?category=accessory">Phụ kiện</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Thông tin</h3>
+                <ul>
+                    <li><a href="/about">Giới thiệu</a></li>
+                    <li><a href="/shipping-policy">Chính sách vận chuyển</a></li>
+                    <li><a href="/return-policy">Chính sách đổi trả</a></li>
+                    <li><a href="/warranty-policy">Chính sách bảo hành</a></li>
+                    <li><a href="/privacy-policy">Chính sách bảo mật</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Tài khoản</h3>
+                <ul>
+                    <% if (user) { %>
+                        <li><a href="/user/profile">Thông tin tài khoản</a></li>
+                        <li><a href="/user/orders">Đơn hàng của tôi</a></li>
+                        <li><a href="/user/addresses">Địa chỉ</a></li>
+                        <li><a href="/user/loyalty-points">Điểm tích lũy</a></li>
+                        <li><a href="/auth/logout">Đăng xuất</a></li>
+                    <% } else { %>
+                        <li><a href="/auth/login">Đăng nhập</a></li>
+                        <li><a href="/auth/register">Đăng ký</a></li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; <%= new Date().getFullYear() %> Source Computer. All rights reserved.</p>
+        </div>
+    </div>
+</footer>

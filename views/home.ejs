@@ -1,0 +1,68 @@
+<%- include('./partials/hero-slider') %>
+
+<!-- New Products Section -->
+<section>
+    <div class="section-title">
+        <h2>Sản phẩm mới</h2>
+    </div>
+    
+    <div class="product-grid">
+        <% if (newProducts.length > 0) { %>
+            <% newProducts.forEach(product => { %>
+                <%- include('./partials/product-card', { product }) %>
+            <% }) %>
+        <% } else { %>
+            <p>Không có sản phẩm nào.</p>
+        <% } %>
+    </div>
+    
+    <div class="view-more">
+        <a href="/products?sort=newest" class="btn btn-primary">Xem tất cả</a>
+    </div>
+</section>
+
+<!-- Best Sellers Section -->
+<section>
+    <div class="section-title">
+        <h2>Sản phẩm bán chạy</h2>
+    </div>
+    
+    <div class="product-grid">
+        <% if (bestSellers.length > 0) { %>
+            <% bestSellers.forEach(product => { %>
+                <%- include('./partials/product-card', { product }) %>
+            <% }) %>
+        <% } else { %>
+            <p>Không có sản phẩm nào.</p>
+        <% } %>
+    </div>
+    
+    <div class="view-more">
+        <a href="/products?sort=bestseller" class="btn btn-primary">Xem tất cả</a>
+    </div>
+</section>
+
+<!-- Category Sections -->
+<% if (categories.length > 0) { %>
+    <% categories.slice(0, 5).forEach(category => { %>
+        <section>
+            <div class="section-title">
+                <h2><%= category %></h2>
+            </div>
+            
+            <div class="product-grid">
+                <% if (categoryProducts[category] && categoryProducts[category].length > 0) { %>
+                    <% categoryProducts[category].forEach(product => { %>
+                        <%- include('./partials/product-card', { product }) %>
+                    <% }) %>
+                <% } else { %>
+                    <p>Không có sản phẩm nào trong danh mục này.</p>
+                <% } %>
+            </div>
+            
+            <div class="view-more">
+                <a href="/products?category=<%= category %>" class="btn btn-primary">Xem tất cả</a>
+            </div>
+        </section>
+    <% }) %>
+<% } %>

@@ -1,0 +1,51 @@
+<div class="admin-sidebar">
+    <div class="admin-sidebar-header">
+        <h2>Source Computer</h2>
+    </div>
+    
+    <nav>
+        <ul class="admin-nav">
+            <li class="admin-nav-item">
+                <a href="/admin" class="admin-nav-link <%= path === '/admin' ? 'active' : '' %>">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </li>
+            
+            <li class="admin-nav-item">
+                <a href="/admin/products" class="admin-nav-link <%= path && path.includes('/admin/products') ? 'active' : '' %>">
+                    <i class="fas fa-laptop"></i> Sản phẩm
+                </a>
+            </li>
+            
+            <li class="admin-nav-item">
+                <a href="/admin/orders" class="admin-nav-link <%= path && path.includes('/admin/orders') ? 'active' : '' %>">
+                    <i class="fas fa-shopping-cart"></i> Đơn hàng
+                </a>
+            </li>
+            
+            <li class="admin-nav-item">
+                <a href="/admin/users" class="admin-nav-link <%= path && path.includes('/admin/users') ? 'active' : '' %>">
+                    <i class="fas fa-users"></i> Người dùng
+                </a>
+            </li>
+            
+            <li class="admin-nav-item">
+                <a href="/admin/coupons" class="admin-nav-link <%= path && path.includes('/admin/coupons') ? 'active' : '' %>">
+                    <i class="fas fa-ticket-alt"></i> Mã giảm giá
+                </a>
+            </li>
+            
+            <li class="admin-nav-item">
+                <a href="/" class="admin-nav-link">
+                    <i class="fas fa-arrow-left"></i> Về trang chủ
+                </a>
+            </li>
+            
+            <li class="admin-nav-item">
+                <a href="/auth/logout" class="admin-nav-link">
+                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>

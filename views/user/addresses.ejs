@@ -1,0 +1,206 @@
+<div class="user-profile-page">
+    <div class="page-header">
+        <h1>Địa chỉ giao hàng</h1>
+    </div>
+    
+    <div class="profile-grid">
+        <div class="profile-sidebar">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3><%= user.name %></h3>
+                <p><%= user.email %></p>
+                <p class="loyalty-points">
+                    <i class="fas fa-award"></i> Điểm tích lũy: <strong><%= user.loyaltyPoints %></strong>
+                </p>
+            </div>
+            
+            <nav class="profile-nav">
+                <ul>
+                    <li><a href="/user/profile"><i class="fas fa-user"></i> Thông tin tài khoản</a></li>
+                    <li><a href="/user/orders"><i class="fas fa-shopping-bag"></i> Lịch sử đơn hàng</a></li>
+                    <li class="active"><a href="/user/addresses"><i class="fas fa-map-marker-alt"></i> Địa chỉ</a></li>
+                    <li><a href="/user/loyalty-points"><i class="fas fa-award"></i> Điểm tích lũy</a></li>
+                    <li><a href="/user/change-password"><i class="fas fa-key"></i> Đổi mật khẩu</a></li>
+                </ul>
+            </nav>
+        </div>
+        
+        <div class="profile-content">
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2>Địa chỉ của bạn</h2>
+                    <button type="button" class="btn btn-primary" id="addAddressBtn">
+                        <i class="fas fa-plus"></i> Thêm địa chỉ mới
+                    </button>
+                </div>
+                
+                <div class="addresses-list">
+                    <% if (addresses && addresses.length > 0) { %>
+                        <% addresses.forEach((address, index) => { %>
+                            <div class="address-card">
+                                <div class="address-header">
+                                    <h3>Địa chỉ <%= index + 1 %></h3>
+                                    <% if (address.default) { %>
+                                        <span class="default-badge">Mặc định</span>
+                                    <% } %>
+                                </div>
+                                <div class="address-content">
+                                    <p><strong><%= user.name %></strong></p>
+                                    <p><%= address.street %></p>
+                                    <p><%= address.city %>, <%= address.state %>, <%= address.zipCode %></p>
+                                    <p><%= user.phone || 'Không có số điện thoại' %></p>
+                                </div>
+                                <div class="address-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-primary edit-address" data-index="<%= index %>">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </button>
+                                    <% if (!address.default) { %>
+                                        <button type="button" class="btn btn-sm btn-outline-primary set-default-address" data-index="<%= index %>">
+                                            <i class="fas fa-check"></i> Đặt mặc định
+                                        </button>
+                                        <a href="/user/addresses/delete/<%= address._id %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc muốn xóa địa chỉ này?')">
+                                            <i class="fas fa-trash-alt"></i> Xóa
+                                        </a>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="no-addresses">
+                            <p>Bạn chưa có địa chỉ nào. Vui lòng thêm địa chỉ mới.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Address Modal -->
+<div class="modal" id="addressModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Thêm địa chỉ mới</h2>
+            <button type="button" class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="addressForm" action="/user/addresses/add" method="POST">
+                <input type="hidden" id="addressId" name="addressId">
+                
+                <div class="form-group">
+                    <label for="street">Địa chỉ <span class="required">*</span></label>
+                    <input type="text" id="street" name="street" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="city">Thành phố <span class="required">*</span></label>
+                    <input type="text" id="city" name="city" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="state">Tỉnh/Thành <span class="required">*</span></label>
+                    <input type="text" id="state" name="state" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="zipCode">Mã bưu điện <span class="required">*</span></label>
+                    <input type="text" id="zipCode" name="zipCode" required>
+                </div>
+                
+                <div class="form-group">
+                    <input type="checkbox" id="isDefault" name="isDefault">
+                    <label for="isDefault">Đặt làm địa chỉ mặc định</label>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                    <button type="button" class="btn btn-outline-secondary" id="cancelBtn">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addressModal = document.getElementById('addressModal');
+        const addAddressBtn = document.getElementById('addAddressBtn');
+        const closeModalBtn = document.querySelector('.close-modal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const addressForm = document.getElementById('addressForm');
+        const modalTitle = document.getElementById('modalTitle');
+        
+        // Open modal for adding new address
+        addAddressBtn.addEventListener('click', function() {
+            modalTitle.textContent = 'Thêm địa chỉ mới';
+            addressForm.action = '/user/addresses/add';
+            addressForm.reset();
+            document.getElementById('addressId').value = '';
+            addressModal.classList.add('show');
+        });
+        
+        // Close modal
+        closeModalBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        
+        function closeModal() {
+            addressModal.classList.remove('show');
+        }
+        
+        // When clicking outside the modal content
+        addressModal.addEventListener('click', function(e) {
+            if (e.target === addressModal) {
+                closeModal();
+            }
+        });
+        
+        // Edit address
+        <!-- const editButtons = document.querySelectorAll('.edit-address');
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const index = this.dataset.index;
+                const addresses = <%- JSON.stringify(addresses) %>;
+                const address = addresses[index];
+                
+                modalTitle.textContent = 'Chỉnh sửa địa chỉ';
+                addressForm.action = '/user/addresses/update';
+                document.getElementById('addressId').value = address._id;
+                document.getElementById('street').value = address.street;
+                document.getElementById('city').value = address.city;
+                document.getElementById('state').value = address.state;
+                document.getElementById('zipCode').value = address.zipCode;
+                document.getElementById('isDefault').checked = address.default;
+                
+                addressModal.classList.add('show');
+            });
+        });
+        
+        // Set default address
+        const setDefaultButtons = document.querySelectorAll('.set-default-address');
+        setDefaultButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const index = this.dataset.index;
+                const addresses = <%- JSON.stringify(addresses) %>;
+                const address = addresses[index];
+                
+                if (confirm('Bạn có chắc muốn đặt địa chỉ này làm mặc định?')) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/user/addresses/set-default';
+                    form.style.display = 'none';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'addressId';
+                    input.value = address._id;
+                    
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        });  -->
+    });
+</script>
