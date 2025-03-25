@@ -5,7 +5,7 @@ const passport = require('passport');
 const crypto = require('crypto');
 const { validationResult } = require('express-validator');
 
-const mailer = require('../config/email');
+// const mailer = require('../config/email');
 
 // Login controllers
 exports.getLogin = (req, res) => {
