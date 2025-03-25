@@ -94,9 +94,12 @@ app.use(session({
   }
 }));
 
-// Passport initialization
+// Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Configure Passport
+require('./config/passport')(passport);
 
 // Flash messages
 app.use(flash());

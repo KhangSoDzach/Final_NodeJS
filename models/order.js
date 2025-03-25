@@ -70,7 +70,8 @@ const statusHistorySchema = new Schema({
 
 const orderSchema = new Schema({
   orderNumber: {
-    type: String
+    type: Number,
+    unique: true
   },
   user: {
     type: Schema.Types.ObjectId,
@@ -128,8 +129,8 @@ const orderSchema = new Schema({
 
 // Apply auto-increment functionality for orderNumber
 orderSchema.plugin(AutoIncrement, {
-  inc_field: 'orderNumberCounter',
-  start_seq: 1000
+  inc_field: 'orderNumber',
+  start_seq: 10000
 });
 
 // Pre-save middleware to generate the order number
@@ -143,5 +144,43 @@ orderSchema.pre('save', function(next) {
   }
   next();
 });
+
+// Calculate subtotal (before discount)
+orderSchema.methods.calculateSubtotal = function() {
+  return this.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+};
+
+// Calculate discount amount
+orderSchema.methods.calculateDiscountAmount = function() {
+  if (!this.discount) return 0;
+  return Math.round(this.calculateSubtotal() * this.discount / 100);
+};
+
+// Static method to get monthly sales
+orderSchema.statics.getMonthlySales = async function(year) {
+  const currentYear = year || new Date().getFullYear();
+  
+  return this.aggregate([
+    {
+      $match: {
+        createdAt: {
+          $gte: new Date(`${currentYear}-01-01`),
+          $lte: new Date(`${currentYear}-12-31`)
+        },
+        status: { $ne: 'cancelled' }
+      }
+    },
+    {
+      $group: {
+        _id: { $month: '$createdAt' },
+        totalSales: { $sum: '$totalAmount' },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { _id: 1 }
+    }
+  ]);
+};
 
 module.exports = mongoose.model('Order', orderSchema);

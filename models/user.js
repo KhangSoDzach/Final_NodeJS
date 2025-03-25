@@ -35,10 +35,7 @@ const userSchema = new Schema({
     unique: true
   },
   password: {
-    type: String,
-    required: function() {
-      return !this.googleId; // Password required only if no Google ID
-    }
+    type: String
   },
   googleId: {
     type: String
@@ -54,26 +51,16 @@ const userSchema = new Schema({
   addresses: [addressSchema],
   loyaltyPoints: {
     type: Number,
-    default: 0,
-    min: 0
+    default: 0
   },
   resetToken: String,
   resetTokenExpiration: Date,
-  active: {
-    type: Boolean,
-    default: true
-  },
   createdAt: {
     type: Date,
     default: Date.now
   }
 }, {
   timestamps: true
-});
-
-// Virtual for default address
-userSchema.virtual('defaultAddress').get(function() {
-  return this.addresses.find(address => address.default);
 });
 
 module.exports = mongoose.model('User', userSchema);
