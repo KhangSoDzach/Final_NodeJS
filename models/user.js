@@ -10,14 +10,6 @@ const addressSchema = new Schema({
     type: String,
     required: true
   },
-  state: {
-    type: String,
-    required: true
-  },
-  zipCode: {
-    type: String,
-    required: true
-  },
   default: {
     type: Boolean,
     default: false
