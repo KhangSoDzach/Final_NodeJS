@@ -1,33 +1,33 @@
 version: '3'
 
 services:
-  # MongoDB service
-  mongo:
-    image: mongo:latest
-    container_name: sourcecomputer-mongo
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/sourcecomputer
+      - PORT=3000
+      - SESSION_SECRET=1366b2f926d0eee726d7e597cf2a2f060df34db388c0f25682143b8f6bb9dbe2
+      - GOOGLE_CLIENT_ID=16788479489-8sehea2kcf4bq6j2bf6c5vak4p0tuhnt.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=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
+      - GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+    depends_on:
+      - mongo
     restart: always
     volumes:
-      - mongo-data:/data/db
-    ports:
-      - "27017:27017"
+      - ./uploads:/usr/src/app/uploads
     networks:
       - app-network
 
-  # Node.js backend service
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: sourcecomputer-backend
+  mongo:
+    image: mongo:latest
     restart: always
-    env_file: .env
-    environment:
-      - MONGODB_URI=mongodb://mongo:27017/sourcecomputer
-      - NODE_ENV=production
     ports:
-      - "3000:3000"
-    depends_on:
-      - mongo
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
     networks:
       - app-network
 
@@ -36,5 +36,5 @@ networks:
     driver: bridge
 
 volumes:
-  mongo-data:
+  mongodb_data:
     driver: local

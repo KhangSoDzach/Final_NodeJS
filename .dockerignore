@@ -1,7 +1,12 @@
 node_modules
 npm-debug.log
-.env
+yarn-debug.log
+yarn-error.log
 .git
 .gitignore
-.dockerignore
+.env
+*.md
 .DS_Store
+.vscode
+uploads/*
+!uploads/.gitkeep
