@@ -5,7 +5,7 @@ const fs = require('fs');
 // Setup storage for product images
 const productStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '../public/uploads/products');
+    const dir = path.join(__dirname, '../public/uploads/products/..');
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }

@@ -16,7 +16,7 @@ const demoProducts = [
     subcategory: 'premium',
     brand: 'Dell',
     stock: 15,
-    images: ['default-laptop.jpg'],
+    images: laptop01.png,
     specifications: [
       { name: 'Processor', value: 'Intel Core i7-13700H' },
       { name: 'RAM', value: '16GB DDR5' },

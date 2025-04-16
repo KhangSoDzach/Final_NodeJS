@@ -111,10 +111,10 @@
                     <% products.forEach(product => { %>
                         <div class="product-item">
                             <div class="product-card">
-                                <a href="/products/<%= product.slug %>">
+                                <a href="../../public/uploads/products/product.slug %>">
                                     <div class="image">
                                         <% if (product.images && product.images.length > 0) { %>
-                                            <img src="/uploads/products/<%= product.images[0] %>" alt="<%= product.name %>">
+                                            <img src="../../public/uploads/products/<%product.images[0] %>" alt="<%= product.name %>">
                                         <% } else { %>
                                             <img src="/images/no-image.png" alt="No Image Available">
                                         <% } %>

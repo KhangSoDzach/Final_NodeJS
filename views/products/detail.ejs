@@ -7,25 +7,33 @@
         <% } %>
         <span><%= product.name %></span>
     </div>
-    
+    res.render
     <div class="product-detail-grid">
         <div class="product-images">
             <div class="main-image">
                 <% if (product.images && product.images.length > 0) { %>
-                    <img src="/uploads/products/<%= product.images[0] %>" alt="<%= product.name %>" id="mainProductImage">
+                    <img src="/uploads/products/<%= product.images %>" alt="<%= product.name %>">
                 <% } else { %>
                     <img src="/images/no-image.png" alt="No Image Available">
                 <% } %>
             </div>
             
-            <% if (product.images && product.images.length > 0) { %>
+            <% if (typeof product.images === 'string' && product.images.trim().length > 0) { %>
+                <div class="thumbnails">
+                    <div class="thumbnail active" data-index="0">
+                        <img src="/uploads/products/<%= product.images %>" alt="<%= product.name %> - Image 1">
+                    </div>
+                </div>
+            <% } else if (Array.isArray(product.images) && product.images.length > 0) { %>
                 <div class="thumbnails">
                     <% product.images.forEach((image, index) => { %>
                         <div class="thumbnail <%= index === 0 ? 'active' : '' %>" data-index="<%= index %>">
-                            <img src="/uploads/products/<%= image %>" alt="<%= product.name %> - Image <%= index + 1 %>">
+                            <img src="/uploads/products/laptop/acer/<%= image %>" alt="<%= product.name %> - Image <%= index + 1 %>">
                         </div>
                     <% }) %>
                 </div>
+            <% } else { %>
+                <p>Không có hình ảnh nào cho sản phẩm này.</p>
             <% } %>
         </div>
         

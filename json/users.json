@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Admin User",
+    "email": "admin@sourcecomputer.com",
+    "password": "$2a$12$Q0grHjH9PXc6SxivyBu0Re0Jy9XgGlxSWFjDlbztwGKR8mujMj9D6",
+    "role": "admin",
+    "phone": "0987654321",
+    "addresses": [
+      {
+        "street": "123 Admin Street",
+        "city": "Hanoi",
+        "default": true
+      }
+    ],
+    "loyaltyPoints": 100
+  }
+]

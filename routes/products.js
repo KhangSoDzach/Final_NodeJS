@@ -12,4 +12,8 @@ router.get('/:slug', productsController.getProductDetail);
 // Add a review to a product
 router.post('/:slug/review', productsController.postAddReview);
 
+const app = express();
+
+app.use('/uploads', express.static('uploads'));
+
 module.exports = router;
