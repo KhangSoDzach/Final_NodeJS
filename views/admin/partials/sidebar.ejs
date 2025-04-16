@@ -12,9 +12,31 @@
             </li>
             
             <li class="admin-nav-item">
-                <a href="/admin/products" class="admin-nav-link <%= path && path.includes('/admin/products') ? 'active' : '' %>">
+                <a href="/admin/products" class="admin-nav-link <%= path && path.startsWith('/admin/products') && !path.includes('/inventory') && !path.includes('/categories') && !path.includes('/statistics') ? 'active' : '' %>">
                     <i class="fas fa-laptop"></i> Sản phẩm
                 </a>
+                <ul class="admin-nav-submenu <%= path && path.startsWith('/admin/products') ? 'show' : '' %>">
+                    <li class="admin-nav-submenu-item">
+                        <a href="/admin/products/add" class="admin-nav-submenu-link <%= path === '/admin/products/add' ? 'active' : '' %>">
+                            <i class="fas fa-plus"></i> Thêm sản phẩm mới
+                        </a>
+                    </li>
+                    <li class="admin-nav-submenu-item">
+                        <a href="/admin/products/inventory" class="admin-nav-submenu-link <%= path && path.includes('/inventory') ? 'active' : '' %>">
+                            <i class="fas fa-boxes"></i> Quản lý tồn kho
+                        </a>
+                    </li>
+                    <li class="admin-nav-submenu-item">
+                        <a href="/admin/products/categories" class="admin-nav-submenu-link <%= path && path.includes('/categories') ? 'active' : '' %>">
+                            <i class="fas fa-tags"></i> Quản lý danh mục
+                        </a>
+                    </li>
+                    <li class="admin-nav-submenu-item">
+                        <a href="/admin/products/statistics" class="admin-nav-submenu-link <%= path && path.includes('/statistics') ? 'active' : '' %>">
+                            <i class="fas fa-chart-bar"></i> Thống kê sản phẩm
+                        </a>
+                    </li>
+                </ul>
             </li>
             
             <li class="admin-nav-item">
@@ -49,3 +71,66 @@
         </ul>
     </nav>
 </div>
+
+<style>
+.admin-nav-submenu {
+    display: none;
+    padding-left: 20px;
+    margin-top: 5px;
+}
+
+.admin-nav-submenu.show {
+    display: block;
+}
+
+.admin-nav-submenu-item {
+    margin-bottom: 5px;
+}
+
+.admin-nav-submenu-link {
+    display: block;
+    padding: 6px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #c8c9cc;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+}
+
+.admin-nav-submenu-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.admin-nav-submenu-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+.admin-nav-submenu-link i {
+    margin-right: 8px;
+    font-size: 0.8em;
+}
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle submenu when parent item is clicked
+        const productNavItem = document.querySelector('.admin-nav-item:nth-child(2)');
+        const productNavLink = productNavItem.querySelector('.admin-nav-link');
+        const submenu = productNavItem.querySelector('.admin-nav-submenu');
+        
+        productNavLink.addEventListener('click', function(event) {
+            if (this.getAttribute('href') === '#') {
+                event.preventDefault();
+                submenu.classList.toggle('show');
+            }
+        });
+        
+        // Auto expand submenu if an item is active
+        const activeSubmenuItem = document.querySelector('.admin-nav-submenu-link.active');
+        if (activeSubmenuItem) {
+            activeSubmenuItem.closest('.admin-nav-submenu').classList.add('show');
+        }
+    });
+</script>

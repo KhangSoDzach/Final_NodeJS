@@ -3,15 +3,35 @@
     
     <div class="admin-content">
         <div class="admin-header">
-            <h1>Dashboard</h1>
+            <h1>Advanced Dashboard</h1>
             <div class="admin-header-actions">
                 <div class="date-filter">
-                    <select id="date-range">
+                    <select id="date-range" class="form-select">
                         <option value="today">Hôm nay</option>
+                        <option value="yesterday">Hôm qua</option>
                         <option value="week">Tuần này</option>
                         <option value="month" selected>Tháng này</option>
+                        <option value="quarter">Quý này</option>
                         <option value="year">Năm nay</option>
+                        <option value="custom">Tùy chỉnh...</option>
                     </select>
+                </div>
+                <div id="custom-date-range" style="display: none;" class="ml-3 d-flex">
+                    <div class="mr-2">
+                        <label for="start-date" class="small mb-0">Từ:</label>
+                        <input type="date" id="start-date" class="form-control form-control-sm">
+                    </div>
+                    <div>
+                        <label for="end-date" class="small mb-0">Đến:</label>
+                        <input type="date" id="end-date" class="form-control form-control-sm">
+                    </div>
+                    <button id="apply-custom-range" class="btn btn-sm btn-primary ml-2 align-self-end">Áp dụng</button>
+                </div>
+                <div class="ml-2">
+                    <button id="toggle-dashboard" class="btn btn-outline-primary">
+                        <i class="fas fa-exchange-alt"></i> 
+                        <span id="dashboard-toggle-text">Xem Simple Dashboard</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -20,19 +40,25 @@
             <div class="stat-card primary">
                 <div class="label">Doanh thu</div>
                 <div class="value"><%= totalRevenue.toLocaleString('vi-VN') %> ₫</div>
-                <div class="change">+15% so với tháng trước</div>
+                <div class="change">+15% so với kỳ trước</div>
             </div>
             
             <div class="stat-card success">
                 <div class="label">Đơn hàng</div>
                 <div class="value"><%= totalOrders %></div>
-                <div class="change">+5% so với tháng trước</div>
+                <div class="change">+5% so với kỳ trước</div>
+            </div>
+
+            <div class="stat-card info">
+                <div class="label">Lợi nhuận</div>
+                <div class="value"><%= totalProfit.toLocaleString('vi-VN') %> ₫</div>
+                <div class="change">+12% so với kỳ trước</div>
             </div>
             
             <div class="stat-card warning">
                 <div class="label">Khách hàng</div>
                 <div class="value"><%= totalUsers %></div>
-                <div class="change">+8% so với tháng trước</div>
+                <div class="change">+8% so với kỳ trước</div>
             </div>
             
             <div class="stat-card danger">
@@ -61,6 +87,50 @@
                     </div>
                     <div class="card-body">
                         <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4 advanced-only">
+            <div class="col-12">
+                <div class="admin-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3>Phân tích so sánh</h3>
+                        <div>
+                            <select id="comparison-type" class="form-select">
+                                <option value="revenue">Doanh thu</option>
+                                <option value="profit">Lợi nhuận</option>
+                                <option value="orders">Số đơn hàng</option>
+                                <option value="products">Số sản phẩm bán</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4 advanced-only">
+            <div class="col-6">
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h3>Phân tích sản phẩm theo danh mục</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="productsByCategoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h3>Phân tích theo thương hiệu</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="brandAnalysisChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -163,7 +233,7 @@
                 </table>
                 
                 <div class="view-all">
-                    <a href="/admin/products">Xem tất cả sản phẩm</a>
+                    <a href="/admin/products/index">Xem tất cả sản phẩm</a>
                 </div>
             </div>
         </div>
@@ -174,21 +244,47 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Revenue chart
-        const revenueData = {
-            labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
-            datasets: [{
-                label: 'Doanh thu (triệu đồng)',
-                data: [12, 19, 13, 15, 22, 27, 30, 35, 40, 45, 50, 55],
-                backgroundColor: 'rgba(52, 152, 219, 0.2)',
-                borderColor: 'rgba(52, 152, 219, 1)',
-                borderWidth: 2,
-                tension: 0.4
-            }]
+        const timeLabels = JSON.parse('<%- JSON.stringify(timeLabels) %>');
+        const revenueData = JSON.parse('<%- JSON.stringify(revenueData) %>');
+        const ordersData = JSON.parse('<%- JSON.stringify(ordersData) %>');
+        const profitData = JSON.parse('<%- JSON.stringify(profitData) %>');
+        
+        const revenueChartData = {
+            labels: timeLabels,
+            datasets: [
+                {
+                    label: 'Doanh thu (nghìn đồng)',
+                    data: revenueData.map(value => Math.round(value / 1000)),
+                    backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Lợi nhuận (nghìn đồng)',
+                    data: profitData.map(value => Math.round(value / 1000)),
+                    backgroundColor: 'rgba(155, 89, 182, 0.2)',
+                    borderColor: 'rgba(155, 89, 182, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Số đơn hàng',
+                    data: ordersData,
+                    backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                    borderColor: 'rgba(46, 204, 113, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }
+            ]
         };
         
         const revenueConfig = {
             type: 'line',
-            data: revenueData,
+            data: revenueChartData,
             options: {
                 responsive: true,
                 plugins: {
@@ -197,11 +293,45 @@
                     },
                     title: {
                         display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.datasetIndex === 0 || context.datasetIndex === 1) {
+                                    label += new Intl.NumberFormat('vi-VN').format(context.parsed.y * 1000) + ' ₫';
+                                } else {
+                                    label += context.parsed.y;
+                                }
+                                return label;
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
-                        beginAtZero: true
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Doanh thu (nghìn đồng)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Số đơn hàng'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
                     }
                 }
             }
@@ -213,11 +343,14 @@
         );
         
         // Category chart
-        const categoryData = {
-            labels: ['Laptop', 'PC', 'Màn hình', 'Linh kiện', 'Phụ kiện'],
+        const categoryLabels = JSON.parse('<%- JSON.stringify(categoryLabels) %>');
+        const categoryData = JSON.parse('<%- JSON.stringify(categoryData) %>');
+        
+        const categoryChartData = {
+            labels: categoryLabels,
             datasets: [{
                 label: 'Số lượng sản phẩm',
-                data: [42, 28, 18, 35, 25],
+                data: categoryData,
                 backgroundColor: [
                     'rgba(52, 152, 219, 0.7)',
                     'rgba(46, 204, 113, 0.7)',
@@ -238,7 +371,7 @@
         
         const categoryConfig = {
             type: 'doughnut',
-            data: categoryData,
+            data: categoryChartData,
             options: {
                 responsive: true,
                 plugins: {
@@ -254,11 +387,204 @@
             categoryConfig
         );
         
+        // Comparison chart
+        const comparisonLabels = JSON.parse('<%- JSON.stringify(comparisonLabels) %>');
+        const comparisonData = JSON.parse('<%- JSON.stringify(comparisonData) %>');
+        
+        const comparisonChartData = {
+            labels: comparisonLabels,
+            datasets: [{
+                label: 'Phân tích so sánh',
+                data: comparisonData,
+                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                borderColor: 'rgba(52, 152, 219, 1)',
+                borderWidth: 2,
+                tension: 0.4
+            }]
+        };
+        
+        const comparisonConfig = {
+            type: 'line',
+            data: comparisonChartData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Giá trị'
+                        }
+                    }
+                }
+            }
+        };
+        
+        new Chart(
+            document.getElementById('comparisonChart'),
+            comparisonConfig
+        );
+        
+        // Products by category chart
+        const productsByCategoryLabels = JSON.parse('<%- JSON.stringify(productsByCategoryLabels) %>');
+        const productsByCategoryData = JSON.parse('<%- JSON.stringify(productsByCategoryData) %>');
+        
+        const productsByCategoryChartData = {
+            labels: productsByCategoryLabels,
+            datasets: [{
+                label: 'Số lượng sản phẩm',
+                data: productsByCategoryData,
+                backgroundColor: [
+                    'rgba(52, 152, 219, 0.7)',
+                    'rgba(46, 204, 113, 0.7)',
+                    'rgba(241, 196, 15, 0.7)',
+                    'rgba(230, 126, 34, 0.7)',
+                    'rgba(231, 76, 60, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(52, 152, 219, 1)',
+                    'rgba(46, 204, 113, 1)',
+                    'rgba(241, 196, 15, 1)',
+                    'rgba(230, 126, 34, 1)',
+                    'rgba(231, 76, 60, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+        
+        const productsByCategoryConfig = {
+            type: 'doughnut',
+            data: productsByCategoryChartData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        };
+        
+        new Chart(
+            document.getElementById('productsByCategoryChart'),
+            productsByCategoryConfig
+        );
+        
+        // Brand analysis chart
+        const brandLabels = JSON.parse('<%- JSON.stringify(brandLabels) %>');
+        const brandData = JSON.parse('<%- JSON.stringify(brandData) %>');
+        
+        const brandChartData = {
+            labels: brandLabels,
+            datasets: [{
+                label: 'Số lượng sản phẩm',
+                data: brandData,
+                backgroundColor: [
+                    'rgba(52, 152, 219, 0.7)',
+                    'rgba(46, 204, 113, 0.7)',
+                    'rgba(241, 196, 15, 0.7)',
+                    'rgba(230, 126, 34, 0.7)',
+                    'rgba(231, 76, 60, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(52, 152, 219, 1)',
+                    'rgba(46, 204, 113, 1)',
+                    'rgba(241, 196, 15, 1)',
+                    'rgba(230, 126, 34, 1)',
+                    'rgba(231, 76, 60, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+        
+        const brandConfig = {
+            type: 'doughnut',
+            data: brandChartData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        };
+        
+        new Chart(
+            document.getElementById('brandAnalysisChart'),
+            brandConfig
+        );
+        
         // Date filter change event
         document.getElementById('date-range').addEventListener('change', function() {
-            // In a real application, this would reload the data based on the selected date range
-            // For this example, we'll just show an alert
-            alert('In a real application, this would fetch data for the selected date range: ' + this.value);
+            const range = this.value;
+            if (range === 'custom') {
+                document.getElementById('custom-date-range').style.display = 'flex';
+            } else {
+                document.getElementById('custom-date-range').style.display = 'none';
+                // Redirect to dashboard with the selected range
+                window.location.href = `/admin?range=${range}`;
+            }
         });
+
+        // Set selected value based on current range
+        document.getElementById('date-range').value = '<%= currentRange %>';
+        
+        // Set date inputs for custom range
+        if (document.getElementById('date-range').value === 'custom') {
+            document.getElementById('custom-date-range').style.display = 'flex';
+            document.getElementById('start-date').value = '<%= startDate %>';
+            document.getElementById('end-date').value = '<%= endDate %>';
+        }
+
+        document.getElementById('apply-custom-range').addEventListener('click', function() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            if (startDate && endDate) {
+                window.location.href = `/admin?range=custom&startDate=${startDate}&endDate=${endDate}`;
+            } else {
+                alert('Vui lòng chọn cả ngày bắt đầu và ngày kết thúc');
+            }
+        });
+        
+        // Xử lý chuyển đổi giữa Simple và Advanced Dashboard
+        const toggleBtn = document.getElementById('toggle-dashboard');
+        const toggleText = document.getElementById('dashboard-toggle-text');
+        const advancedContent = document.querySelectorAll('.advanced-only');
+        const dashboardTitle = document.querySelector('.admin-header h1');
+        
+        // Khởi tạo trạng thái từ localStorage
+        let isAdvancedMode = localStorage.getItem('dashboardMode') === 'advanced';
+        updateDashboardMode();
+        
+        toggleBtn.addEventListener('click', function() {
+            isAdvancedMode = !isAdvancedMode;
+            localStorage.setItem('dashboardMode', isAdvancedMode ? 'advanced' : 'simple');
+            updateDashboardMode();
+        });
+        
+        function updateDashboardMode() {
+            if (isAdvancedMode) {
+                // Switch to Advanced mode
+                advancedContent.forEach(el => el.style.display = 'block');
+                toggleText.textContent = 'Xem Simple Dashboard';
+                dashboardTitle.textContent = 'Advanced Dashboard';
+            } else {
+                // Switch to Simple mode
+                advancedContent.forEach(el => el.style.display = 'none');
+                toggleText.textContent = 'Xem Advanced Dashboard';
+                dashboardTitle.textContent = 'Simple Dashboard';
+            }
+        }
     });
 </script>

@@ -1,0 +1,265 @@
+<%- include('../partials/sidebar') %>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Quản lý hàng tồn kho</h1>
+        <div class="admin-header-actions">
+            <form action="/admin/products/inventory" method="GET" class="search-form">
+                <input 
+                    type="text" 
+                    name="search" 
+                    placeholder="Tìm sản phẩm..." 
+                    value="<%= filter.search || '' %>"
+                    class="form-control"
+                >
+                <select name="stock" class="form-select">
+                    <option value="" <%= !filter.stock ? 'selected' : '' %>>Tất cả</option>
+                    <option value="low" <%= filter.stock === 'low' ? 'selected' : '' %>>Hàng sắp hết (< 10)</option>
+                    <option value="out" <%= filter.stock === 'out' ? 'selected' : '' %>>Hết hàng</option>
+                </select>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="inventory-stats">
+        <div class="stat-card warning">
+            <div class="label">Sản phẩm sắp hết hàng</div>
+            <div class="value"><%= lowStockCount %></div>
+            <div class="desc">Ít hơn 10 sản phẩm</div>
+        </div>
+        
+        <div class="stat-card danger">
+            <div class="label">Sản phẩm hết hàng</div>
+            <div class="value"><%= outOfStockCount %></div>
+            <div class="desc">Cần nhập thêm hàng</div>
+        </div>
+        
+        <div class="stat-card info">
+            <div class="label">Tổng số sản phẩm</div>
+            <div class="value"><%= totalProducts %></div>
+            <div class="desc">Trong kho</div>
+        </div>
+    </div>
+    
+    <div class="admin-card">
+        <div class="card-header">
+            <h2>Danh sách hàng tồn kho</h2>
+            <div class="header-actions">
+                <a href="/admin/products/inventory/export" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-file-export"></i> Xuất CSV
+                </a>
+                <a href="/admin/products/add" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Thêm sản phẩm
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <% if (products && products.length > 0) { %>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Danh mục</th>
+                            <th>Thương hiệu</th>
+                            <th>Tồn kho</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% products.forEach(product => { %>
+                            <tr data-id="<%= product._id %>">
+                                <td>
+                                    <div class="product-cell">
+                                        <% if (product.images && product.images.length > 0) { %>
+                                            <img src="/uploads/products/<%= product.images[0] %>" alt="<%= product.name %>">
+                                        <% } else { %>
+                                            <img src="/images/no-image.png" alt="No Image">
+                                        <% } %>
+                                        <span><%= product.name %></span>
+                                    </div>
+                                </td>
+                                <td><%= product.category %></td>
+                                <td><%= product.brand %></td>
+                                <td>
+                                    <input 
+                                        type="number" 
+                                        class="stock-input form-control"
+                                        value="<%= product.stock %>" 
+                                        min="0"
+                                        data-original="<%= product.stock %>"
+                                    >
+                                </td>
+                                <td>
+                                    <% if (product.stock <= 0) { %>
+                                        <span class="status-badge out">Hết hàng</span>
+                                    <% } else if (product.stock < 10) { %>
+                                        <span class="status-badge low">Sắp hết</span>
+                                    <% } else { %>
+                                        <span class="status-badge in">Còn hàng</span>
+                                    <% } %>
+                                </td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-outline-success save-stock-btn" style="display: none;">
+                                        <i class="fas fa-save"></i>
+                                    </button>
+                                    <a href="/admin/products/edit/<%= product._id %>" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+                
+                <!-- Phân trang -->
+                <% if (totalPages > 1) { %>
+                    <div class="pagination-container">
+                        <ul class="pagination">
+                            <% if (currentPage > 1) { %>
+                                <li class="page-item">
+                                    <a href="/admin/products/inventory?page=1<%= filter.search ? '&search=' + filter.search : '' %><%= filter.stock ? '&stock=' + filter.stock : '' %>" class="page-link">Đầu</a>
+                                </li>
+                                <li class="page-item">
+                                    <a href="/admin/products/inventory?page=<%= currentPage - 1 %><%= filter.search ? '&search=' + filter.search : '' %><%= filter.stock ? '&stock=' + filter.stock : '' %>" class="page-link">Trước</a>
+                                </li>
+                            <% } %>
+                            
+                            <% 
+                                const startPage = Math.max(1, currentPage - 2);
+                                const endPage = Math.min(startPage + 4, totalPages);
+                            %>
+                            
+                            <% for (let i = startPage; i <= endPage; i++) { %>
+                                <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                                    <a href="/admin/products/inventory?page=<%= i %><%= filter.search ? '&search=' + filter.search : '' %><%= filter.stock ? '&stock=' + filter.stock : '' %>" class="page-link"><%= i %></a>
+                                </li>
+                            <% } %>
+                            
+                            <% if (currentPage < totalPages) { %>
+                                <li class="page-item">
+                                    <a href="/admin/products/inventory?page=<%= currentPage + 1 %><%= filter.search ? '&search=' + filter.search : '' %><%= filter.stock ? '&stock=' + filter.stock : '' %>" class="page-link">Tiếp</a>
+                                </li>
+                                <li class="page-item">
+                                    <a href="/admin/products/inventory?page=<%= totalPages %><%= filter.search ? '&search=' + filter.search : '' %><%= filter.stock ? '&stock=' + filter.stock : '' %>" class="page-link">Cuối</a>
+                                </li>
+                            <% } %>
+                        </ul>
+                    </div>
+                <% } %>
+            <% } else { %>
+                <div class="no-products">
+                    <p>Không tìm thấy sản phẩm nào phù hợp với tiêu chí tìm kiếm.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const stockInputs = document.querySelectorAll('.stock-input');
+        
+        stockInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const saveBtn = this.closest('tr').querySelector('.save-stock-btn');
+                const originalValue = parseInt(this.dataset.original);
+                const currentValue = parseInt(this.value);
+                
+                if (originalValue !== currentValue) {
+                    saveBtn.style.display = 'inline-block';
+                } else {
+                    saveBtn.style.display = 'none';
+                }
+            });
+        });
+        
+        const saveBtns = document.querySelectorAll('.save-stock-btn');
+        
+        saveBtns.forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const row = this.closest('tr');
+                const productId = row.dataset.id;
+                const stockInput = row.querySelector('.stock-input');
+                const newStock = parseInt(stockInput.value);
+                const statusBadge = row.querySelector('.status-badge');
+                
+                try {
+                    const response = await fetch(`/admin/products/inventory/${productId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ stock: newStock })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Cập nhật UI
+                        stockInput.dataset.original = newStock;
+                        this.style.display = 'none';
+                        
+                        // Cập nhật badge trạng thái
+                        statusBadge.className = 'status-badge';
+                        if (newStock <= 0) {
+                            statusBadge.classList.add('out');
+                            statusBadge.textContent = 'Hết hàng';
+                        } else if (newStock < 10) {
+                            statusBadge.classList.add('low');
+                            statusBadge.textContent = 'Sắp hết';
+                        } else {
+                            statusBadge.classList.add('in');
+                            statusBadge.textContent = 'Còn hàng';
+                        }
+                        
+                        // Hiển thị thông báo thành công
+                        showToast('Đã cập nhật số lượng tồn kho thành công.', 'success');
+                    } else {
+                        showToast(data.message || 'Đã xảy ra lỗi khi cập nhật tồn kho.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast('Đã xảy ra lỗi khi cập nhật tồn kho.', 'error');
+                }
+            });
+        });
+        
+        // Hàm hiển thị thông báo
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.classList.add('toast', `toast-${type}`);
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close">&times;</button>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+            
+            toast.querySelector('.toast-close').addEventListener('click', function() {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            });
+        }
+    });
+</script>

@@ -1,0 +1,239 @@
+<%- include('../partials/sidebar') %>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Thống kê sản phẩm</h1>
+        <div class="admin-header-actions">
+            <a href="/admin/products/export" class="btn btn-primary">
+                <i class="fas fa-file-export"></i> Xuất dữ liệu
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Thống kê theo danh mục -->
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h2>Thống kê theo danh mục</h2>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart" height="300"></canvas>
+                    
+                    <div class="table-responsive mt-4">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Danh mục</th>
+                                    <th>Số lượng</th>
+                                    <th>Giá TB (VNĐ)</th>
+                                    <th>Đã bán</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% categoryStats.forEach(stat => { %>
+                                    <tr>
+                                        <td><%= stat._id %></td>
+                                        <td><%= stat.count %></td>
+                                        <td><%= Math.round(stat.avgPrice).toLocaleString('vi-VN') %></td>
+                                        <td><%= stat.totalSold %></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Thống kê theo thương hiệu -->
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h2>Thống kê theo thương hiệu</h2>
+                </div>
+                <div class="card-body">
+                    <canvas id="brandChart" height="300"></canvas>
+                    
+                    <div class="table-responsive mt-4">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Thương hiệu</th>
+                                    <th>Số lượng</th>
+                                    <th>Giá TB (VNĐ)</th>
+                                    <th>Đã bán</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% brandStats.forEach(stat => { %>
+                                    <tr>
+                                        <td><%= stat._id %></td>
+                                        <td><%= stat.count %></td>
+                                        <td><%= Math.round(stat.avgPrice).toLocaleString('vi-VN') %></td>
+                                        <td><%= stat.totalSold %></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top 10 sản phẩm bán chạy -->
+    <div class="admin-card mt-4">
+        <div class="card-header">
+            <h2>Top 10 sản phẩm bán chạy</h2>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Giá (VNĐ)</th>
+                            <th>Danh mục</th>
+                            <th>Thương hiệu</th>
+                            <th>Tồn kho</th>
+                            <th>Đã bán</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% topProducts.forEach(product => { %>
+                            <tr>
+                                <td>
+                                    <div class="product-cell">
+                                        <% if (product.images && product.images.length > 0) { %>
+                                            <img src="/uploads/products/<%= product.images[0] %>" alt="<%= product.name %>">
+                                        <% } else { %>
+                                            <img src="/images/no-image.png" alt="No Image">
+                                        <% } %>
+                                        <span><%= product.name %></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <% if (product.discountPrice) { %>
+                                        <span class="text-success"><%= product.discountPrice.toLocaleString('vi-VN') %></span>
+                                        <s class="text-muted"><%= product.price.toLocaleString('vi-VN') %></s>
+                                    <% } else { %>
+                                        <%= product.price.toLocaleString('vi-VN') %>
+                                    <% } %>
+                                </td>
+                                <td><%= product.category %></td>
+                                <td><%= product.brand %></td>
+                                <td><%= product.stock %></td>
+                                <td><%= product.sold %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dữ liệu cho biểu đồ danh mục
+        const categoryData = {
+            labels: [
+                 categoryStats.map(stat => '\'' + stat._id + '\'').join(',') 
+            ],
+            datasets: [
+                {
+                    label: 'Số lượng đã bán',
+                    data: [ categoryStats.map(function(stat) { return stat.totalSold; }).join(',') ],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }
+            ]
+        };
+        
+        // Dữ liệu cho biểu đồ thương hiệu
+        const brandData = {
+            labels: [ brandStats.map(stat => `'${stat._id}'`).join(',')],
+            datasets: [{
+                label: 'Số lượng đã bán',
+                data: [ brandStats.map(function(stat) { return stat.totalSold; }).join(',') ],
+                backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)',
+                        'rgba(201, 203, 207, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(201, 203, 207, 1)'
+                    ],
+                    borderWidth: 1
+                }
+            ]
+        };
+        
+        // Vẽ biểu đồ danh mục
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'pie',
+            data: categoryData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Phân phối sản phẩm đã bán theo danh mục'
+                    }
+                }
+            }
+        });
+        
+        // Vẽ biểu đồ thương hiệu
+        const brandCtx = document.getElementById('brandChart').getContext('2d');
+        new Chart(brandCtx, {
+            type: 'bar',
+            data: brandData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Số lượng sản phẩm đã bán theo thương hiệu'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>

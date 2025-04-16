@@ -55,7 +55,7 @@ const demoProducts = [
     subcategory: 'business',
     brand: 'Lenovo',
     stock: 20,
-    images: ['default-laptop.jpg'],
+    images: 'default-laptop.jpg',
     specifications: [
       { name: 'Processor', value: 'Intel Core i5-1135G7' },
       { name: 'RAM', value: '16GB LPDDR4X' },

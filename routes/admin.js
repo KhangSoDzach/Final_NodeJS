@@ -5,28 +5,14 @@ const adminController = require('../controllers/admin');
 const { isAuth, isAdmin } = require('../middleware/auth');
 const { productUpload } = require('../middleware/upload');
 
+// Nhập router quản lý sản phẩm
+const productRoutes = require('./admin/products');
+
 // Dashboard
 router.get('/', isAuth, isAdmin, adminController.getDashboard);
 
-// Product management
-router.get('/products', isAuth, isAdmin, adminController.getProducts);
-router.get('/products/add', isAuth, isAdmin, adminController.getAddProduct);
-router.post(
-  '/products/add',
-  isAuth,
-  isAdmin,
-  productUpload.array('images', 10),
-  adminController.postAddProduct
-);
-router.get('/products/edit/:productId', isAuth, isAdmin, adminController.getEditProduct);
-router.post(
-  '/products/edit/:productId',
-  isAuth,
-  isAdmin,
-  productUpload.array('images', 10),
-  adminController.postUpdateProduct
-);
-router.delete('/products/delete/:productId', isAuth, isAdmin, adminController.deleteProduct);
+// Sử dụng router quản lý sản phẩm
+router.use('/products', productRoutes);
 
 // Order management
 router.get('/orders', isAuth, isAdmin, adminController.getOrders);

@@ -1,0 +1,349 @@
+<div class="admin-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <div class="admin-content">
+        <div class="admin-header">
+            <h1>Chi tiết đơn hàng #<%= order.orderNumber %></h1>
+            <div class="admin-header-actions">
+                <a href="/admin/orders" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Thông tin đơn hàng -->
+                <div class="admin-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3>Thông tin đơn hàng</h3>
+                        <div class="order-status">
+                            <span class="status-badge <%= order.status %>">
+                                <% let statusText; %>
+                                <% switch(order.status) { 
+                                    case 'processing': statusText = 'Đang xử lý'; break;
+                                    case 'confirmed': statusText = 'Đã xác nhận'; break;
+                                    case 'shipped': statusText = 'Đang giao hàng'; break;
+                                    case 'delivered': statusText = 'Đã giao hàng'; break;
+                                    case 'cancelled': statusText = 'Đã hủy'; break;
+                                    default: statusText = order.status;
+                                } %>
+                                <%= statusText %>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p><strong>Mã đơn hàng:</strong> <%= order.orderNumber %></p>
+                                <p><strong>Ngày đặt:</strong> <%= new Date(order.createdAt).toLocaleString('vi-VN') %></p>
+                                <p><strong>Phương thức thanh toán:</strong> <%= order.paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng' : 'Thanh toán trực tuyến' %></p>
+                                <p><strong>Trạng thái thanh toán:</strong> <%= order.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán' %></p>
+                                <% if (order.isPaid && order.paidAt) { %>
+                                    <p><strong>Ngày thanh toán:</strong> <%= new Date(order.paidAt).toLocaleString('vi-VN') %></p>
+                                <% } %>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Tổng tiền hàng:</strong> <%= order.subtotal.toLocaleString('vi-VN') %> ₫</p>
+                                <p><strong>Phí vận chuyển:</strong> <%= order.shippingFee.toLocaleString('vi-VN') %> ₫</p>
+                                <% if (order.discount > 0) { %>
+                                    <p><strong>Giảm giá:</strong> <%= order.discount.toLocaleString('vi-VN') %> ₫</p>
+                                    <% if (order.couponCode) { %>
+                                        <p><strong>Mã giảm giá:</strong> <%= order.couponCode %></p>
+                                    <% } %>
+                                <% } %>
+                                <p><strong>Tổng thanh toán:</strong> <span class="text-primary font-weight-bold"><%= order.totalAmount.toLocaleString('vi-VN') %> ₫</span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="order-products">
+                            <h4 class="mb-3">Sản phẩm đã đặt</h4>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th>Đơn giá</th>
+                                        <th>Số lượng</th>
+                                        <th class="text-right">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% order.items.forEach(item => { %>
+                                        <tr>
+                                            <td>
+                                                <div class="product-cell">
+                                                    <% if (item.product && item.product.images && item.product.images.length > 0) { %>
+                                                        <img src="/uploads/products/<%= item.product.images[0] %>" alt="<%= item.product.name %>">
+                                                    <% } else { %>
+                                                        <img src="/images/no-image.png" alt="No Image">
+                                                    <% } %>
+                                                    <div>
+                                                        <% if (item.product) { %>
+                                                            <a href="/products/<%= item.product.slug %>"><%= item.name %></a>
+                                                        <% } else { %>
+                                                            <%= item.name %> <small class="text-muted">(Sản phẩm đã bị xóa)</small>
+                                                        <% } %>
+                                                        <% if (item.variant) { %>
+                                                            <div class="small text-muted">
+                                                                <% for (const key in item.variant) { %>
+                                                                    <%= key %>: <%= item.variant[key] %><br>
+                                                                <% } %>
+                                                            </div>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><%= item.price.toLocaleString('vi-VN') %> ₫</td>
+                                            <td><%= item.quantity %></td>
+                                            <td class="text-right"><%= (item.price * item.quantity).toLocaleString('vi-VN') %> ₫</td>
+                                        </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="order-status-update mt-4">
+                            <h4 class="mb-3">Cập nhật trạng thái đơn hàng</h4>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label for="orderStatus">Trạng thái mới</label>
+                                        <select id="orderStatus" class="form-control">
+                                            <option value="processing" <%= order.status === 'processing' ? 'selected' : '' %>>Đang xử lý</option>
+                                            <option value="confirmed" <%= order.status === 'confirmed' ? 'selected' : '' %>>Đã xác nhận</option>
+                                            <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Đang giao hàng</option>
+                                            <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Đã giao hàng</option>
+                                            <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Đã hủy</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="statusNote">Ghi chú (tùy chọn)</label>
+                                        <textarea id="statusNote" class="form-control" rows="2"></textarea>
+                                    </div>
+                                    <button id="updateStatusBtn" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Cập nhật trạng thái
+                                    </button>
+                                    <div id="statusUpdateMessage" class="mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lịch sử trạng thái đơn hàng -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h3>Lịch sử trạng thái</h3>
+                    </div>
+                    <div class="card-body">
+                        <% if (order.statusHistory && order.statusHistory.length > 0) { %>
+                            <div class="timeline">
+                                <% order.statusHistory.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(status => { %>
+                                    <div class="timeline-item">
+                                        <div class="timeline-point <%= status.status %>"></div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-time">
+                                                <%= new Date(status.date).toLocaleString('vi-VN') %>
+                                            </div>
+                                            <div class="timeline-status">
+                                                <span class="status-badge <%= status.status %>">
+                                                    <% let statusText; %>
+                                                    <% switch(status.status) { 
+                                                        case 'processing': statusText = 'Đang xử lý'; break;
+                                                        case 'confirmed': statusText = 'Đã xác nhận'; break;
+                                                        case 'shipped': statusText = 'Đang giao hàng'; break;
+                                                        case 'delivered': statusText = 'Đã giao hàng'; break;
+                                                        case 'cancelled': statusText = 'Đã hủy'; break;
+                                                        default: statusText = status.status;
+                                                    } %>
+                                                    <%= statusText %>
+                                                </span>
+                                            </div>
+                                            <% if (status.note) { %>
+                                                <div class="timeline-note">
+                                                    <%= status.note %>
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } else { %>
+                            <p>Chưa có lịch sử trạng thái nào.</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <!-- Thông tin khách hàng -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h3>Thông tin khách hàng</h3>
+                    </div>
+                    <div class="card-body">
+                        <% if (order.user) { %>
+                            <div class="customer-info">
+                                <p><strong>Tên:</strong> <a href="/admin/users/<%= order.user._id %>"><%= order.user.name %></a></p>
+                                <p><strong>Email:</strong> <%= order.user.email %></p>
+                                <% if (order.user.phone) { %>
+                                    <p><strong>Điện thoại:</strong> <%= order.user.phone %></p>
+                                <% } %>
+                                <p><strong>Loại tài khoản:</strong> <%= order.user.role === 'admin' ? 'Admin' : 'Khách hàng' %></p>
+                            </div>
+                        <% } else { %>
+                            <p>Đơn hàng được đặt bởi khách vãng lai.</p>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <!-- Địa chỉ giao hàng -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h3>Địa chỉ giao hàng</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Người nhận:</strong> <%= order.shippingAddress.name %></p>
+                        <p><strong>Điện thoại:</strong> <%= order.shippingAddress.phone %></p>
+                        <p><strong>Địa chỉ:</strong> <%= order.shippingAddress.street %></p>
+                        <p><strong>Thành phố:</strong> <%= order.shippingAddress.city %></p>
+                        <% if (order.shippingAddress.state) { %>
+                            <p><strong>Tỉnh/Thành phố:</strong> <%= order.shippingAddress.state %></p>
+                        <% } %>
+                        <% if (order.shippingAddress.zipCode) { %>
+                            <p><strong>Mã bưu điện:</strong> <%= order.shippingAddress.zipCode %></p>
+                        <% } %>
+                        <% if (order.shippingAddress.notes) { %>
+                            <p><strong>Ghi chú:</strong> <%= order.shippingAddress.notes %></p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .product-cell {
+        display: flex;
+        align-items: center;
+    }
+    
+    .product-cell img {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        margin-right: 10px;
+    }
+    
+    .timeline {
+        position: relative;
+        margin-left: 20px;
+    }
+    
+    .timeline:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background-color: #e9ecef;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 30px;
+        margin-bottom: 20px;
+    }
+    
+    .timeline-point {
+        position: absolute;
+        left: -8px;
+        top: 5px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+    }
+    
+    .timeline-point.processing { background-color: #3498db; }
+    .timeline-point.confirmed { background-color: #f1c40f; }
+    .timeline-point.shipped { background-color: #e67e22; }
+    .timeline-point.delivered { background-color: #2ecc71; }
+    .timeline-point.cancelled { background-color: #e74c3c; }
+    
+    .timeline-content {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+    }
+    
+    .timeline-time {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+    
+    .timeline-status {
+        margin-bottom: 5px;
+    }
+    
+    .timeline-note {
+        font-size: 0.9rem;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const updateStatusBtn = document.getElementById('updateStatusBtn');
+        const statusMessageDiv = document.getElementById('statusUpdateMessage');
+        
+        updateStatusBtn.addEventListener('click', function() {
+            const status = document.getElementById('orderStatus').value;
+            const note = document.getElementById('statusNote').value;
+            
+            // Disable button during API call
+            updateStatusBtn.disabled = true;
+            updateStatusBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang cập nhật...';
+            
+            // Send API request to update status
+            fetch('/admin/orders/<%= order._id %>/status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status, note })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Re-enable button
+                updateStatusBtn.disabled = false;
+                updateStatusBtn.innerHTML = '<i class="fas fa-save"></i> Cập nhật trạng thái';
+                
+                if (data.success) {
+                    // Show success message
+                    statusMessageDiv.className = 'mt-2 alert alert-success';
+                    statusMessageDiv.textContent = data.message;
+                    
+                    // Reload page after 2 seconds to show updated status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    // Show error message
+                    statusMessageDiv.className = 'mt-2 alert alert-danger';
+                    statusMessageDiv.textContent = data.message || 'Đã xảy ra lỗi khi cập nhật trạng thái.';
+                }
+            })
+            .catch(error => {
+                console.error('Error updating order status:', error);
+                updateStatusBtn.disabled = false;
+                updateStatusBtn.innerHTML = '<i class="fas fa-save"></i> Cập nhật trạng thái';
+                statusMessageDiv.className = 'mt-2 alert alert-danger';
+                statusMessageDiv.textContent = 'Đã xảy ra lỗi khi cập nhật trạng thái.';
+            });
+        });
+    });
+</script>
+

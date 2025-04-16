@@ -21,7 +21,7 @@
             <% if (typeof product.images === 'string' && product.images.trim().length > 0) { %>
                 <div class="thumbnails">
                     <div class="thumbnail active" data-index="0">
-                        <img src="/uploads/products/<%= product.images %>" alt="<%= product.name %> - Image 1">
+                        <img src="../../public/uploads/products/<%product.images %>" alt="<%= product.name %> - Image 1">
                     </div>
                 </div>
             <% } else if (Array.isArray(product.images) && product.images.length > 0) { %>

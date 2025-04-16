@@ -1,0 +1,176 @@
+<div class="admin-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <div class="admin-content">
+        <div class="admin-header">
+            <h1>Quản lý đơn hàng</h1>
+            <div class="admin-header-actions">
+                <a href="/admin/orders" class="btn btn-outline-secondary">
+                    <i class="fas fa-sync-alt"></i> Làm mới
+                </a>
+            </div>
+        </div>
+        
+        <div class="admin-card">
+            <div class="card-header">
+                <h3>Lọc đơn hàng</h3>
+            </div>
+            <div class="card-body">
+                <form action="/admin/orders" method="GET" class="filter-form">
+                    <div class="filter-group">
+                        <div class="form-group">
+                            <label for="search">Tìm kiếm</label>
+                            <input type="text" id="search" name="search" class="form-control" 
+                                placeholder="Mã đơn, tên khách hàng, điện thoại..." 
+                                value="<%= filter.search || '' %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="status">Trạng thái</label>
+                            <select id="status" name="status" class="form-select">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="processing" <%= filter.status === 'processing' ? 'selected' : '' %>>Đang xử lý</option>
+                                <option value="confirmed" <%= filter.status === 'confirmed' ? 'selected' : '' %>>Đã xác nhận</option>
+                                <option value="shipped" <%= filter.status === 'shipped' ? 'selected' : '' %>>Đang giao hàng</option>
+                                <option value="delivered" <%= filter.status === 'delivered' ? 'selected' : '' %>>Đã giao hàng</option>
+                                <option value="cancelled" <%= filter.status === 'cancelled' ? 'selected' : '' %>>Đã hủy</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="timeRange">Khoảng thời gian</label>
+                            <select id="timeRange" name="timeRange" class="form-select">
+                                <option value="">Tất cả thời gian</option>
+                                <option value="today" <%= filter.timeRange === 'today' ? 'selected' : '' %>>Hôm nay</option>
+                                <option value="yesterday" <%= filter.timeRange === 'yesterday' ? 'selected' : '' %>>Hôm qua</option>
+                                <option value="week" <%= filter.timeRange === 'week' ? 'selected' : '' %>>Tuần này</option>
+                                <option value="month" <%= filter.timeRange === 'month' ? 'selected' : '' %>>Tháng này</option>
+                                <option value="custom" <%= filter.timeRange === 'custom' ? 'selected' : '' %>>Tùy chỉnh...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="custom-date-range" class="filter-group" <%= filter.timeRange === 'custom' ? '' : 'style="display: none;"' %>>
+                        <div class="form-group">
+                            <label for="startDate">Từ ngày</label>
+                            <input type="date" id="startDate" name="startDate" class="form-control" 
+                                   value="<%= filter.startDate || '' %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="endDate">Đến ngày</label>
+                            <input type="date" id="endDate" name="endDate" class="form-control" 
+                                   value="<%= filter.endDate || '' %>">
+                        </div>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Lọc
+                        </button>
+                        <a href="/admin/orders" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Xóa bộ lọc
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="admin-card">
+            <div class="card-header">
+                <h3>Danh sách đơn hàng (<%= totalOrders %>)</h3>
+            </div>
+            <div class="card-body">
+                <% if (orders.length === 0) { %>
+                    <div class="empty-state">
+                        <i class="fas fa-box-open fa-3x"></i>
+                        <p>Không có đơn hàng nào</p>
+                    </div>
+                <% } else { %>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn hàng</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Khách hàng</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thanh toán</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% orders.forEach(order => { %>
+                                    <tr>
+                                        <td><a href="/admin/orders/<%= order._id %>"><%= order.orderNumber %></a></td>
+                                        <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %><br>
+                                            <small><%= new Date(order.createdAt).toLocaleTimeString('vi-VN') %></small>
+                                        </td>
+                                        <td>
+                                            <% if (order.user) { %>
+                                                <a href="/admin/users/<%= order.user._id %>"><%= order.user.name %></a><br>
+                                                <small><%= order.user.email %></small>
+                                            <% } else { %>
+                                                <%= order.shippingAddress.name %><br>
+                                                <small>Khách vãng lai</small>
+                                            <% } %>
+                                        </td>
+                                        <td class="text-right"><%= order.totalAmount.toLocaleString('vi-VN') %> ₫</td>
+                                        <td>
+                                            <span class="status-badge <%= order.status %>">
+                                                <% let statusText; %>
+                                                <% switch(order.status) { 
+                                                    case 'processing': statusText = 'Đang xử lý'; break;
+                                                    case 'confirmed': statusText = 'Đã xác nhận'; break;
+                                                    case 'shipped': statusText = 'Đang giao hàng'; break;
+                                                    case 'delivered': statusText = 'Đã giao hàng'; break;
+                                                    case 'cancelled': statusText = 'Đã hủy'; break;
+                                                    default: statusText = order.status;
+                                                } %>
+                                                <%= statusText %>
+                                            </span>
+                                        </td>
+                                        <td><%= order.paymentMethod === 'cod' ? 'COD' : 'Online' %></td>
+                                        <td class="actions">
+                                            <a href="/admin/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <% if (totalPages > 1) { %>
+                        <div class="pagination">
+                            <% for (let i = 1; i <= totalPages; i++) { %>
+                                <a href="/admin/orders?page=<%= i %><%= filter.search ? `&search=${filter.search}` : '' %><%= filter.status ? `&status=${filter.status}` : '' %><%= filter.timeRange ? `&timeRange=${filter.timeRange}` : '' %><%= filter.startDate ? `&startDate=${filter.startDate}` : '' %><%= filter.endDate ? `&endDate=${filter.endDate}` : '' %>" 
+                                   class="pagination-item <%= currentPage === i ? 'active' : '' %>">
+                                    <%= i %>
+                                </a>
+                            <% } %>
+                        </div>
+                    <% } %>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const timeRangeSelect = document.getElementById('timeRange');
+        const customDateRange = document.getElementById('custom-date-range');
+        
+        timeRangeSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customDateRange.style.display = 'flex';
+            } else {
+                customDateRange.style.display = 'none';
+            }
+        });
+    });
+</script>
+

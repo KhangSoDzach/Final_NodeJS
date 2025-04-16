@@ -1,0 +1,315 @@
+<%- include('../partials/sidebar') %>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Quản lý danh mục sản phẩm</h1>
+        <div class="admin-header-actions">
+            <button class="btn btn-primary" id="addCategoryBtn">
+                <i class="fas fa-plus"></i> Thêm danh mục
+            </button>
+        </div>
+    </div>
+    
+    <div class="admin-card">
+        <div class="card-header">
+            <h2>Danh mục sản phẩm</h2>
+        </div>
+        
+        <div class="card-body">
+            <div class="categories-container">
+                <% if (categories && categories.length > 0) { %>
+                    <div class="row">
+                        <% categories.forEach(category => { %>
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="category-card">
+                                    <div class="category-header">
+                                        <h3><%= category._id %></h3>
+                                        <div class="category-actions">
+                                            <button class="btn btn-sm btn-outline-primary edit-category" data-id="<%= category._id %>">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="category-body">
+                                        <div class="category-info">
+                                            <span class="badge badge-info"><%= category.count %> sản phẩm</span>
+                                        </div>
+                                        <div class="subcategories mt-2">
+                                            <h4>Danh mục con:</h4>
+                                            <div class="subcategory-list">
+                                                <% if (category.subcategories && category.subcategories.length > 0) { %>
+                                                    <% category.subcategories.filter(sub => sub).forEach(subcategory => { %>
+                                                        <span class="subcategory-item">
+                                                            <%= subcategory %>
+                                                            <button class="btn btn-sm btn-link edit-subcategory" 
+                                                                data-category="<%= category._id %>" 
+                                                                data-subcategory="<%= subcategory %>">
+                                                                <i class="fas fa-pencil-alt"></i>
+                                                            </button>
+                                                        </span>
+                                                    <% }) %>
+                                                <% } else { %>
+                                                    <p class="text-muted">Không có danh mục con</p>
+                                                <% } %>
+                                                <button class="btn btn-sm btn-outline-success add-subcategory mt-2" data-category="<%= category._id %>">
+                                                    <i class="fas fa-plus"></i> Thêm danh mục con
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } else { %>
+                    <div class="no-categories">
+                        <p>Chưa có danh mục sản phẩm nào.</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm/Sửa Danh mục -->
+<div class="modal fade" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="categoryModalLabel">Thêm danh mục mới</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <input type="hidden" id="categoryId">
+                    <div class="form-group">
+                        <label for="categoryName">Tên danh mục</label>
+                        <input type="text" class="form-control" id="categoryName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="categoryDescription">Mô tả</label>
+                        <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="saveCategoryBtn">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm/Sửa Danh mục con -->
+<div class="modal fade" id="subcategoryModal" tabindex="-1" role="dialog" aria-labelledby="subcategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="subcategoryModalLabel">Thêm danh mục con mới</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="subcategoryForm">
+                    <input type="hidden" id="parentCategory">
+                    <input type="hidden" id="oldSubcategoryName">
+                    <div class="form-group">
+                        <label for="subcategoryName">Tên danh mục con</label>
+                        <input type="text" class="form-control" id="subcategoryName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="saveSubcategoryBtn">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Xử lý mở modal thêm danh mục mới
+        document.getElementById('addCategoryBtn').addEventListener('click', function() {
+            document.getElementById('categoryModalLabel').textContent = 'Thêm danh mục mới';
+            document.getElementById('categoryId').value = '';
+            document.getElementById('categoryName').value = '';
+            document.getElementById('categoryDescription').value = '';
+            $('#categoryModal').modal('show');
+        });
+        
+        // Xử lý mở modal sửa danh mục
+        document.querySelectorAll('.edit-category').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const categoryId = this.dataset.id;
+                document.getElementById('categoryModalLabel').textContent = 'Chỉnh sửa danh mục';
+                document.getElementById('categoryId').value = categoryId;
+                document.getElementById('categoryName').value = categoryId; // Hiện tại chỉ có id, không có tên riêng
+                document.getElementById('categoryDescription').value = ''; // Không có mô tả trong dữ liệu hiện tại
+                $('#categoryModal').modal('show');
+            });
+        });
+        
+        // Xử lý lưu danh mục
+        document.getElementById('saveCategoryBtn').addEventListener('click', async function() {
+            const categoryId = document.getElementById('categoryId').value;
+            const categoryName = document.getElementById('categoryName').value;
+            const categoryDescription = document.getElementById('categoryDescription').value;
+            
+            if (!categoryName) {
+                alert('Vui lòng nhập tên danh mục');
+                return;
+            }
+            
+            try {
+                const url = categoryId ? `/admin/products/categories/${categoryId}` : '/admin/products/categories';
+                const method = categoryId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: categoryName,
+                        description: categoryDescription
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    $('#categoryModal').modal('hide');
+                    // Reload trang để hiển thị thay đổi
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Đã xảy ra lỗi khi lưu danh mục.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Đã xảy ra lỗi khi lưu danh mục.');
+            }
+        });
+        
+        // Xử lý mở modal thêm danh mục con
+        document.querySelectorAll('.add-subcategory').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const categoryId = this.dataset.category;
+                document.getElementById('subcategoryModalLabel').textContent = 'Thêm danh mục con mới';
+                document.getElementById('parentCategory').value = categoryId;
+                document.getElementById('oldSubcategoryName').value = '';
+                document.getElementById('subcategoryName').value = '';
+                $('#subcategoryModal').modal('show');
+            });
+        });
+        
+        // Xử lý mở modal sửa danh mục con
+        document.querySelectorAll('.edit-subcategory').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const categoryId = this.dataset.category;
+                const subcategoryName = this.dataset.subcategory;
+                document.getElementById('subcategoryModalLabel').textContent = 'Chỉnh sửa danh mục con';
+                document.getElementById('parentCategory').value = categoryId;
+                document.getElementById('oldSubcategoryName').value = subcategoryName;
+                document.getElementById('subcategoryName').value = subcategoryName;
+                $('#subcategoryModal').modal('show');
+            });
+        });
+        
+        // Xử lý lưu danh mục con
+        document.getElementById('saveSubcategoryBtn').addEventListener('click', async function() {
+            const parentCategory = document.getElementById('parentCategory').value;
+            const oldSubcategoryName = document.getElementById('oldSubcategoryName').value;
+            const subcategoryName = document.getElementById('subcategoryName').value;
+            
+            if (!subcategoryName) {
+                alert('Vui lòng nhập tên danh mục con');
+                return;
+            }
+            
+            try {
+                const url = `/admin/products/categories/${parentCategory}/subcategories`;
+                const method = 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        oldName: oldSubcategoryName,
+                        newName: subcategoryName
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    $('#subcategoryModal').modal('hide');
+                    // Reload trang để hiển thị thay đổi
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Đã xảy ra lỗi khi lưu danh mục con.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Đã xảy ra lỗi khi lưu danh mục con.');
+            }
+        });
+    });
+</script>
+
+<style>
+.category-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    height: 100%;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.category-header h3 {
+    margin: 0;
+    font-size: 18px;
+    text-transform: capitalize;
+}
+
+.subcategory-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.subcategory-item {
+    display: inline-flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.subcategory-item .btn-link {
+    padding: 0;
+    margin-left: 5px;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.subcategory-item .btn-link:hover {
+    color: #007bff;
+}
+</style>
