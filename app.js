@@ -11,11 +11,30 @@ const helmet = require('helmet');
 const compression = require('compression');
 const WebSocket = require('ws');
 const http = require('http');
+const fs = require('fs');
 
 require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
+
+// Đảm bảo các thư mục uploads tồn tại
+const uploadDirs = [
+  path.join(__dirname, 'uploads'),
+  path.join(__dirname, 'uploads/products')
+];
+
+uploadDirs.forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
+
+// Thêm sau các khai báo require
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 
 // WebSocket server for real-time features
 const wss = new WebSocket.Server({ server });
@@ -82,16 +101,11 @@ app.use(compression());
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'secret',
+  secret: 'e2f3c4d5e6f7a8b9c0d1e2f3c4d5e6f7a8b9c0d1e2f3c4d5e6f7a8b9c0d1e2f3',  // Thay đổi giá trị này
   resave: false,
-  saveUninitialized: true,
-  store: MongoStore.create({ 
-    mongoUrl: process.env.MONGODB_URI,
-    ttl: 14 * 24 * 60 * 60 // 14 days
-  }),
-  cookie: {
-    maxAge: 14 * 24 * 60 * 60 * 1000 // 14 days
-  }
+  saveUninitialized: false,
+  store: MongoStore.create({ mongoUrl: 'mongodb://localhost:27017/sourcecomputer' }),
+  cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 ngày
 }));
 
 // Initialize Passport
@@ -104,14 +118,17 @@ require('./config/passport')(passport);
 // Flash messages
 app.use(flash());
 
-// Global variables
+// Đảm bảo tất cả middleware có next()
 app.use((req, res, next) => {
-  res.locals.user = req.user;
-  res.locals.success = req.flash('success');
-  res.locals.error = req.flash('error');
-  res.locals.currentPath = req.path;
-  next();
+  res.locals.isAuthenticated = req.session.isAuthenticated;
+  res.locals.isAdmin = req.session.isAdmin || (req.user && req.user.role === 'admin');
+  res.locals.user = req.user || (req.session.user || null);
+  next(); // Quan trọng: Cho phép request tiếp tục
 });
+
+// Thêm vào sau khai báo flash middleware
+const { setLocals } = require('./middleware/auth');
+app.use(setLocals);
 
 // Cart middleware
 app.use(async (req, res, next) => {
@@ -160,6 +177,7 @@ const cartRoutes = require('./routes/cart');
 const orderRoutes = require('./routes/orders');
 const userRoutes = require('./routes/user');
 const adminRoutes = require('./routes/admin');
+const adminProductRoutes = require('./routes/admin/products');
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
@@ -168,6 +186,7 @@ app.use('/cart', cartRoutes);
 app.use('/orders', orderRoutes);
 app.use('/user', userRoutes);
 app.use('/admin', adminRoutes);
+app.use('/admin/products', adminProductRoutes);
 
 // Error handling
 app.use((req, res, next) => {

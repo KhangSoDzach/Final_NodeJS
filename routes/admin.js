@@ -5,8 +5,20 @@ const adminController = require('../controllers/admin');
 const { isAuth, isAdmin } = require('../middleware/auth');
 const { productUpload } = require('../middleware/upload');
 
+<<<<<<< Updated upstream
 // Dashboard
 router.get('/', isAuth, isAdmin, adminController.getDashboard);
+=======
+// Nhập router quản lý sản phẩm
+const productRoutes = require('./admin/products');
+
+// Đảm bảo dùng cả hai middleware
+router.get('/', isAuth, isAdmin, (req, res) => {
+  res.redirect('/admin/dashboard');
+});
+
+router.get('/dashboard', isAuth, isAdmin, adminController.getDashboard);
+>>>>>>> Stashed changes
 
 // Product management
 router.get('/products', isAuth, isAdmin, adminController.getProducts);

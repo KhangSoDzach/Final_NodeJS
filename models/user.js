@@ -27,26 +27,14 @@ const userSchema = new Schema({
     unique: true
   },
   password: {
-    type: String
-  },
-  googleId: {
-    type: String
+    type: String,
+    required: true
   },
   role: {
     type: String,
-    enum: ['customer', 'admin'],
-    default: 'customer'
+    enum: ['user', 'admin'],
+    default: 'user'
   },
-  phone: {
-    type: String
-  },
-  addresses: [addressSchema],
-  loyaltyPoints: {
-    type: Number,
-    default: 0
-  },
-  resetToken: String,
-  resetTokenExpiration: Date,
   createdAt: {
     type: Date,
     default: Date.now

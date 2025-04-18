@@ -29,8 +29,7 @@ const productSchema = new Schema({
   },
   category: {
     type: String,
-    required: true,
-    enum: ['laptop', 'pc', 'monitor', 'component', 'accessory']
+    required: true
   },
   subcategory: {
     type: String,
@@ -50,8 +49,13 @@ const productSchema = new Schema({
     default: 0
   },
   images: {
+<<<<<<< Updated upstream
     type: [String],
     default: []
+=======
+    type: [String],  // Mảng các chuỗi thay vì String
+    required: true
+>>>>>>> Stashed changes
   },
   specifications: [{
     name: {

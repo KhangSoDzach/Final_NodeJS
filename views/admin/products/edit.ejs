@@ -1,0 +1,81 @@
+<%- include('../partials/sidebar') %>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Chỉnh sửa sản phẩm</h1>
+        <div class="admin-header-actions">
+            <a href="/admin/products" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-header">
+            <h2>Thông tin sản phẩm</h2>
+        </div>
+        <div class="card-body">
+            <form action="/admin/products/edit/<%= product._id %>" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="name">Tên sản phẩm</label>
+                    <input type="text" id="name" name="name" class="form-control" value="<%= product.name %>" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Mô tả</label>
+                    <textarea id="description" name="description" class="form-control" rows="5" required><%= product.description %></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Giá</label>
+                    <input type="number" id="price" name="price" class="form-control" min="0" value="<%= product.price %>" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="discountPrice">Giá khuyến mãi</label>
+                    <input type="number" id="discountPrice" name="discountPrice" class="form-control" min="0" value="<%= product.discountPrice %>">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Danh mục</label>
+                    <select id="category" name="category" class="form-select" required>
+                        <% categories.forEach(category => { %>
+                            <option value="<%= category %>" <%= product.category === category ? 'selected' : '' %>><%= category %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="brand">Thương hiệu</label>
+                    <select id="brand" name="brand" class="form-select" required>
+                        <% brands.forEach(brand => { %>
+                            <option value="<%= brand %>" <%= product.brand === brand ? 'selected' : '' %>><%= brand %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="stock">Tồn kho</label>
+                    <input type="number" id="stock" name="stock" class="form-control" min="0" value="<%= product.stock %>" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="images">Hình ảnh</label>
+                    <input type="file" id="images" name="images" class="form-control" multiple>
+                    <div id="current-images" style="margin-top: 10px;">
+                        <% product.images.forEach(image => { %>
+                            <img src="<%= image %>" alt="Product Image" style="width: 100px; height: 100px; object-fit: cover; margin-right: 10px;">
+                        <% }) %>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="featured">Nổi bật</label>
+                    <input type="checkbox" id="featured" name="featured" <%= product.featured ? 'checked' : '' %>>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Cập nhật sản phẩm</button>
+            </form>
+        </div>
+    </div>
+</div>

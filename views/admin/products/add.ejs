@@ -1,0 +1,99 @@
+<%- include('../partials/sidebar') %>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Thêm sản phẩm mới</h1>
+        <div class="admin-header-actions">
+            <a href="/admin/products" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-header">
+            <h2>Thông tin sản phẩm</h2>
+        </div>
+        <div class="card-body">
+            <form action="/admin/products/add" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="name">Tên sản phẩm</label>
+                    <input type="text" id="name" name="name" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Mô tả</label>
+                    <textarea id="description" name="description" class="form-control" rows="5" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Giá</label>
+                    <input type="number" id="price" name="price" class="form-control" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="discountPrice">Giá khuyến mãi</label>
+                    <input type="number" id="discountPrice" name="discountPrice" class="form-control" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Danh mục</label>
+                    <select id="category" name="category" class="form-select" required>
+                        <% categories.forEach(category => { %>
+                            <option value="<%= category %>"><%= category %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="brand">Thương hiệu</label>
+                    <select id="brand" name="brand" class="form-select" required>
+                        <% brands.forEach(brand => { %>
+                            <option value="<%= brand %>"><%= brand %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="stock">Tồn kho</label>
+                    <input type="number" id="stock" name="stock" class="form-control" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="images">Hình ảnh</label>
+                    <input type="file" id="images" name="images" class="form-control" multiple>
+                </div>
+
+                <div class="form-group">
+                    <label for="featured">Nổi bật</label>
+                    <input type="checkbox" id="featured" name="featured">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Thêm sản phẩm</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('images').addEventListener('change', function(event) {
+        const previewContainer = document.createElement('div');
+        previewContainer.id = 'image-preview-container';
+        previewContainer.style.display = 'flex';
+        previewContainer.style.gap = '10px';
+        document.querySelector('.card-body').appendChild(previewContainer);
+
+        Array.from(event.target.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.width = '100px';
+                img.style.height = '100px';
+                img.style.objectFit = 'cover';
+                previewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+</script>
