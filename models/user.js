@@ -28,12 +28,33 @@ const userSchema = new Schema({
   },
   password: {
     type: String,
-    required: true
+    required: function() {
+      // Only require password if googleId is not present
+      return !this.googleId;
+    }
+  },
+  googleId: {
+    type: String
   },
   role: {
     type: String,
-    enum: ['user', 'admin'],
+    enum: ['user', 'admin', 'customer'],
     default: 'user'
+  },
+  addresses: [addressSchema],
+  loyaltyPoints: {
+    type: Number,
+    default: 0
+  },
+  isBanned: {
+    type: Boolean,
+    default: false
+  },
+  banReason: {
+    type: String
+  },
+  bannedAt: {
+    type: Date
   },
   createdAt: {
     type: Date,

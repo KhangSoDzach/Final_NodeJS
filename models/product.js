@@ -49,13 +49,8 @@ const productSchema = new Schema({
     default: 0
   },
   images: {
-<<<<<<< Updated upstream
     type: [String],
-    default: []
-=======
-    type: [String],  // Mảng các chuỗi thay vì String
     required: true
->>>>>>> Stashed changes
   },
   specifications: [{
     name: {

@@ -54,12 +54,141 @@ exports.getDashboard = async (req, res) => {
       totalProducts,
       lowStockProducts,
       recentOrders,
-      bestSellers
+      bestSellers,
+      path: '/dashboard' // Thêm biến path
     });
   } catch (err) {
     console.error(err);
     req.flash('error', 'Đã xảy ra lỗi khi tải bảng điều khiển.');
     res.redirect('/');
+  }
+};
+
+// Dashboard data API cho biểu đồ theo thời gian
+exports.getDashboardData = async (req, res) => {
+  try {
+    const { dateRange, startDate, endDate } = req.query;
+    
+    // Xác định thời gian bắt đầu và kết thúc dựa trên dateRange
+    let startDateTime, endDateTime;
+    const now = new Date();
+    
+    switch(dateRange) {
+      case 'today':
+        startDateTime = new Date(now.setHours(0, 0, 0, 0));
+        endDateTime = new Date();
+        break;
+        
+      case 'week':
+        startDateTime = new Date(now);
+        startDateTime.setDate(now.getDate() - now.getDay()); // Đầu tuần (Chủ Nhật)
+        startDateTime.setHours(0, 0, 0, 0);
+        endDateTime = new Date();
+        break;
+        
+      case 'month':
+        startDateTime = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDateTime = new Date();
+        break;
+        
+      case 'year':
+        startDateTime = new Date(now.getFullYear(), 0, 1);
+        endDateTime = new Date();
+        break;
+        
+      case 'custom':
+        startDateTime = new Date(startDate);
+        startDateTime.setHours(0, 0, 0, 0);
+        endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        break;
+        
+      default:
+        startDateTime = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDateTime = new Date();
+    }
+    
+    // Lấy dữ liệu doanh thu trong khoảng thời gian
+    const orders = await Order.find({
+      createdAt: { 
+        $gte: startDateTime,
+        $lte: endDateTime
+      },
+      status: { $ne: 'cancelled' }
+    });
+    
+    const totalRevenue = orders.reduce((total, order) => total + order.totalAmount, 0);
+    const totalOrders = orders.length;
+    
+    // Lấy số đơn hàng đang chờ xử lý
+    const pendingOrders = await Order.countDocuments({
+      status: 'processing',
+      createdAt: { 
+        $gte: startDateTime,
+        $lte: endDateTime
+      }
+    });
+    
+    // Lấy số người dùng đăng ký mới trong khoảng thời gian
+    const totalUsers = await User.countDocuments({
+      createdAt: { 
+        $gte: startDateTime,
+        $lte: endDateTime
+      }
+    });
+    
+    // Tính doanh thu theo thời gian cho biểu đồ
+    // Nếu là hàng tháng trong năm
+    const revenueByMonth = Array(12).fill(0);
+    
+    orders.forEach(order => {
+      const orderMonth = new Date(order.createdAt).getMonth();
+      revenueByMonth[orderMonth] += order.totalAmount / 1000000; // Đổi sang đơn vị triệu đồng
+    });
+    
+    // Thống kê sản phẩm theo danh mục
+    const categories = await Product.aggregate([
+      {
+        $match: {
+          createdAt: { 
+            $gte: startDateTime,
+            $lte: endDateTime
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+    
+    // Xử lý dữ liệu cho biểu đồ danh mục
+    const categoryLabels = [];
+    const categoryData = [];
+    
+    categories.forEach(cat => {
+      categoryLabels.push(cat._id);
+      categoryData.push(cat.count);
+    });
+    
+    // Trả về dữ liệu
+    res.json({
+      totalRevenue,
+      totalOrders,
+      pendingOrders,
+      totalUsers,
+      revenueData: revenueByMonth,
+      categoryLabels,
+      categoryData
+    });
+  } catch (err) {
+    console.error('Dashboard data error:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Đã xảy ra lỗi khi tải dữ liệu dashboard.' 
+    });
   }
 };
 
@@ -100,7 +229,8 @@ exports.getProducts = async (req, res) => {
       totalPages: Math.ceil(total / limit),
       totalProducts: total,
       categories,
-      filter: req.query
+      filter: req.query,
+      path: '/products'
     });
   } catch (err) {
     console.error(err);
@@ -111,13 +241,49 @@ exports.getProducts = async (req, res) => {
 
 exports.getAddProduct = async (req, res) => {
   try {
-    const categories = await Product.distinct('category');
-    const brands = await Product.distinct('brand');
+    // Lấy danh mục từ database
+    let categories = await Product.distinct('category');
+    let brands = await Product.distinct('brand');
+    
+    // Thêm các danh mục mặc định nếu chưa có
+    const defaultCategories = ['Laptop', 'PC', 'Màn hình', 'Linh kiện', 'Phụ kiện'];
+    
+    // Nếu không có danh mục trong database hoặc ít hơn danh sách mặc định
+    if (!categories.length) {
+      categories = defaultCategories;
+    } else {
+      // Thêm các danh mục mặc định nếu chưa có trong danh sách
+      defaultCategories.forEach(category => {
+        if (!categories.includes(category)) {
+          categories.push(category);
+        }
+      });
+    }
+    
+    // Thêm các thương hiệu mặc định nếu chưa có
+    const defaultBrands = ['Acer', 'Asus', 'Dell', 'HP', 'Lenovo', 'MSI', 'Apple', 'Samsung', 'LG', 'AMD', 'Intel', 'Gigabyte'];
+    
+    // Nếu không có thương hiệu trong database hoặc ít hơn danh sách mặc định
+    if (!brands.length) {
+      brands = defaultBrands;
+    } else {
+      // Thêm các thương hiệu mặc định nếu chưa có trong danh sách
+      defaultBrands.forEach(brand => {
+        if (!brands.includes(brand)) {
+          brands.push(brand);
+        }
+      });
+    }
+    
+    // Sắp xếp theo alphabet
+    categories.sort();
+    brands.sort();
     
     res.render('admin/products/add', {
       title: 'Thêm sản phẩm mới',
       categories,
-      brands
+      brands,
+      path: '/products'
     });
   } catch (err) {
     console.error(err);
@@ -257,7 +423,8 @@ exports.getEditProduct = async (req, res) => {
       title: `Chỉnh sửa: ${product.name}`,
       product,
       categories,
-      brands
+      brands,
+      path: '/products'
     });
   } catch (err) {
     console.error(err);
@@ -455,7 +622,8 @@ exports.getOrders = async (req, res) => {
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       totalOrders: total,
-      filter: req.query
+      filter: req.query,
+      path: '/orders'
     });
   } catch (err) {
     console.error(err);
@@ -482,7 +650,8 @@ exports.getOrderDetail = async (req, res) => {
     
     res.render('admin/orders/detail', {
       title: `Đơn hàng #${order.orderNumber}`,
-      order
+      order,
+      path: '/orders'
     });
   } catch (err) {
     console.error(err);
@@ -538,6 +707,12 @@ exports.getUsers = async (req, res) => {
       filter.role = req.query.role;
     }
     
+    if (req.query.status === 'active') {
+      filter.isBanned = false;
+    } else if (req.query.status === 'banned') {
+      filter.isBanned = true;
+    }
+    
     if (req.query.search) {
       filter.$or = [
         { name: { $regex: req.query.search, $options: 'i' } },
@@ -561,7 +736,8 @@ exports.getUsers = async (req, res) => {
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       totalUsers: total,
-      filter: req.query
+      filter: req.query,
+      path: '/users'
     });
   } catch (err) {
     console.error(err);
@@ -588,7 +764,8 @@ exports.getUserDetail = async (req, res) => {
     res.render('admin/users/detail', {
       title: `Thông tin người dùng: ${user.name}`,
       user,
-      orders
+      orders,
+      path: '/users'
     });
   } catch (err) {
     console.error(err);
@@ -619,6 +796,56 @@ exports.updateUserRole = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi cập nhật vai trò người dùng.' });
+  }
+};
+
+exports.updateUserStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { status, reason } = req.body;
+    
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng.' });
+    }
+    
+    // Prevent banning yourself
+    if (userId === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: 'Bạn không thể khóa tài khoản của chính mình.' });
+    }
+
+    if (status === 'banned') {
+      user.isBanned = true;
+      user.banReason = reason || 'Vi phạm điều khoản sử dụng';
+      user.bannedAt = new Date();
+      await user.save();
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Tài khoản đã được khóa thành công.'
+      });
+    } else if (status === 'active') {
+      user.isBanned = false;
+      user.banReason = undefined;
+      user.bannedAt = undefined;
+      await user.save();
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Tài khoản đã được mở khóa thành công.'
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Trạng thái không hợp lệ.'
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      success: false,
+      message: 'Đã xảy ra lỗi khi cập nhật trạng thái người dùng.'
+    });
   }
 };
 
@@ -660,7 +887,8 @@ exports.getCoupons = async (req, res) => {
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       totalCoupons: total,
-      filter: req.query
+      filter: req.query,
+      path: '/coupons'
     });
   } catch (err) {
     console.error(err);
@@ -671,7 +899,8 @@ exports.getCoupons = async (req, res) => {
 
 exports.getAddCoupon = (req, res) => {
   res.render('admin/coupons/add', {
-    title: 'Thêm mã giảm giá mới'
+    title: 'Thêm mã giảm giá mới',
+    path: '/coupons'
   });
 };
 
@@ -730,7 +959,8 @@ exports.getEditCoupon = async (req, res) => {
     
     res.render('admin/coupons/edit', {
       title: `Chỉnh sửa: ${coupon.code}`,
-      coupon
+      coupon,
+      path: '/coupons'
     });
   } catch (err) {
     console.error(err);

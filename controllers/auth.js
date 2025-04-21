@@ -25,10 +25,31 @@ exports.getLogin = (req, res) => {
 exports.postLogin = (req, res, next) => {
   const returnTo = req.query.returnTo || '/';
   
-  passport.authenticate('local', {
-    successRedirect: returnTo,
-    failureRedirect: `/auth/login?returnTo=${returnTo}`,
-    failureFlash: true
+  // Add banned user check using a custom callback with passport.authenticate
+  passport.authenticate('local', (err, user, info) => {
+    if (err) {
+      return next(err);
+    }
+    
+    if (!user) {
+      req.flash('error', info.message || 'Email hoặc mật khẩu không đúng.');
+      return res.redirect(`/auth/login?returnTo=${returnTo}`);
+    }
+    
+    // Check if user is banned
+    if (user.isBanned) {
+      req.flash('error', 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên để biết thêm chi tiết.');
+      return res.redirect(`/auth/login?returnTo=${returnTo}`);
+    }
+    
+    // If user is valid and not banned, log them in
+    req.login(user, (err) => {
+      if (err) {
+        return next(err);
+      }
+      
+      return res.redirect(returnTo);
+    });
   })(req, res, next);
 };
 

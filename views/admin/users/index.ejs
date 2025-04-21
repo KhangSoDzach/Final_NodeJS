@@ -1,0 +1,138 @@
+<%- include('../partials/sidebar') %>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Quản lý người dùng</h1>
+        <div class="admin-header-actions">
+            <form action="/admin/users" method="GET" class="admin-search">
+                <input type="text" name="search" placeholder="Tìm theo tên, email..." value="<%= filter.search || '' %>">
+                <select name="role">
+                    <option value="">Tất cả vai trò</option>
+                    <option value="customer" <%= filter.role === 'customer' ? 'selected' : '' %>>Khách hàng</option>
+                    <option value="admin" <%= filter.role === 'admin' ? 'selected' : '' %>>Quản trị viên</option>
+                </select>
+                <select name="status">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active" <%= filter.status === 'active' ? 'selected' : '' %>>Đang hoạt động</option>
+                    <option value="banned" <%= filter.status === 'banned' ? 'selected' : '' %>>Đã khóa</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="admin-card">
+        <div class="card-header">
+            <h3>Danh sách người dùng (<%= totalUsers %>)</h3>
+        </div>
+        <div class="card-body">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên</th>
+                        <th>Email</th>
+                        <th>Vai trò</th>
+                        <th>Ngày đăng ký</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% users.forEach(user => { %>
+                        <tr>
+                            <td><%= user._id %></td>
+                            <td><%= user.name %></td>
+                            <td><%= user.email %></td>
+                            <td>
+                                <span class="role-badge <%= user.role %>">
+                                    <%= user.role === 'admin' ? 'Quản trị viên' : 'Khách hàng' %>
+                                </span>
+                            </td>
+                            <td><%= new Date(user.createdAt).toLocaleDateString('vi-VN') %></td>
+                            <td>
+                                <span class="status-badge <%= user.isBanned ? 'banned' : 'active' %>">
+                                    <%= user.isBanned ? 'Đã khóa' : 'Đang hoạt động' %>
+                                </span>
+                            </td>
+                            <td class="actions">
+                                <a href="/admin/users/<%= user._id %>" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-<%= user.isBanned ? 'success' : 'danger' %> toggle-user-status" 
+                                    data-user-id="<%= user._id %>" 
+                                    data-current-status="<%= user.isBanned ? 'banned' : 'active' %>">
+                                    <i class="fas <%= user.isBanned ? 'fa-unlock' : 'fa-ban' %>"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+            
+            <% if (totalPages > 1) { %>
+                <div class="pagination">
+                    <% if (currentPage > 1) { %>
+                        <a href="/admin/users?page=<%= currentPage - 1 %><%= filter.search ? `&search=${filter.search}` : '' %><%= filter.role ? `&role=${filter.role}` : '' %><%= filter.status ? `&status=${filter.status}` : '' %>" class="page-link">Trước</a>
+                    <% } %>
+                    
+                    <% for(let i = 1; i <= totalPages; i++) { %>
+                        <a href="/admin/users?page=<%= i %><%= filter.search ? `&search=${filter.search}` : '' %><%= filter.role ? `&role=${filter.role}` : '' %><%= filter.status ? `&status=${filter.status}` : '' %>" 
+                           class="page-link <%= i === currentPage ? 'active' : '' %>"><%= i %></a>
+                    <% } %>
+                    
+                    <% if (currentPage < totalPages) { %>
+                        <a href="/admin/users?page=<%= currentPage + 1 %><%= filter.search ? `&search=${filter.search}` : '' %><%= filter.role ? `&role=${filter.role}` : '' %><%= filter.status ? `&status=${filter.status}` : '' %>" class="page-link">Tiếp</a>
+                    <% } %>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleStatusBtns = document.querySelectorAll('.toggle-user-status');
+        
+        toggleStatusBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                const currentStatus = this.dataset.currentStatus;
+                const newStatus = currentStatus === 'active' ? 'banned' : 'active';
+                
+                if (confirm(`Bạn có chắc chắn muốn ${newStatus === 'active' ? 'mở khóa' : 'khóa'} người dùng này không?`)) {
+                    fetch(`/admin/users/${userId}/status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update UI
+                            const row = this.closest('tr');
+                            const statusCell = row.querySelector('td:nth-child(6) .status-badge');
+                            statusCell.className = `status-badge ${newStatus}`;
+                            statusCell.textContent = newStatus === 'active' ? 'Đang hoạt động' : 'Đã khóa';
+                            
+                            // Update button
+                            this.dataset.currentStatus = newStatus;
+                            this.className = `btn btn-sm btn-outline-${newStatus === 'active' ? 'danger' : 'success'} toggle-user-status`;
+                            this.innerHTML = `<i class="fas ${newStatus === 'active' ? 'fa-ban' : 'fa-unlock'}"></i>`;
+                            
+                            alert(data.message);
+                        } else {
+                            alert('Đã xảy ra lỗi: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Đã xảy ra lỗi khi cập nhật trạng thái người dùng.');
+                    });
+                }
+            });
+        });
+    });
+</script>

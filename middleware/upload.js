@@ -2,14 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 
-<<<<<<< Updated upstream
-// Setup storage for product images
-const productStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '../public/uploads/products');
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-=======
 // Đảm bảo thư mục uploads/products tồn tại
 const uploadDir = path.join(__dirname, '../uploads/products');
 if (!fs.existsSync(uploadDir)) {
@@ -22,7 +14,6 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname));
->>>>>>> Stashed changes
     }
 });
 
@@ -31,14 +22,20 @@ const fileFilter = (req, file, cb) => {
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error('Invalid file type. Only JPEG, PNG, and GIF are allowed.'));
+        cb(new Error('Chỉ chấp nhận file hình ảnh (jpg, png, gif).'), false);
     }
 };
 
-const productUpload = multer({
-    storage,
-    fileFilter,
-    limits: { fileSize: 1024 * 1024 * 5 } // 5MB limit
+const upload = multer({ 
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    }
 });
 
-module.exports = { productUpload };
+// Export both the generic upload and a product-specific one
+module.exports = {
+    upload,
+    productUpload: upload
+};

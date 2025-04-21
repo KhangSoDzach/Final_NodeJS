@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const Product = require('../../models/product');
-const Category = require('../../models/category');
 const { validationResult } = require('express-validator');
 
 // Lấy danh sách sản phẩm
@@ -66,8 +65,43 @@ exports.getProducts = async (req, res) => {
 // Hiển thị form thêm sản phẩm mới
 exports.getAddProduct = async (req, res) => {
   try {
-    const categories = await Product.distinct('category');
-    const brands = await Product.distinct('brand');
+    // Lấy danh mục từ database
+    let categories = await Product.distinct('category');
+    let brands = await Product.distinct('brand');
+    
+    // Thêm các danh mục mặc định nếu chưa có
+    const defaultCategories = ['Laptop', 'PC', 'Màn hình', 'Linh kiện', 'Phụ kiện'];
+    
+    // Nếu không có danh mục trong database hoặc ít hơn danh sách mặc định
+    if (!categories.length) {
+      categories = defaultCategories;
+    } else {
+      // Thêm các danh mục mặc định nếu chưa có trong danh sách
+      defaultCategories.forEach(category => {
+        if (!categories.includes(category)) {
+          categories.push(category);
+        }
+      });
+    }
+    
+    // Thêm các thương hiệu mặc định nếu chưa có
+    const defaultBrands = ['Acer', 'Asus', 'Dell', 'HP', 'Lenovo', 'MSI', 'Apple', 'Samsung', 'LG', 'AMD', 'Intel', 'Gigabyte'];
+    
+    // Nếu không có thương hiệu trong database hoặc ít hơn danh sách mặc định
+    if (!brands.length) {
+      brands = defaultBrands;
+    } else {
+      // Thêm các thương hiệu mặc định nếu chưa có trong danh sách
+      defaultBrands.forEach(brand => {
+        if (!brands.includes(brand)) {
+          brands.push(brand);
+        }
+      });
+    }
+    
+    // Sắp xếp theo alphabet
+    categories.sort();
+    brands.sort();
     
     res.render('admin/products/add', {
       title: 'Thêm sản phẩm mới',
@@ -132,8 +166,52 @@ exports.getEditProduct = async (req, res) => {
       return res.redirect('/admin/products');
     }
     
-    const categories = await Product.distinct('category');
-    const brands = await Product.distinct('brand');
+    // Lấy danh mục từ database
+    let categories = await Product.distinct('category');
+    let brands = await Product.distinct('brand');
+    
+    // Thêm các danh mục mặc định nếu chưa có
+    const defaultCategories = ['Laptop', 'PC', 'Màn hình', 'Linh kiện', 'Phụ kiện'];
+    
+    // Nếu không có danh mục trong database hoặc ít hơn danh sách mặc định
+    if (!categories.length) {
+      categories = defaultCategories;
+    } else {
+      // Thêm các danh mục mặc định nếu chưa có trong danh sách
+      defaultCategories.forEach(category => {
+        if (!categories.includes(category)) {
+          categories.push(category);
+        }
+      });
+    }
+    
+    // Thêm các thương hiệu mặc định nếu chưa có
+    const defaultBrands = ['Acer', 'Asus', 'Dell', 'HP', 'Lenovo', 'MSI', 'Apple', 'Samsung', 'LG', 'AMD', 'Intel', 'Gigabyte'];
+    
+    // Nếu không có thương hiệu trong database hoặc ít hơn danh sách mặc định
+    if (!brands.length) {
+      brands = defaultBrands;
+    } else {
+      // Thêm các thương hiệu mặc định nếu chưa có trong danh sách
+      defaultBrands.forEach(brand => {
+        if (!brands.includes(brand)) {
+          brands.push(brand);
+        }
+      });
+    }
+    
+    // Đảm bảo danh mục và thương hiệu của sản phẩm hiện tại có trong danh sách
+    if (product.category && !categories.includes(product.category)) {
+      categories.push(product.category);
+    }
+    
+    if (product.brand && !brands.includes(product.brand)) {
+      brands.push(product.brand);
+    }
+    
+    // Sắp xếp theo alphabet
+    categories.sort();
+    brands.sort();
     
     res.render('admin/products/edit', {
       title: `Chỉnh sửa: ${product.name}`,

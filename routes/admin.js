@@ -5,20 +5,16 @@ const adminController = require('../controllers/admin');
 const { isAuth, isAdmin } = require('../middleware/auth');
 const { productUpload } = require('../middleware/upload');
 
-<<<<<<< Updated upstream
-// Dashboard
-router.get('/', isAuth, isAdmin, adminController.getDashboard);
-=======
-// Nhập router quản lý sản phẩm
+// Import product routes
 const productRoutes = require('./admin/products');
 
-// Đảm bảo dùng cả hai middleware
+// Dashboard routes
 router.get('/', isAuth, isAdmin, (req, res) => {
   res.redirect('/admin/dashboard');
 });
 
 router.get('/dashboard', isAuth, isAdmin, adminController.getDashboard);
->>>>>>> Stashed changes
+router.get('/dashboard/data', isAuth, isAdmin, adminController.getDashboardData);
 
 // Product management
 router.get('/products', isAuth, isAdmin, adminController.getProducts);
@@ -49,6 +45,7 @@ router.post('/orders/:orderId/status', isAuth, isAdmin, adminController.updateOr
 router.get('/users', isAuth, isAdmin, adminController.getUsers);
 router.get('/users/:userId', isAuth, isAdmin, adminController.getUserDetail);
 router.post('/users/:userId/role', isAuth, isAdmin, adminController.updateUserRole);
+router.post('/users/:userId/status', isAuth, isAdmin, adminController.updateUserStatus);
 
 // Coupon management
 router.get('/coupons', isAuth, isAdmin, adminController.getCoupons);

@@ -1,0 +1,344 @@
+<%- include('../partials/sidebar') %>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Thông tin chi tiết người dùng</h1>
+        <div class="admin-header-actions">
+            <a href="/admin/users" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Quay lại</a>
+            
+            <% if (!user.isBanned) { %>
+                <button class="btn btn-danger" id="banUserBtn">
+                    <i class="fas fa-ban"></i> Khóa tài khoản
+                </button>
+            <% } else { %>
+                <button class="btn btn-success" id="unbanUserBtn">
+                    <i class="fas fa-unlock"></i> Mở khóa tài khoản
+                </button>
+            <% } %>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h3>Thông tin tài khoản</h3>
+                </div>
+                <div class="card-body">
+                    <table class="detail-table">
+                        <tr>
+                            <th>ID:</th>
+                            <td><%= user._id %></td>
+                        </tr>
+                        <tr>
+                            <th>Tên:</th>
+                            <td><%= user.name %></td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td><%= user.email %></td>
+                        </tr>
+                        <tr>
+                            <th>Vai trò:</th>
+                            <td>
+                                <div class="role-selector">
+                                    <select id="roleSelect">
+                                        <option value="customer" <%= user.role === 'customer' ? 'selected' : '' %>>Khách hàng</option>
+                                        <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Quản trị viên</option>
+                                    </select>
+                                    <button id="updateRoleBtn" class="btn btn-sm btn-primary">Cập nhật</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Trạng thái:</th>
+                            <td>
+                                <span class="status-badge <%= user.isBanned ? 'banned' : 'active' %>">
+                                    <%= user.isBanned ? 'Đã khóa' : 'Đang hoạt động' %>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Ngày đăng ký:</th>
+                            <td><%= new Date(user.createdAt).toLocaleString('vi-VN') %></td>
+                        </tr>
+                        <tr>
+                            <th>Đăng nhập qua Google:</th>
+                            <td><%= user.googleId ? 'Có' : 'Không' %></td>
+                        </tr>
+                        <tr>
+                            <th>Điểm tích lũy:</th>
+                            <td><%= user.loyaltyPoints || 0 %> điểm</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Địa chỉ của người dùng -->
+            <div class="admin-card mt-4">
+                <div class="card-header">
+                    <h3>Địa chỉ (<%= user.addresses ? user.addresses.length : 0 %>)</h3>
+                </div>
+                <div class="card-body">
+                    <% if (user.addresses && user.addresses.length > 0) { %>
+                        <div class="address-list">
+                            <% user.addresses.forEach((address, index) => { %>
+                                <div class="address-item <%= address.default ? 'default' : '' %>">
+                                    <% if (address.default) { %>
+                                        <span class="default-badge">Mặc định</span>
+                                    <% } %>
+                                    <div class="address-details">
+                                        <p><strong>Địa chỉ <%= index + 1 %>:</strong> <%= address.street %></p>
+                                        <p><strong>Thành phố:</strong> <%= address.city %></p>
+                                        <% if (address.state) { %>
+                                            <p><strong>Tỉnh/Thành:</strong> <%= address.state %></p>
+                                        <% } %>
+                                        <% if (address.zipCode) { %>
+                                            <p><strong>Mã bưu điện:</strong> <%= address.zipCode %></p>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <p class="no-data">Người dùng chưa có địa chỉ nào.</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <!-- Đơn hàng gần đây -->
+            <div class="admin-card">
+                <div class="card-header">
+                    <h3>Đơn hàng gần đây</h3>
+                </div>
+                <div class="card-body">
+                    <% if (orders && orders.length > 0) { %>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn hàng</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% orders.forEach(order => { %>
+                                    <tr>
+                                        <td><%= order.orderNumber %></td>
+                                        <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
+                                        <td><%= order.totalAmount.toLocaleString('vi-VN') %> ₫</td>
+                                        <td>
+                                            <span class="status-badge <%= order.status %>">
+                                                <% let statusText; %>
+                                                <% switch(order.status) { 
+                                                    case 'processing': statusText = 'Đang xử lý'; break;
+                                                    case 'confirmed': statusText = 'Đã xác nhận'; break;
+                                                    case 'shipped': statusText = 'Đang giao hàng'; break;
+                                                    case 'delivered': statusText = 'Đã giao hàng'; break;
+                                                    case 'cancelled': statusText = 'Đã hủy'; break;
+                                                    default: statusText = order.status;
+                                                } %>
+                                                <%= statusText %>
+                                            </span>
+                                        </td>
+                                        <td class="actions">
+                                            <a href="/admin/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                        
+                        <div class="view-all">
+                            <a href="/admin/orders?user=<%= user._id %>">Xem tất cả đơn hàng của người dùng này</a>
+                        </div>
+                    <% } else { %>
+                        <p class="no-data">Người dùng chưa có đơn hàng nào.</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userId = '<%= user._id %>';
+    
+    // Cập nhật vai trò
+    document.getElementById('updateRoleBtn').addEventListener('click', function() {
+        const role = document.getElementById('roleSelect').value;
+        
+        fetch(`/admin/users/${userId}/role`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ role })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Vai trò người dùng đã được cập nhật thành công.');
+            } else {
+                alert('Đã xảy ra lỗi: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Đã xảy ra lỗi khi cập nhật vai trò người dùng.');
+        });
+    });
+    
+    // Khóa tài khoản
+    const banUserBtn = document.getElementById('banUserBtn');
+    if (banUserBtn) {
+        banUserBtn.addEventListener('click', function() {
+            if (confirm('Bạn có chắc chắn muốn khóa tài khoản này không?')) {
+                updateUserStatus('banned');
+            }
+        });
+    }
+    
+    // Mở khóa tài khoản
+    const unbanUserBtn = document.getElementById('unbanUserBtn');
+    if (unbanUserBtn) {
+        unbanUserBtn.addEventListener('click', function() {
+            if (confirm('Bạn có chắc chắn muốn mở khóa tài khoản này không?')) {
+                updateUserStatus('active');
+            }
+        });
+    }
+    
+    function updateUserStatus(status) {
+        fetch(`/admin/users/${userId}/status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload(); // Reload the page to reflect changes
+            } else {
+                alert('Đã xảy ra lỗi: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Đã xảy ra lỗi khi cập nhật trạng thái người dùng.');
+        });
+    }
+});
+</script>
+
+<style>
+.detail-table {
+    width: 100%;
+}
+.detail-table th {
+    width: 35%;
+    padding: 10px;
+    text-align: left;
+    vertical-align: top;
+    font-weight: 600;
+}
+.detail-table td {
+    padding: 10px;
+}
+.role-selector {
+    display: flex;
+    align-items: center;
+}
+.role-selector select {
+    margin-right: 10px;
+    padding: 5px;
+}
+.address-list {
+    display: grid;
+    gap: 15px;
+}
+.address-item {
+    position: relative;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #f9f9f9;
+}
+.address-item.default {
+    border-color: #4CAF50;
+    background-color: #f1f8e9;
+}
+.default-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 2px 8px;
+    font-size: 12px;
+    border-radius: 10px;
+}
+.address-details p {
+    margin: 5px 0;
+}
+.no-data {
+    color: #888;
+    font-style: italic;
+    text-align: center;
+    padding: 20px 0;
+}
+.role-badge,
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+.role-badge.admin {
+    color: white;
+    background-color: #2196F3;
+}
+.role-badge.customer {
+    color: white;
+    background-color: #009688;
+}
+.status-badge.active {
+    color: white;
+    background-color: #4CAF50;
+}
+.status-badge.banned {
+    color: white;
+    background-color: #F44336;
+}
+.status-badge.processing {
+    background-color: #FFC107;
+    color: #333;
+}
+.status-badge.confirmed {
+    background-color: #2196F3;
+    color: white;
+}
+.status-badge.shipped {
+    background-color: #9C27B0;
+    color: white;
+}
+.status-badge.delivered {
+    background-color: #4CAF50;
+    color: white;
+}
+.status-badge.cancelled {
+    background-color: #F44336;
+    color: white;
+}
+</style>

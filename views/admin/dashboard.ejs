@@ -11,7 +11,13 @@
                         <option value="week">Tuần này</option>
                         <option value="month" selected>Tháng này</option>
                         <option value="year">Năm nay</option>
+                        <option value="custom">Tùy chỉnh</option>
                     </select>
+                    <div id="custom-date-range" style="display: none; margin-left: 10px;">
+                        <input type="date" id="start-date" name="start-date">
+                        <input type="date" id="end-date" name="end-date">
+                        <button id="apply-custom-range" class="btn btn-sm btn-primary">Áp dụng</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -174,91 +180,167 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Revenue chart
-        const revenueData = {
-            labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
-            datasets: [{
-                label: 'Doanh thu (triệu đồng)',
-                data: [12, 19, 13, 15, 22, 27, 30, 35, 40, 45, 50, 55],
-                backgroundColor: 'rgba(52, 152, 219, 0.2)',
-                borderColor: 'rgba(52, 152, 219, 1)',
-                borderWidth: 2,
-                tension: 0.4
-            }]
-        };
+        let revenueChart, categoryChart;
         
-        const revenueConfig = {
-            type: 'line',
-            data: revenueData,
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
+        function initCharts(data = null) {
+            const revenueData = {
+                labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+                datasets: [{
+                    label: 'Doanh thu (triệu đồng)',
+                    data: data?.revenueData || [12, 19, 13, 15, 22, 27, 30, 35, 40, 45, 50, 55],
+                    backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    borderWidth: 2,
+                    tension: 0.4
+                }]
+            };
+            
+            const revenueConfig = {
+                type: 'line',
+                data: revenueData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false
+                        }
                     },
-                    title: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
+            };
+            
+            if (revenueChart) {
+                revenueChart.destroy();
             }
-        };
-        
-        new Chart(
-            document.getElementById('revenueChart'),
-            revenueConfig
-        );
-        
-        // Category chart
-        const categoryData = {
-            labels: ['Laptop', 'PC', 'Màn hình', 'Linh kiện', 'Phụ kiện'],
-            datasets: [{
-                label: 'Số lượng sản phẩm',
-                data: [42, 28, 18, 35, 25],
-                backgroundColor: [
-                    'rgba(52, 152, 219, 0.7)',
-                    'rgba(46, 204, 113, 0.7)',
-                    'rgba(241, 196, 15, 0.7)',
-                    'rgba(230, 126, 34, 0.7)',
-                    'rgba(231, 76, 60, 0.7)'
-                ],
-                borderColor: [
-                    'rgba(52, 152, 219, 1)',
-                    'rgba(46, 204, 113, 1)',
-                    'rgba(241, 196, 15, 1)',
-                    'rgba(230, 126, 34, 1)',
-                    'rgba(231, 76, 60, 1)'
-                ],
-                borderWidth: 1
-            }]
-        };
-        
-        const categoryConfig = {
-            type: 'doughnut',
-            data: categoryData,
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
+            
+            revenueChart = new Chart(
+                document.getElementById('revenueChart'),
+                revenueConfig
+            );
+            
+            // Category chart
+            const categoryData = {
+                labels: ['Laptop', 'PC', 'Màn hình', 'Linh kiện', 'Phụ kiện'],
+                datasets: [{
+                    label: 'Số lượng sản phẩm',
+                    data: data?.categoryData || [42, 28, 18, 35, 25],
+                    backgroundColor: [
+                        'rgba(52, 152, 219, 0.7)',
+                        'rgba(46, 204, 113, 0.7)',
+                        'rgba(241, 196, 15, 0.7)',
+                        'rgba(230, 126, 34, 0.7)',
+                        'rgba(231, 76, 60, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(52, 152, 219, 1)',
+                        'rgba(46, 204, 113, 1)',
+                        'rgba(241, 196, 15, 1)',
+                        'rgba(230, 126, 34, 1)',
+                        'rgba(231, 76, 60, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+            
+            const categoryConfig = {
+                type: 'doughnut',
+                data: categoryData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
                     }
                 }
+            };
+            
+            if (categoryChart) {
+                categoryChart.destroy();
             }
-        };
+            
+            categoryChart = new Chart(
+                document.getElementById('categoryChart'),
+                categoryConfig
+            );
+        }
         
-        new Chart(
-            document.getElementById('categoryChart'),
-            categoryConfig
-        );
+        // Initialize charts with default data
+        initCharts();
         
         // Date filter change event
         document.getElementById('date-range').addEventListener('change', function() {
-            // In a real application, this would reload the data based on the selected date range
-            // For this example, we'll just show an alert
-            alert('In a real application, this would fetch data for the selected date range: ' + this.value);
+            const dateRange = this.value;
+            const customDateRange = document.getElementById('custom-date-range');
+            
+            if (dateRange === 'custom') {
+                customDateRange.style.display = 'inline-flex';
+            } else {
+                customDateRange.style.display = 'none';
+                fetchDashboardData(dateRange);
+            }
         });
+        
+        // Apply custom date range
+        document.getElementById('apply-custom-range').addEventListener('click', function() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            
+            if (startDate && endDate) {
+                fetchDashboardData('custom', startDate, endDate);
+            } else {
+                alert('Vui lòng chọn ngày bắt đầu và kết thúc');
+            }
+        });
+        
+        // Function to fetch dashboard data based on date range
+        function fetchDashboardData(dateRange, startDate = null, endDate = null) {
+            // Show loading state
+            document.querySelectorAll('.stat-card .value').forEach(el => {
+                el.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            });
+            
+            // Prepare query parameters
+            let queryParams = `dateRange=${dateRange}`;
+            if (dateRange === 'custom') {
+                queryParams += `&startDate=${startDate}&endDate=${endDate}`;
+            }
+            
+            // Fetch data from server
+            fetch(`/admin/dashboard/data?${queryParams}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update dashboard with new data
+                    document.querySelector('.stat-card.primary .value').innerHTML = 
+                        `${data.totalRevenue.toLocaleString('vi-VN')} ₫`;
+                    document.querySelector('.stat-card.success .value').innerHTML = 
+                        data.totalOrders;
+                    document.querySelector('.stat-card.warning .value').innerHTML = 
+                        data.totalUsers;
+                    document.querySelector('.stat-card.danger .value').innerHTML = 
+                        data.pendingOrders;
+                    
+                    // Update charts
+                    initCharts({
+                        revenueData: data.revenueData,
+                        categoryData: data.categoryData
+                    });
+                    
+                    // Update tables (this would be more complex in a real app)
+                    // For this example, we'll just log the data
+                    console.log('Data updated for date range:', dateRange);
+                })
+                .catch(error => {
+                    console.error('Error fetching dashboard data:', error);
+                    alert('Có lỗi khi tải dữ liệu dashboard. Vui lòng thử lại sau.');
+                });
+        }
     });
 </script>
