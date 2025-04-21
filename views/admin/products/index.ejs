@@ -1,0 +1,55 @@
+<%- include('../partials/sidebar') %>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Danh sách sản phẩm</h1>
+        <div class="admin-header-actions">
+            <a href="/admin/products/add" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Thêm sản phẩm mới
+            </a>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-header">
+            <h2>Tất cả sản phẩm</h2>
+        </div>
+        <div class="card-body">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Danh mục</th>
+                        <th>Thương hiệu</th>
+                        <th>Giá</th>
+                        <th>Tồn kho</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% products.forEach((product, index) => { %>
+                        <tr>
+                            <td><%= index + 1 %></td>
+                            <td><%= product.name %></td>
+                            <td><%= product.category %></td>
+                            <td><%= product.brand %></td>
+                            <td><%= product.price.toLocaleString('vi-VN') %> ₫</td>
+                            <td><%= product.stock %></td>
+                            <td>
+                                <a href="/admin/products/edit/<%= product._id %>" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-edit"></i> Sửa
+                                </a>
+                                <form action="/admin/products/delete/<%= product._id %>" method="POST" style="display: inline-block;">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
