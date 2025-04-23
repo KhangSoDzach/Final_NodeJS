@@ -27,7 +27,7 @@
                 <div class="info-card">
                     <h3>Thông tin giao hàng</h3>
                     <p><strong>Người nhận:</strong> <%= order.shippingAddress.name %></p>
-                    <p><strong>Địa chỉ:</strong> <%= order.shippingAddress.street %>, <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %>, <%= order.shippingAddress.zipCode %></p>
+                    <p><strong>Địa chỉ:</strong> <%= order.shippingAddress.street %>, <%= order.shippingAddress.district %>, <%= order.shippingAddress.province %></p>
                     <p><strong>Điện thoại:</strong> <%= order.shippingAddress.phone %></p>
                 </div>
                 
@@ -49,6 +49,25 @@
                                 order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Thất bại' %>
                         </span>
                     </p>
+                    
+                    <% if (order.paymentDetails) { %>
+                        <% if (order.paymentMethod === 'credit_card' && order.paymentDetails.cardLast4) { %>
+                            <div class="payment-details">
+                                <p><strong>Loại thẻ:</strong> <%= order.paymentDetails.cardType %></p>
+                                <p><strong>Số thẻ:</strong> **** **** **** <%= order.paymentDetails.cardLast4 %></p>
+                                <p><strong>Chủ thẻ:</strong> <%= order.paymentDetails.cardHolder %></p>
+                            </div>
+                        <% } else if (order.paymentMethod === 'bank_transfer' && order.paymentDetails.referenceCode) { %>
+                            <div class="payment-details">
+                                <p><strong>Ngân hàng:</strong> <%= order.paymentDetails.bankName %></p>
+                                <p><strong>Số tham chiếu:</strong> <%= order.paymentDetails.referenceCode %></p>
+                                <p><strong>Vui lòng chuyển khoản đến:</strong></p>
+                                <p>Chủ tài khoản: <%= order.paymentDetails.accountName %></p>
+                                <p>Số tài khoản: <%= order.paymentDetails.accountNumber %></p>
+                                <p>Nội dung CK: Thanh toán đơn hàng #<%= order.orderNumber %></p>
+                            </div>
+                        <% } %>
+                    <% } %>
                 </div>
                 
                 <% if (order.note) { %>
@@ -155,8 +174,46 @@
                             <i class="fas fa-award"></i> Bạn đã nhận <%= order.loyaltyPointsEarned %> điểm tích lũy từ đơn hàng này
                         </div>
                     <% } %>
+
+                    <% if (order.paymentStatus === 'pending' && order.status !== 'cancelled') { %>
+                        <div class="payment-actions">
+                            <a href="/orders/pay/<%= order._id %>" class="btn btn-primary btn-block">Thanh toán ngay</a>
+                        </div>
+                    <% } %>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.payment-status {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
+    display: inline-block;
+}
+.payment-status.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+.payment-status.paid {
+    background-color: #d4edda;
+    color: #155724;
+}
+.payment-status.failed {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+.payment-details {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+.payment-actions {
+    margin-top: 20px;
+}
+</style>

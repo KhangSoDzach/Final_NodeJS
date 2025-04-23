@@ -27,7 +27,7 @@ exports.getCheckout = async (req, res) => {
         return res.redirect('/cart');
       }
       
-      if (item.variant) {
+      if (item.variant && item.variant.name && item.variant.value) {
         const variant = item.product.variants.find(v => v.name === item.variant.name);
         if (!variant) {
           req.flash('error', `Biến thể ${item.variant.name} của sản phẩm ${item.product.name} không còn tồn tại.`);
@@ -60,7 +60,7 @@ exports.getCheckout = async (req, res) => {
 exports.postOrder = async (req, res) => {
   try {
     // Get form data
-    const { name, phone, street, city, state, zipCode, paymentMethod, note, useLoyaltyPoints } = req.body;
+    const { name, phone, street, district, province, paymentMethod, note, useLoyaltyPoints } = req.body;
     
     // Check if user exists or create a new user if guest checkout
     let user = req.user;
@@ -89,9 +89,8 @@ exports.postOrder = async (req, res) => {
         phone,
         addresses: [{
           street,
-          city,
-          state,
-          zipCode,
+          district,
+          province,
           default: true
         }]
       });
@@ -119,7 +118,7 @@ exports.postOrder = async (req, res) => {
         return res.redirect('/cart');
       }
       
-      if (item.variant) {
+      if (item.variant && item.variant.name && item.variant.value) {
         const variant = item.product.variants.find(v => v.name === item.variant.name);
         if (!variant) {
           req.flash('error', `Biến thể ${item.variant.name} của sản phẩm ${item.product.name} không còn tồn tại.`);
@@ -150,27 +149,70 @@ exports.postOrder = async (req, res) => {
       loyaltyPointsUsed = Math.floor(pointsValue / 1000);
     }
     
+    // Determine payment status based on payment method
+    let paymentStatus = 'pending';
+    let paymentDetails = null;
+    
+    if (paymentMethod === 'credit_card') {
+      // Store partial card info for reference
+      const { card_number, card_name, card_expiry } = req.body;
+      
+      if (card_number && card_name && card_expiry) {
+        const last4Digits = card_number.replace(/\s/g, '').slice(-4);
+        
+        paymentDetails = {
+          cardType: getCardType(card_number),
+          cardLast4: last4Digits,
+          cardHolder: card_name.toUpperCase(),
+          cardExpiry: card_expiry
+        };
+        
+        // In a real production app, we would process the payment with a payment gateway
+        // and set paymentStatus based on the result
+        paymentStatus = 'paid';
+      }
+    } else if (paymentMethod === 'bank_transfer') {
+      paymentStatus = 'pending';
+      paymentDetails = {
+        bankName: 'Vietcombank',
+        accountNumber: '1234567890',
+        accountName: 'Source Computer',
+        referenceCode: `ORDER-${Date.now()}`
+      };
+    }
+    
     // Create order
     const order = new Order({
       user: user._id,
-      items: cart.items.map(item => ({
-        product: item.product._id,
-        name: item.product.name,
-        price: item.price,
-        quantity: item.quantity,
-        variant: item.variant
-      })),
-      totalAmount,
+      items: cart.items.map(item => {
+        const orderItem = {
+          product: item.product._id,
+          name: item.product.name,
+          price: item.price,
+          quantity: item.quantity
+        };
+        
+        // Only add variant if it exists and has both name and value
+        if (item.variant && item.variant.name && item.variant.value) {
+          orderItem.variant = {
+            name: item.variant.name,
+            value: item.variant.value
+          };
+        }
+        
+        return orderItem;
+      }),
+      totalAmount: totalAmount || 0, // Ensure totalAmount is never NaN
       shippingAddress: {
         name,
         street,
-        city,
-        state,
-        zipCode,
+        district,
+        province,
         phone
       },
       paymentMethod,
-      paymentStatus: paymentMethod === 'cod' ? 'pending' : 'pending',
+      paymentStatus,
+      paymentDetails,
       status: 'processing',
       statusHistory: [{
         status: 'processing',
@@ -179,8 +221,8 @@ exports.postOrder = async (req, res) => {
       }],
       couponCode: cart.coupon ? cart.coupon.code : null,
       discount: cart.coupon ? cart.coupon.discount : 0,
-      loyaltyPointsUsed,
-      loyaltyPointsEarned: Math.floor(totalAmount * 0.1 / 1000),
+      loyaltyPointsUsed: loyaltyPointsUsed || 0,
+      loyaltyPointsEarned: totalAmount ? Math.floor(totalAmount * 0.1 / 1000) : 0, // Prevent NaN
       note
     });
     
@@ -252,6 +294,23 @@ exports.postOrder = async (req, res) => {
   }
 };
 
+// Helper function to determine card type based on card number
+function getCardType(cardNumber) {
+  const number = cardNumber.replace(/\s/g, '');
+  
+  if (/^4\d{12}(?:\d{3})?$/.test(number)) {
+    return 'Visa';
+  } else if (/^5[1-5]\d{14}$/.test(number)) {
+    return 'MasterCard';
+  } else if (/^3[47]\d{13}$/.test(number)) {
+    return 'American Express';
+  } else if (/^6(?:011|5\d{2})\d{12}$/.test(number)) {
+    return 'Discover';
+  } else {
+    return 'Unknown';
+  }
+}
+
 exports.getOrderDetail = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -292,5 +351,123 @@ exports.getOrders = async (req, res) => {
     console.error(err);
     req.flash('error', 'Đã xảy ra lỗi khi tải danh sách đơn hàng.');
     res.redirect('/user/profile');
+  }
+};
+
+// Trang thanh toán cho đơn hàng đã tạo
+exports.getPaymentPage = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    
+    // Tìm đơn hàng
+    const order = await Order.findById(orderId);
+    
+    if (!order || order.user.toString() !== req.user._id.toString()) {
+      req.flash('error', 'Không tìm thấy đơn hàng hoặc bạn không có quyền truy cập.');
+      return res.redirect('/user/orders');
+    }
+    
+    // Kiểm tra nếu đơn hàng đã thanh toán hoặc đã bị hủy
+    if (order.paymentStatus === 'paid' || order.status === 'cancelled') {
+      req.flash('error', 'Đơn hàng này không thể thanh toán.');
+      return res.redirect(`/orders/${orderId}`);
+    }
+    
+    res.render('orders/payment', {
+      title: 'Thanh toán đơn hàng',
+      order
+    });
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Đã xảy ra lỗi khi tải trang thanh toán.');
+    res.redirect('/user/orders');
+  }
+};
+
+// Xử lý thanh toán cho đơn hàng đã tạo
+exports.processPayment = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { paymentMethod } = req.body;
+    
+    // Tìm đơn hàng
+    const order = await Order.findById(orderId);
+    
+    if (!order || order.user.toString() !== req.user._id.toString()) {
+      req.flash('error', 'Không tìm thấy đơn hàng hoặc bạn không có quyền truy cập.');
+      return res.redirect('/user/orders');
+    }
+    
+    // Kiểm tra nếu đơn hàng đã thanh toán hoặc đã bị hủy
+    if (order.paymentStatus === 'paid' || order.status === 'cancelled') {
+      req.flash('error', 'Đơn hàng này không thể thanh toán.');
+      return res.redirect(`/orders/${orderId}`);
+    }
+    
+    // Cập nhật phương thức thanh toán
+    order.paymentMethod = paymentMethod;
+    
+    // Xác định trạng thái thanh toán và chi tiết
+    let paymentStatus = 'pending';
+    let paymentDetails = null;
+    
+    if (paymentMethod === 'credit_card') {
+      // Lưu thông tin thẻ một phần để tham chiếu
+      const { card_number, card_name, card_expiry } = req.body;
+      
+      if (card_number && card_name && card_expiry) {
+        const last4Digits = card_number.replace(/\s/g, '').slice(-4);
+        
+        paymentDetails = {
+          cardType: getCardType(card_number),
+          cardLast4: last4Digits,
+          cardHolder: card_name.toUpperCase(),
+          cardExpiry: card_expiry,
+          transactionDate: new Date()
+        };
+        
+        // Trong ứng dụng thực tế, chúng ta sẽ xử lý thanh toán với cổng thanh toán
+        // và đặt paymentStatus dựa trên kết quả
+        paymentStatus = 'paid';
+      }
+    } else if (paymentMethod === 'bank_transfer') {
+      paymentStatus = 'pending';
+      paymentDetails = {
+        bankName: 'Vietcombank',
+        accountNumber: '1234567890',
+        accountName: 'Source Computer',
+        referenceCode: `ORDER-${Date.now()}`,
+        transactionDate: new Date()
+      };
+    }
+    
+    // Cập nhật trạng thái và chi tiết thanh toán
+    order.paymentStatus = paymentStatus;
+    order.paymentDetails = paymentDetails;
+    
+    // Thêm ghi chú vào lịch sử trạng thái
+    order.statusHistory.push({
+      status: order.status,
+      date: Date.now(),
+      note: `Cập nhật phương thức thanh toán: ${
+        paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' :
+        paymentMethod === 'bank_transfer' ? 'Chuyển khoản ngân hàng' :
+        'Thẻ tín dụng / Thẻ ghi nợ'
+      }`
+    });
+    
+    await order.save();
+    
+    if (paymentStatus === 'paid') {
+      req.flash('success', 'Thanh toán thành công.');
+    } else {
+      req.flash('success', 'Thông tin thanh toán đã được cập nhật.');
+    }
+    
+    res.redirect(`/orders/${orderId}`);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Đã xảy ra lỗi khi xử lý thanh toán.');
+    res.redirect(`/orders/${req.params.orderId}`);
   }
 };

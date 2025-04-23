@@ -45,7 +45,7 @@
                                         <option value="">-- Chọn địa chỉ --</option>
                                         <% user.addresses.forEach((address, index) => { %>
                                             <option value="<%= index %>" <%= address.default ? 'selected' : '' %>>
-                                                <%= address.street %>, <%= address.city %>, <%= address.state %>, <%= address.zipCode %>
+                                                <%= address.street %>, <%= address.district %>, <%= address.province %>
                                             </option>
                                         <% }) %>
                                     </select>
@@ -62,23 +62,16 @@
                         
                         <div class="address-grid">
                             <div class="form-group">
-                                <label for="city">Thành phố <span class="required">*</span></label>
-                                <input type="text" id="city" name="city" 
-                                    value="<%= user && user.addresses && user.addresses.find(a => a.default) ? user.addresses.find(a => a.default).city : '' %>" 
+                                <label for="district">Quận/Huyện <span class="required">*</span></label>
+                                <input type="text" id="district" name="district" 
+                                    value="<%= user && user.addresses && user.addresses.find(a => a.default) ? user.addresses.find(a => a.default).district : '' %>" 
                                     required>
                             </div>
                             
                             <div class="form-group">
-                                <label for="state">Tỉnh/Thành <span class="required">*</span></label>
-                                <input type="text" id="state" name="state" 
-                                    value="<%= user && user.addresses && user.addresses.find(a => a.default) ? user.addresses.find(a => a.default).state : '' %>" 
-                                    required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="zipCode">Mã bưu điện <span class="required">*</span></label>
-                                <input type="text" id="zipCode" name="zipCode" 
-                                    value="<%= user && user.addresses && user.addresses.find(a => a.default) ? user.addresses.find(a => a.default).zipCode : '' %>" 
+                                <label for="province">Tỉnh/Thành phố <span class="required">*</span></label>
+                                <input type="text" id="province" name="province" 
+                                    value="<%= user && user.addresses && user.addresses.find(a => a.default) ? user.addresses.find(a => a.default).province : '' %>" 
                                     required>
                             </div>
                         </div>
@@ -120,27 +113,45 @@
                                 <div class="payment-details credit-card-details" style="display: none;">
                                     <div class="form-group">
                                         <label>Số thẻ</label>
-                                        <input type="text" placeholder="1234 5678 9012 3456">
+                                        <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456">
                                     </div>
                                     
                                     <div class="card-info-grid">
                                         <div class="form-group">
                                             <label>Tên trên thẻ</label>
-                                            <input type="text" placeholder="NGUYEN VAN A">
+                                            <input type="text" id="card_name" name="card_name" placeholder="NGUYEN VAN A">
                                         </div>
                                         
                                         <div class="form-group">
                                             <label>Hết hạn</label>
-                                            <input type="text" placeholder="MM/YY">
+                                            <input type="text" id="card_expiry" name="card_expiry" placeholder="MM/YY">
                                         </div>
                                         
                                         <div class="form-group">
                                             <label>CVV</label>
-                                            <input type="text" placeholder="123">
+                                            <input type="text" id="card_cvv" name="card_cvv" placeholder="123">
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <div class="checkout-section">
+                        <h2>Mã giảm giá</h2>
+                        
+                        <div class="coupon-section">
+                            <div class="coupon-input">
+                                <input type="text" id="coupon-code" placeholder="Nhập mã giảm giá" class="form-control">
+                                <button type="button" id="apply-coupon" class="btn btn-primary">Áp dụng</button>
+                            </div>
+                            <div id="coupon-message" class="mt-2"></div>
+                            <% if (cart.coupon) { %>
+                                <div class="coupon-info mt-2">
+                                    <p>Mã <strong><%= cart.coupon.code %></strong> đã được áp dụng: Giảm <%= cart.coupon.discount %>%</p>
+                                    <button type="button" id="remove-coupon" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                </div>
+                            <% } %>
                         </div>
                     </div>
                     
@@ -226,7 +237,7 @@
                         </div>
                         
                         <div class="checkout-actions">
-                            <button type="submit" class="btn btn-primary btn-block">Đặt hàng</button>
+                            <button type="submit" class="btn btn-primary btn-block" id="place-order-btn">Đặt hàng</button>
                             <a href="/cart" class="back-to-cart">
                                 <i class="fas fa-arrow-left"></i> Quay lại giỏ hàng
                             </a>
@@ -246,13 +257,12 @@
             savedAddressSelect.addEventListener('change', function() {
                 if (this.value !== '') {
                     const index = parseInt(this.value);
-                    //const addresses = <%- JSON.stringify(user ? user.addresses : []) %>;
+                    const addresses = JSON.parse('<%- JSON.stringify(user ? user.addresses : []) %>');
                     const address = addresses[index];
                     
                     document.getElementById('street').value = address.street;
-                    document.getElementById('city').value = address.city;
-                    document.getElementById('state').value = address.state;
-                    document.getElementById('zipCode').value = address.zipCode;
+                    document.getElementById('district').value = address.district;
+                    document.getElementById('province').value = address.province;
                 }
             });
         }
@@ -274,8 +284,25 @@
             });
         });
         
+        // Store values in variables for client-side scripts
+        let userLoyaltyPoints = 0;
+         if (user && typeof user.loyaltyPoints !== 'undefined') { 
+            userLoyaltyPoints = user.loyaltyPoints ;
+         } 
+        
+        let cartTotalWithDiscount = 0;
+        let cartTotalNoDiscount = 0;
+         if (cart) { 
+            cartTotalNoDiscount =  cart.calculateTotal() ;
+             if (cart.coupon) { 
+                cartTotalWithDiscount =  cart.calculateTotalWithDiscount() ;
+            } else { 
+                cartTotalWithDiscount =  cart.calculateTotal() ;
+             } 
+         } 
+        
         // Handle loyalty points checkbox
-        <!-- const loyaltyCheckbox = document.getElementById('useLoyaltyPoints');
+        const loyaltyCheckbox = document.getElementById('useLoyaltyPoints');
         if (loyaltyCheckbox) {
             loyaltyCheckbox.addEventListener('change', function() {
                 const loyaltyDiscount = document.querySelector('.loyalty-discount');
@@ -284,10 +311,9 @@
                 if (this.checked) {
                     loyaltyDiscount.style.display = 'flex';
                     
-                    // Calculate new total
-                    const loyaltyPoints = <%= user ? user.loyaltyPoints : 0 %>;
-                    const loyaltyValue = loyaltyPoints * 1000;
-                    const currentTotal = <%= cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal() %>;
+                    // Calculate new total with loyalty points
+                    const loyaltyValue = userLoyaltyPoints * 1000;
+                    const currentTotal = cartTotalWithDiscount;
                     
                     let newTotal = currentTotal - loyaltyValue;
                     if (newTotal < 0) newTotal = 0;
@@ -297,29 +323,150 @@
                     loyaltyDiscount.style.display = 'none';
                     
                     // Restore original total
-                    const originalTotal = <%= cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal() %>;
-                    orderTotal.textContent = originalTotal.toLocaleString('vi-VN') + ' ₫';
+                    orderTotal.textContent = cartTotalWithDiscount.toLocaleString('vi-VN') + ' ₫';
                 }
-            }); 
-        }-->
+            });
+        }
+        
+        // Handle coupon code application
+        const applyCouponBtn = document.getElementById('apply-coupon');
+        if (applyCouponBtn) {
+            applyCouponBtn.addEventListener('click', function() {
+                const couponCode = document.getElementById('coupon-code').value.trim();
+                const couponMessage = document.getElementById('coupon-message');
+                
+                if (!couponCode) {
+                    couponMessage.innerHTML = '<p class="text-danger">Vui lòng nhập mã giảm giá</p>';
+                    return;
+                }
+                
+                // Send AJAX request to apply coupon
+                fetch('/cart/apply-coupon', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ couponCode })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        couponMessage.innerHTML = `<p class="text-success">${data.message}</p>`;
+                        // Reload page to update the cart
+                        location.reload();
+                    } else {
+                        couponMessage.innerHTML = `<p class="text-danger">${data.message}</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    couponMessage.innerHTML = '<p class="text-danger">Đã xảy ra lỗi khi áp dụng mã giảm giá</p>';
+                });
+            });
+        }
+        
+        // Handle coupon removal
+        const removeCouponBtn = document.getElementById('remove-coupon');
+        if (removeCouponBtn) {
+            removeCouponBtn.addEventListener('click', function() {
+                // Send AJAX request to remove coupon
+                fetch('/cart/remove-coupon', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload page to update the cart
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Đã xảy ra lỗi khi xóa mã giảm giá');
+                });
+            });
+        }
         
         // Form validation
         const checkoutForm = document.getElementById('checkout-form');
+        const placeOrderBtn = document.getElementById('place-order-btn');
+        
         checkoutForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Disable button to prevent double submission
+            placeOrderBtn.disabled = true;
+            placeOrderBtn.textContent = 'Đang xử lý...';
+            
+            // Basic validations
             const name = document.getElementById('name').value;
             const phone = document.getElementById('phone').value;
             const street = document.getElementById('street').value;
-            const city = document.getElementById('city').value;
-            const state = document.getElementById('state').value;
-            const zipCode = document.getElementById('zipCode').value;
+            const district = document.getElementById('district').value;
+            const province = document.getElementById('province').value;
             
-            if (!name || !phone || !street || !city || !state || !zipCode) {
-                e.preventDefault();
+            if (!name || !phone || !street || !district || !province) {
                 alert('Vui lòng điền đầy đủ thông tin giao hàng.');
-                return false;
+                placeOrderBtn.disabled = false;
+                placeOrderBtn.textContent = 'Đặt hàng';
+                return;
             }
             
-            return true;
+            // Validate phone format
+            const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
+            if (!phoneRegex.test(phone)) {
+                alert('Số điện thoại không hợp lệ.');
+                placeOrderBtn.disabled = false;
+                placeOrderBtn.textContent = 'Đặt hàng';
+                return;
+            }
+            
+            // Additional validations for payment methods
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+            
+            if (paymentMethod === 'credit_card') {
+                const cardNumber = document.getElementById('card_number').value;
+                const cardName = document.getElementById('card_name').value;
+                const cardExpiry = document.getElementById('card_expiry').value;
+                const cardCvv = document.getElementById('card_cvv').value;
+                
+                if (!cardNumber || !cardName || !cardExpiry || !cardCvv) {
+                    alert('Vui lòng điền đầy đủ thông tin thẻ thanh toán.');
+                    placeOrderBtn.disabled = false;
+                    placeOrderBtn.textContent = 'Đặt hàng';
+                    return;
+                }
+                
+                // Basic card format validations
+                if (!/^\d{13,19}$/.test(cardNumber.replace(/\s/g, ''))) {
+                    alert('Số thẻ không hợp lệ.');
+                    placeOrderBtn.disabled = false;
+                    placeOrderBtn.textContent = 'Đặt hàng';
+                    return;
+                }
+                
+                if (!/^\d{3,4}$/.test(cardCvv)) {
+                    alert('Mã CVV không hợp lệ.');
+                    placeOrderBtn.disabled = false;
+                    placeOrderBtn.textContent = 'Đặt hàng';
+                    return;
+                }
+                
+                if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+                    alert('Định dạng ngày hết hạn không hợp lệ (MM/YY).');
+                    placeOrderBtn.disabled = false;
+                    placeOrderBtn.textContent = 'Đặt hàng';
+                    return;
+                }
+            }
+            
+            // Everything is valid, submit the form
+            checkoutForm.submit();
         });
     });
 </script>

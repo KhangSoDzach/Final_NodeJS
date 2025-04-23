@@ -44,7 +44,7 @@
 
 <!-- Category Sections -->
 <% if (categories.length > 0) { %>
-    <% categories.slice(0, 5).forEach(category => { %>
+    <% categories.forEach(category => { %>
         <section>
             <div class="section-title">
                 <h2><%= category %></h2>
@@ -61,7 +61,7 @@
             </div>
             
             <div class="view-more">
-                <a href="/products?category=<%= category %>" class="btn btn-primary">Xem tất cả</a>
+                <a href="/products?category=<%= encodeURIComponent(category) %>" class="btn btn-primary">Xem tất cả</a>
             </div>
         </section>
     <% }) %>

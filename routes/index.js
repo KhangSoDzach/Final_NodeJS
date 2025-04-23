@@ -14,12 +14,28 @@ router.get('/', async (req, res) => {
       .sort({ sold: -1 })
       .limit(8);
     
-    // Get products by categories
-    const categories = ['laptop', 'pc', 'monitor', 'component', 'accessory'];
+    // Định nghĩa tên danh mục tiếng Anh và tiếng Việt tương ứng
+    const categoryMappings = {
+      'laptop': 'laptop',
+      'pc': 'pc',
+      'monitor': 'màn hình',
+      'component': 'linh kiện',
+      'accessory': 'phụ kiện'
+    };
+    
+    // Sử dụng tên tiếng Việt cho hiển thị
+    const categories = ['laptop', 'pc', 'màn hình', 'linh kiện', 'phụ kiện'];
     const categoryProducts = {};
     
-    for (const category of categories) {
-      categoryProducts[category] = await Product.find({ category })
+    // Tìm kiếm sản phẩm cho mỗi danh mục, kết hợp cả tên tiếng Anh và tiếng Việt
+    for (let i = 0; i < categories.length; i++) {
+      const category = categories[i];
+      const englishName = Object.keys(categoryMappings).find(key => categoryMappings[key] === category) || category;
+      
+      // Sử dụng biểu thức chính quy để tìm cả tên tiếng Anh và tiếng Việt
+      categoryProducts[category] = await Product.find({ 
+        category: { $regex: new RegExp(`^(${englishName}|${category})$`, 'i') }
+      })
         .sort({ createdAt: -1 })
         .limit(4);
     }
@@ -29,7 +45,8 @@ router.get('/', async (req, res) => {
       newProducts,
       bestSellers,
       categories,
-      categoryProducts
+      categoryProducts,
+      categoryMappings // Truyền mapping vào view để sử dụng khi cần
     });
   } catch (err) {
     console.error(err);

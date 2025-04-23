@@ -1,5 +1,35 @@
 const Product = require('../models/product');
 
+// Mapping giữa tên danh mục tiếng Anh và tiếng Việt
+const categoryMappings = {
+  'laptop': 'laptop',
+  'pc': 'pc',
+  'monitor': 'màn hình',
+  'component': 'linh kiện',
+  'accessory': 'phụ kiện'
+};
+
+// Hàm helper để lấy danh sách tên danh mục tương đương (cả tiếng Anh và tiếng Việt)
+function getEquivalentCategories(category) {
+  // Tìm tên tiếng Việt nếu đầu vào là tiếng Anh
+  const vietnameseName = categoryMappings[category];
+  // Tìm tên tiếng Anh nếu đầu vào là tiếng Việt
+  const englishName = Object.keys(categoryMappings).find(key => categoryMappings[key] === category);
+  
+  // Trả về tất cả các tên có thể cho danh mục
+  const allNames = [category];
+  
+  if (vietnameseName && vietnameseName !== category) {
+    allNames.push(vietnameseName);
+  }
+  
+  if (englishName && englishName !== category) {
+    allNames.push(englishName);
+  }
+  
+  return allNames;
+}
+
 // Get all products with filtering, sorting, and pagination
 exports.getProducts = async (req, res) => {
   try {
@@ -15,22 +45,24 @@ exports.getProducts = async (req, res) => {
       filter.name = { $regex: req.query.search, $options: 'i' };
     }
     
-    // Category filter
+    // Category filter - hỗ trợ cả tên tiếng Anh và tiếng Việt
     if (req.query.category) {
-      filter.category = req.query.category;
+      const equivalentCategories = getEquivalentCategories(req.query.category);
+      const regexPattern = equivalentCategories.map(cat => `^${cat}$`).join('|');
+      filter.category = { $regex: new RegExp(regexPattern, 'i') };
     }
     
     // Subcategory filter
     if (req.query.subcategory) {
-      filter.subcategory = req.query.subcategory;
+      filter.subcategory = { $regex: new RegExp(`^${req.query.subcategory}$`, 'i') };
     }
     
     // Brand filter (can be multiple)
     if (req.query.brand) {
       if (Array.isArray(req.query.brand)) {
-        filter.brand = { $in: req.query.brand };
+        filter.brand = { $in: req.query.brand.map(brand => new RegExp(`^${brand}$`, 'i')) };
       } else {
-        filter.brand = req.query.brand;
+        filter.brand = { $regex: new RegExp(`^${req.query.brand}$`, 'i') };
       }
     }
     
@@ -83,22 +115,34 @@ exports.getProducts = async (req, res) => {
     const categories = await Product.distinct('category');
     const brands = await Product.distinct('brand');
     
-    // Get subcategories based on selected category
+    // Get subcategories based on selected category - hỗ trợ cả tên tiếng Anh và tiếng Việt
     let subcategories = [];
     if (req.query.category) {
-      subcategories = await Product.distinct('subcategory', { category: req.query.category });
+      const equivalentCategories = getEquivalentCategories(req.query.category);
+      const regexPattern = equivalentCategories.map(cat => `^${cat}$`).join('|');
+      subcategories = await Product.distinct('subcategory', { 
+        category: { $regex: new RegExp(regexPattern, 'i') } 
+      });
     }
+    
+    // Transform category names to Vietnamese for display
+    const displayCategories = categories.map(cat => {
+      // Nếu có tên tiếng Việt tương ứng, sử dụng tên tiếng Việt
+      const vietnameseName = categoryMappings[cat.toLowerCase()];
+      return vietnameseName || cat;
+    });
     
     res.render('products/index', {
       title: 'Sản phẩm',
       products,
       filter: req.query,
-      categories,
+      categories: displayCategories,
       brands,
       subcategories,
       currentPage: page,
       totalPages: Math.ceil(totalProducts / limit),
       totalProducts,
+      categoryMappings,
       getPaginationUrl: (page) => {
         const url = new URL(req.originalUrl, `${req.protocol}://${req.get('host')}`);
         url.searchParams.set('page', page);
@@ -128,16 +172,20 @@ exports.getProductDetail = async (req, res) => {
       return res.redirect('/products');
     }
     
-    // Get related products
+    // Get related products - hỗ trợ cả tên tiếng Anh và tiếng Việt
+    const equivalentCategories = getEquivalentCategories(product.category);
+    const regexPattern = equivalentCategories.map(cat => `^${cat}$`).join('|');
+    
     const relatedProducts = await Product.find({
-      category: product.category,
+      category: { $regex: new RegExp(regexPattern, 'i') },
       _id: { $ne: product._id }
     }).limit(4);
     
     res.render('products/detail', {
       title: product.name,
       product,
-      relatedProducts
+      relatedProducts,
+      categoryMappings
     });
   } catch (err) {
     console.error(err);

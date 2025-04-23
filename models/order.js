@@ -35,15 +35,11 @@ const addressSchema = new Schema({
     type: String,
     required: true
   },
-  city: {
+  district: {
     type: String,
     required: true
   },
-  state: {
-    type: String,
-    required: true
-  },
-  zipCode: {
+  province: {
     type: String,
     required: true
   },
@@ -67,6 +63,26 @@ const statusHistorySchema = new Schema({
     type: String
   }
 });
+
+// Schema cho thông tin chi tiết thanh toán
+const paymentDetailsSchema = new Schema({
+  // Thông tin thẻ tín dụng
+  cardType: String,
+  cardLast4: String,
+  cardHolder: String,
+  cardExpiry: String,
+  
+  // Thông tin chuyển khoản ngân hàng
+  bankName: String,
+  accountNumber: String,
+  accountName: String,
+  referenceCode: String,
+  
+  // Thông tin giao dịch
+  transactionId: String,
+  transactionDate: Date,
+  receiptUrl: String
+}, { _id: false });
 
 const orderSchema = new Schema({
   orderNumber: {
@@ -95,6 +111,7 @@ const orderSchema = new Schema({
     enum: ['pending', 'paid', 'failed'],
     default: 'pending'
   },
+  paymentDetails: paymentDetailsSchema,
   status: {
     type: String,
     enum: ['processing', 'confirmed', 'shipped', 'delivered', 'cancelled'],

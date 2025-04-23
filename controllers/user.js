@@ -65,7 +65,7 @@ exports.getAddresses = async (req, res) => {
 };
 
 exports.addAddress = async (req, res) => {
-  const { street, city, state, zipCode, isDefault } = req.body;
+  const { street, district, province, isDefault } = req.body;
   
   try {
     // If this is the default address, unset other default addresses
@@ -82,9 +82,8 @@ exports.addAddress = async (req, res) => {
         $push: {
           addresses: {
             street,
-            city,
-            state,
-            zipCode,
+            district,
+            province,
             default: isDefault ? true : false
           }
         }
@@ -101,7 +100,7 @@ exports.addAddress = async (req, res) => {
 };
 
 exports.updateAddress = async (req, res) => {
-  const { addressId, street, city, state, zipCode, isDefault } = req.body;
+  const { addressId, street, district, province, isDefault } = req.body;
   
   try {
     // If this is the default address, unset other default addresses
@@ -117,9 +116,8 @@ exports.updateAddress = async (req, res) => {
       {
         $set: {
           "addresses.$.street": street,
-          "addresses.$.city": city,
-          "addresses.$.state": state,
-          "addresses.$.zipCode": zipCode,
+          "addresses.$.district": district,
+          "addresses.$.province": province,
           "addresses.$.default": isDefault ? true : false
         }
       }

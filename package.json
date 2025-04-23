@@ -4,8 +4,8 @@
   "description": "E-commerce website for computer components",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
+    "start": "node --no-deprecation app.js",
+    "dev": "nodemon --no-deprecation app.js",
     "seed": "node seeders/admin-seeder.js && node seeders/demo-products-seeder.js && node seeders/coupons-seeder.js"
   },
   "dependencies": {

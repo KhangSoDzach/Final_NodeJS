@@ -6,7 +6,11 @@ const addressSchema = new Schema({
     type: String,
     required: true
   },
-  city: {
+  district: {
+    type: String,
+    required: true
+  },
+  province: {
     type: String,
     required: true
   },

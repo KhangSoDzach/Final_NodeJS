@@ -1,19 +1,24 @@
 const express = require('express');
 const router = express.Router();
-
 const ordersController = require('../controllers/orders');
 const { isAuth } = require('../middleware/auth');
 
-// Get checkout page
+// Checkout page
 router.get('/checkout', ordersController.getCheckout);
 
-// Create a new order
+// Process order
 router.post('/create', ordersController.postOrder);
 
-// Get all user orders
-router.get('/', isAuth, ordersController.getOrders);
-
-// Get single order by id
+// Order detail
 router.get('/:orderId', isAuth, ordersController.getOrderDetail);
+
+// Payment page for existing orders
+router.get('/pay/:orderId', isAuth, ordersController.getPaymentPage);
+
+// Process payment for existing orders
+router.post('/pay/:orderId', isAuth, ordersController.processPayment);
+
+// Order list
+router.get('/', isAuth, ordersController.getOrders);
 
 module.exports = router;

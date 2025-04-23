@@ -49,7 +49,7 @@
                                 <div class="address-content">
                                     <p><strong><%= user.name %></strong></p>
                                     <p><%= address.street %></p>
-                                    <p><%= address.city %>, <%= address.state %>, <%= address.zipCode %></p>
+                                    <p><%= address.district %>, <%= address.province %></p>
                                     <p><%= user.phone || 'Không có số điện thoại' %></p>
                                 </div>
                                 <div class="address-actions">
@@ -95,18 +95,13 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="city">Thành phố <span class="required">*</span></label>
-                    <input type="text" id="city" name="city" required>
+                    <label for="district">Quận/Huyện <span class="required">*</span></label>
+                    <input type="text" id="district" name="district" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="state">Tỉnh/Thành <span class="required">*</span></label>
-                    <input type="text" id="state" name="state" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="zipCode">Mã bưu điện <span class="required">*</span></label>
-                    <input type="text" id="zipCode" name="zipCode" required>
+                    <label for="province">Tỉnh/Thành phố <span class="required">*</span></label>
+                    <input type="text" id="province" name="province" required>
                 </div>
                 
                 <div class="form-group">
@@ -131,6 +126,9 @@
         const cancelBtn = document.getElementById('cancelBtn');
         const addressForm = document.getElementById('addressForm');
         const modalTitle = document.getElementById('modalTitle');
+        
+        // Create a variable to store all addresses
+        const allAddresses = JSON.parse('<%- JSON.stringify(addresses || []).replace(/\'/g, "\\\'") %>');
         
         // Open modal for adding new address
         addAddressBtn.addEventListener('click', function() {
@@ -157,20 +155,18 @@
         });
         
         // Edit address
-        <!-- const editButtons = document.querySelectorAll('.edit-address');
+        const editButtons = document.querySelectorAll('.edit-address');
         editButtons.forEach(button => {
             button.addEventListener('click', function() {
                 const index = this.dataset.index;
-                const addresses = <%- JSON.stringify(addresses) %>;
-                const address = addresses[index];
+                const address = allAddresses[index];
                 
                 modalTitle.textContent = 'Chỉnh sửa địa chỉ';
                 addressForm.action = '/user/addresses/update';
                 document.getElementById('addressId').value = address._id;
                 document.getElementById('street').value = address.street;
-                document.getElementById('city').value = address.city;
-                document.getElementById('state').value = address.state;
-                document.getElementById('zipCode').value = address.zipCode;
+                document.getElementById('district').value = address.district;
+                document.getElementById('province').value = address.province;
                 document.getElementById('isDefault').checked = address.default;
                 
                 addressModal.classList.add('show');
@@ -182,8 +178,7 @@
         setDefaultButtons.forEach(button => {
             button.addEventListener('click', function() {
                 const index = this.dataset.index;
-                const addresses = <%- JSON.stringify(addresses) %>;
-                const address = addresses[index];
+                const address = allAddresses[index];
                 
                 if (confirm('Bạn có chắc muốn đặt địa chỉ này làm mặc định?')) {
                     const form = document.createElement('form');
@@ -201,6 +196,6 @@
                     form.submit();
                 }
             });
-        });  -->
+        });
     });
 </script>

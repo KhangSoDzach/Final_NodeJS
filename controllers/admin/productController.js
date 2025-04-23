@@ -3,6 +3,36 @@ const path = require('path');
 const Product = require('../../models/product');
 const { validationResult } = require('express-validator');
 
+// Mapping giữa tên danh mục tiếng Anh và tiếng Việt
+const categoryMappings = {
+  'laptop': 'laptop',
+  'pc': 'pc',
+  'monitor': 'màn hình',
+  'component': 'linh kiện',
+  'accessory': 'phụ kiện'
+};
+
+// Hàm helper để lấy danh sách tên danh mục tương đương (cả tiếng Anh và tiếng Việt)
+function getEquivalentCategories(category) {
+  // Tìm tên tiếng Việt nếu đầu vào là tiếng Anh
+  const vietnameseName = categoryMappings[category];
+  // Tìm tên tiếng Anh nếu đầu vào là tiếng Việt
+  const englishName = Object.keys(categoryMappings).find(key => categoryMappings[key] === category);
+  
+  // Trả về tất cả các tên có thể cho danh mục
+  const allNames = [category];
+  
+  if (vietnameseName && vietnameseName !== category) {
+    allNames.push(vietnameseName);
+  }
+  
+  if (englishName && englishName !== category) {
+    allNames.push(englishName);
+  }
+  
+  return allNames;
+}
+
 // Lấy danh sách sản phẩm
 exports.getProducts = async (req, res) => {
   try {
@@ -17,12 +47,15 @@ exports.getProducts = async (req, res) => {
       filter.name = { $regex: req.query.search, $options: 'i' };
     }
     
+    // Hỗ trợ cả tên tiếng Anh và tiếng Việt cho danh mục
     if (req.query.category) {
-      filter.category = req.query.category;
+      const equivalentCategories = getEquivalentCategories(req.query.category);
+      const regexPattern = equivalentCategories.map(cat => `^${cat}$`).join('|');
+      filter.category = { $regex: new RegExp(regexPattern, 'i') };
     }
 
     if (req.query.brand) {
-      filter.brand = req.query.brand;
+      filter.brand = { $regex: new RegExp(`^${req.query.brand}$`, 'i') };
     }
 
     if (req.query.stock === 'low') {
@@ -44,16 +77,24 @@ exports.getProducts = async (req, res) => {
     const categories = await Product.distinct('category');
     const brands = await Product.distinct('brand');
     
+    // Chuyển đổi tên danh mục sang tiếng Việt cho hiển thị
+    const displayCategories = categories.map(cat => {
+      const vietnameseName = categoryMappings[cat.toLowerCase()];
+      return vietnameseName || cat;
+    });
+    
     res.render('admin/products/index', {
       title: 'Quản lý sản phẩm',
       products,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       totalProducts: total,
-      categories,
+      categories: displayCategories,
+      originalCategories: categories,
       brands,
       filter: req.query,
-      path: '/admin/products'
+      path: '/admin/products',
+      categoryMappings
     });
   } catch (err) {
     console.error(err);
@@ -78,7 +119,15 @@ exports.getAddProduct = async (req, res) => {
     } else {
       // Thêm các danh mục mặc định nếu chưa có trong danh sách
       defaultCategories.forEach(category => {
-        if (!categories.includes(category)) {
+        const equivalentCategories = getEquivalentCategories(category);
+        // Kiểm tra xem có bất kỳ tên tương đương nào đã tồn tại trong danh sách categories
+        const exists = categories.some(cat => 
+          equivalentCategories.some(eqCat => 
+            cat.toLowerCase() === eqCat.toLowerCase()
+          )
+        );
+        
+        if (!exists) {
           categories.push(category);
         }
       });
@@ -107,7 +156,8 @@ exports.getAddProduct = async (req, res) => {
       title: 'Thêm sản phẩm mới',
       categories,
       brands,
-      path: '/admin/products'
+      path: '/admin/products',
+      categoryMappings
     });
   } catch (err) {
     console.error(err);
@@ -179,7 +229,15 @@ exports.getEditProduct = async (req, res) => {
     } else {
       // Thêm các danh mục mặc định nếu chưa có trong danh sách
       defaultCategories.forEach(category => {
-        if (!categories.includes(category)) {
+        const equivalentCategories = getEquivalentCategories(category);
+        // Kiểm tra xem có bất kỳ tên tương đương nào đã tồn tại trong danh sách categories
+        const exists = categories.some(cat => 
+          equivalentCategories.some(eqCat => 
+            cat.toLowerCase() === eqCat.toLowerCase()
+          )
+        );
+        
+        if (!exists) {
           categories.push(category);
         }
       });
@@ -218,7 +276,8 @@ exports.getEditProduct = async (req, res) => {
       product,
       categories,
       brands,
-      path: '/admin/products'
+      path: '/admin/products',
+      categoryMappings
     });
   } catch (err) {
     console.error(err);
@@ -503,12 +562,15 @@ exports.searchProducts = async (req, res) => {
       ];
     }
     
+    // Hỗ trợ cả tên tiếng Anh và tiếng Việt cho danh mục
     if (category) {
-      filter.category = category;
+      const equivalentCategories = getEquivalentCategories(category);
+      const regexPattern = equivalentCategories.map(cat => `^${cat}$`).join('|');
+      filter.category = { $regex: new RegExp(regexPattern, 'i') };
     }
     
     if (brand) {
-      filter.brand = brand;
+      filter.brand = { $regex: new RegExp(`^${brand}$`, 'i') };
     }
     
     if (priceMin || priceMax) {
