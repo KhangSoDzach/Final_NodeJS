@@ -7,6 +7,12 @@
                 </a>
             </div>
             
+            <div class="mobile-nav-toggle">
+                <button class="nav-toggle" aria-label="Toggle navigation">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
             <div class="search-bar">
                 <form action="/products" method="GET">
                     <input type="text" name="search" placeholder="Tìm kiếm sản phẩm..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>">

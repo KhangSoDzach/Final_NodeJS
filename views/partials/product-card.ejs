@@ -1,14 +1,16 @@
 <div class="product-card">
-    <a href="/products/<%= product.slug %>">
-        <div class="image">
+    <div class="image">
+        <a href="/products/<%= product.slug %>">
             <% if (product.images && product.images.length > 0) { %>
                 <img src="/uploads/products/<%= product.images[0] %>" alt="<%= product.name %>">
             <% } else { %>
                 <img src="/images/no-image.png" alt="No Image Available">
             <% } %>
-        </div>
-        
-        <div class="content">
+        </a>
+    </div>
+    
+    <div class="content">
+        <a href="/products/<%= product.slug %>">
             <h3><%= product.name %></h3>
             
             <div class="price">
@@ -30,12 +32,15 @@
                 <% } %>
                 (<%= product.ratings.length %>)
             </div>
-            
-            <div class="actions">
-                <button class="btn btn-primary add-to-cart" data-id="<%= product._id %>">
-                    <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
-                </button>
-            </div>
+        </a>
+        
+        <div class="actions">
+            <button class="btn btn-primary add-to-cart" data-id="<%= product._id %>">
+                <i class="fas fa-shopping-cart"></i> Thêm vào giỏ
+            </button>
+            <a href="/products/<%= product.slug %>" class="btn btn-outline-secondary">
+                <i class="fas fa-info-circle"></i> Chi tiết
+            </a>
         </div>
-    </a>
+    </div>
 </div>

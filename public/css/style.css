@@ -471,6 +471,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .logo {
@@ -487,6 +488,19 @@ header {
 .logo h1 {
   margin-bottom: 0;
   font-size: 1.5rem;
+}
+
+.mobile-nav-toggle {
+  display: none;
+}
+
+.nav-toggle {
+  background: transparent;
+  border: none;
+  color: var(--secondary-color);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 5px;
 }
 
 .search-bar {
@@ -603,10 +617,39 @@ nav {
   transition: all 0.3s ease;
 }
 
-.dropdown:hover .dropdown-content {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
+/* Desktop behavior - hover to show dropdown */
+@media (min-width: 769px) {
+  .dropdown:hover .dropdown-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile behavior - toggle class to show dropdown */
+@media (max-width: 768px) {
+  .dropdown-content {
+    position: absolute;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(0);
+  }
+  
+  .dropdown-content.show {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* User dropdown specific styles for mobile */
+  .user-actions .dropdown-content {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: auto;
+    width: 200px;
+    background-color: white;
+    box-shadow: var(--shadow-md);
+  }
 }
 
 .dropdown-content a {
@@ -624,6 +667,7 @@ nav {
 .dropdown-toggle {
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
 .dropdown-toggle i.fa-angle-down {
@@ -848,6 +892,17 @@ section {
 
 .product-card .actions {
   margin-top: var(--spacing-md);
+  display: flex;
+  gap: 8px;
+}
+
+.product-card .actions .btn {
+  font-size: 0.9rem;
+  padding: 0.4rem 0.75rem;
+  flex: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .view-more {
@@ -1561,7 +1616,7 @@ section {
 .address-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: var(--spacing-md);
+  gap: var (--spacing-md);
 }
 
 .guest-message {
@@ -1673,7 +1728,7 @@ section {
 
 .status-badge {
   display: inline-block;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: var(--spacing-xs) var (--spacing-sm);
   border-radius: 50px;
   font-size: 0.75rem;
   font-weight: 500;
@@ -2005,14 +2060,13 @@ section {
     margin: var(--spacing-sm) 0 0;
   }
   
-  /* Add fix for JavaScript file with merge conflict */
   .product-detail-grid {
     grid-template-columns: 1fr;
     gap: var(--spacing-lg);
   }
   
   .checkout-grid {
-    grid-template-columns: 1fr 350px;
+    grid-template-columns: 1fr;
   }
   
   .product-grid {
@@ -2033,6 +2087,12 @@ section {
     width: 100%;
     max-width: 100%;
     padding: 0 var(--spacing-md);
+  }
+  
+  main {
+    width: 100%;
+    overflow-x: hidden;
+    padding: var(--spacing-md) 0;
   }
   
   .nav-list {
@@ -2070,13 +2130,15 @@ section {
     grid-template-columns: 1fr;
   }
   
-  .list-view-active .product-item .product-card {
-    grid-template-columns: 120px 1fr;
-  }
-  
   .product-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: var(--spacing-md);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .list-view-active .product-item .product-card {
+    grid-template-columns: 120px 1fr;
   }
   
   .product-card .image {
@@ -2096,6 +2158,7 @@ section {
   /* Better table handling on mobile */
   table {
     display: block;
+    width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -2111,6 +2174,7 @@ section {
   /* Improve spacing on mobile */
   section {
     margin-bottom: var(--spacing-xl);
+    width: 100%;
   }
 }
 
@@ -2148,10 +2212,12 @@ section {
   .product-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: var(--spacing-sm);
+    width: 100%;
   }
   
   .product-card {
     margin-bottom: var(--spacing-sm);
+    width: 100%;
   }
   
   .product-card .image {
@@ -2188,31 +2254,78 @@ section {
   
   /* Adjust navigation for mobile */
   .top-header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+  }
+  
+  .logo {
+    width: 50%;
+    margin-bottom: 0;
+  }
+  
+  .logo h1 {
+    font-size: 1.3rem;
+  }
+  
+  .mobile-nav-toggle {
+    display: block;
+    order: 3;
+  }
+  
+  .search-bar {
+    width: 100%;
+    order: 4;
+    margin: var(--spacing-sm) 0 0;
   }
   
   .user-actions {
-    align-self: stretch;
-    display: flex;
-    justify-content: space-around;
-    margin-top: var(--spacing-sm);
+    width: auto;
+    order: 2;
+    margin-top: 0;
   }
   
   .user-actions a {
-    margin: 0;
+    margin-left: var(--spacing-sm);
+  }
+  
+  /* Make sure navigation is initially hidden on mobile */
+  .main-nav {
+    position: relative;
+  }
+  
+  .nav-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  
+  .nav-list.active {
+    max-height: 500px; /* Adjust based on your menu height */
   }
   
   /* Simpler layout for mobile product detail */
   .thumbnails {
     justify-content: center;
   }
+  
+  .product-content, .product-filters {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Fix content overlap */
+  main {
+    padding-top: calc(var(--spacing-md) + 60px); /* Add extra padding to prevent overlap with header */
+  }
 }
 
-@media (max-width: 375px) {
+@media (max-width: 400px) {
   /* Very small screens */
   .product-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   }
   
   .product-card .image {
@@ -2224,9 +2337,19 @@ section {
     font-size: 0.9rem;
   }
   
+  /* Optimize the header for very small screens */
+  .top-header {
+    padding: var(--spacing-xs) 0;
+  }
+  
+  .logo h1 {
+    font-size: 1.1rem;
+  }
+  
   /* Hamburger menu for mobile */
   .nav-toggle {
     display: block;
+    padding: 2px;
   }
   
   /* Full-width buttons */
@@ -2254,5 +2377,31 @@ section {
   /* Ensure entire site fits mobile viewport */
   .container {
     padding: 0 10px;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  
+  body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  /* Adjust user actions for very small screens */
+  .user-actions a {
+    font-size: 0.9rem;
+    margin-left: var(--spacing-xs);
+  }
+  
+  /* Optimize search bar */
+  .search-bar form {
+    flex-wrap: nowrap;
+  }
+  
+  .search-bar input {
+    padding: 0.4rem 0.5rem;
+  }
+  
+  .search-bar button {
+    padding: 0.4rem 0.5rem;
   }
 }
