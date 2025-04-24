@@ -1,7 +1,7 @@
 <div class="auth-container">
     <h1>Đăng nhập</h1>
     
-    <% if (error) { %>
+    <% if (error && error.length > 0) { %>
         <div class="alert alert-danger">
             <%= error %>
         </div>
@@ -32,7 +32,7 @@
     </div>
     
     <div class="auth-links">
-        <a href="/auth/forgot-password">Quên mật khẩu?</a>
+        <a href="/auth/forgot-password" class="forgot-password-link">Quên mật khẩu?</a>
         <p>Bạn chưa có tài khoản? <a href="/auth/register">Đăng ký</a></p>
     </div>
 </div>

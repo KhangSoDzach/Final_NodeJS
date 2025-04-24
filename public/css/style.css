@@ -2026,6 +2026,58 @@ section {
   padding: var(--spacing-lg) 0;
 }
 
+/* ===== Auth Pages ===== */
+.auth-container {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-container h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.social-login {
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.btn-google {
+  background-color: #ea4335;
+  color: white;
+}
+
+.btn-google:hover {
+  background-color: #d93025;
+  color: white;
+}
+
+.auth-links {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.auth-links p {
+  margin-top: 1rem;
+}
+
+.forgot-password-link {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.forgot-password-link:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
 /* ===== Responsive Styles ===== */
 @media (max-width: 1200px) {
   .checkout-grid {

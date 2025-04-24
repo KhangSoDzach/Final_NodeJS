@@ -5,7 +5,8 @@ const passport = require('passport');
 const crypto = require('crypto');
 const { validationResult } = require('express-validator');
 
-// const mailer = require('../config/email');
+// Import our email service
+const mailer = require('../utils/emailService');
 
 // Login controllers
 exports.getLogin = (req, res) => {
@@ -166,10 +167,13 @@ exports.postForgotPassword = async (req, res) => {
   const { email } = req.body;
   
   try {
+    console.log(`Password reset requested for email: ${email}`);
+    
     // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
-      req.flash('error', 'Email không tồn tại trong hệ thống.');
+      console.log(`Email not found in database: ${email}`);
+      req.flash('error', 'Email không tồn tại trong hệ thống. Vui lòng kiểm tra lại email hoặc đăng ký tài khoản mới.');
       return res.redirect('/auth/forgot-password');
     }
     
@@ -179,12 +183,20 @@ exports.postForgotPassword = async (req, res) => {
     user.resetTokenExpiration = Date.now() + 3600000; // 1 hour
     
     await user.save();
+    console.log(`Reset token generated for user: ${user._id}`);
     
     // Send reset email
     const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password/${token}`;
-    await mailer.sendPasswordResetEmail(user.email, resetUrl);
+    const emailSent = await mailer.sendPasswordResetEmail(user.email, resetUrl);
     
-    req.flash('success', 'Email khôi phục mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn.');
+    if (emailSent) {
+      console.log(`Password reset email sent successfully to: ${email}`);
+      req.flash('success', 'Email khôi phục mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn.');
+    } else {
+      console.log(`Failed to send password reset email to: ${email}`);
+      req.flash('error', 'Không thể gửi email khôi phục mật khẩu. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.');
+    }
+    
     res.redirect('/auth/forgot-password');
   } catch (err) {
     console.error('Forgot password error:', err);

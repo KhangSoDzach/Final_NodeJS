@@ -60,6 +60,12 @@ const userSchema = new Schema({
   bannedAt: {
     type: Date
   },
+  resetToken: {
+    type: String
+  },
+  resetTokenExpiration: {
+    type: Date
+  },
   createdAt: {
     type: Date,
     default: Date.now

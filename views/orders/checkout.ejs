@@ -257,7 +257,7 @@
             savedAddressSelect.addEventListener('change', function() {
                 if (this.value !== '') {
                     const index = parseInt(this.value);
-                    const addresses = JSON.parse('<%- JSON.stringify(user ? user.addresses : []) %>');
+                    const addresses = <% if (user && user.addresses) { %><%- JSON.stringify(user.addresses) %><% } else { %>[]<% } %>;
                     const address = addresses[index];
                     
                     document.getElementById('street').value = address.street;
@@ -277,70 +277,58 @@
                 });
                 
                 // Show selected payment details
-                const detailsEl = document.querySelector(`.${this.value}-details`);
-                if (detailsEl) {
-                    detailsEl.style.display = 'block';
+                if (this.value === 'bank_transfer') {
+                    document.querySelector('.bank-transfer-details').style.display = 'block';
+                } else if (this.value === 'credit_card') {
+                    document.querySelector('.credit-card-details').style.display = 'block';
                 }
             });
         });
         
         // Store values in variables for client-side scripts
-        let userLoyaltyPoints = 0;
-         if (user && typeof user.loyaltyPoints !== 'undefined') { 
-            userLoyaltyPoints = user.loyaltyPoints ;
-         } 
+        let userLoyaltyPoints = <% if (user && typeof user.loyaltyPoints !== 'undefined') { %><%= user.loyaltyPoints %><% } else { %>0<% } %>;
         
-        let cartTotalWithDiscount = 0;
-        let cartTotalNoDiscount = 0;
-         if (cart) { 
-            cartTotalNoDiscount =  cart.calculateTotal() ;
-             if (cart.coupon) { 
-                cartTotalWithDiscount =  cart.calculateTotalWithDiscount() ;
-            } else { 
-                cartTotalWithDiscount =  cart.calculateTotal() ;
-             } 
-         } 
-        
+        let cartTotalNoDiscount = <% if (cart) { %><%= cart.calculateTotal() %><% } else { %>0<% } %>;
+        let cartTotalWithDiscount = cartTotalNoDiscount;
+
+        <% if (cart && cart.coupon) { %>
+            cartTotalWithDiscount = <%= cart.calculateTotalWithDiscount() %>;
+        <% } %>
+
         // Handle loyalty points checkbox
         const loyaltyCheckbox = document.getElementById('useLoyaltyPoints');
         if (loyaltyCheckbox) {
             loyaltyCheckbox.addEventListener('change', function() {
                 const loyaltyDiscount = document.querySelector('.loyalty-discount');
                 const orderTotal = document.querySelector('.order-total');
-                
+
                 if (this.checked) {
                     loyaltyDiscount.style.display = 'flex';
-                    
-                    // Calculate new total with loyalty points
+
                     const loyaltyValue = userLoyaltyPoints * 1000;
-                    const currentTotal = cartTotalWithDiscount;
-                    
-                    let newTotal = currentTotal - loyaltyValue;
+                    let newTotal = cartTotalWithDiscount - loyaltyValue;
                     if (newTotal < 0) newTotal = 0;
-                    
+
                     orderTotal.textContent = newTotal.toLocaleString('vi-VN') + ' ₫';
                 } else {
                     loyaltyDiscount.style.display = 'none';
-                    
-                    // Restore original total
                     orderTotal.textContent = cartTotalWithDiscount.toLocaleString('vi-VN') + ' ₫';
                 }
             });
         }
-        
+
         // Handle coupon code application
         const applyCouponBtn = document.getElementById('apply-coupon');
         if (applyCouponBtn) {
             applyCouponBtn.addEventListener('click', function() {
                 const couponCode = document.getElementById('coupon-code').value.trim();
                 const couponMessage = document.getElementById('coupon-message');
-                
+
                 if (!couponCode) {
                     couponMessage.innerHTML = '<p class="text-danger">Vui lòng nhập mã giảm giá</p>';
                     return;
                 }
-                
-                // Send AJAX request to apply coupon
+
                 fetch('/cart/apply-coupon', {
                     method: 'POST',
                     headers: {
@@ -352,7 +340,6 @@
                 .then(data => {
                     if (data.success) {
                         couponMessage.innerHTML = `<p class="text-success">${data.message}</p>`;
-                        // Reload page to update the cart
                         location.reload();
                     } else {
                         couponMessage.innerHTML = `<p class="text-danger">${data.message}</p>`;
@@ -364,12 +351,11 @@
                 });
             });
         }
-        
+
         // Handle coupon removal
         const removeCouponBtn = document.getElementById('remove-coupon');
         if (removeCouponBtn) {
             removeCouponBtn.addEventListener('click', function() {
-                // Send AJAX request to remove coupon
                 fetch('/cart/remove-coupon', {
                     method: 'DELETE',
                     headers: {
@@ -379,7 +365,6 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Reload page to update the cart
                         location.reload();
                     } else {
                         alert(data.message);
@@ -391,82 +376,79 @@
                 });
             });
         }
-        
+
         // Form validation
         const checkoutForm = document.getElementById('checkout-form');
         const placeOrderBtn = document.getElementById('place-order-btn');
-        
-        checkoutForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Disable button to prevent double submission
-            placeOrderBtn.disabled = true;
-            placeOrderBtn.textContent = 'Đang xử lý...';
-            
-            // Basic validations
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const street = document.getElementById('street').value;
-            const district = document.getElementById('district').value;
-            const province = document.getElementById('province').value;
-            
-            if (!name || !phone || !street || !district || !province) {
-                alert('Vui lòng điền đầy đủ thông tin giao hàng.');
-                placeOrderBtn.disabled = false;
-                placeOrderBtn.textContent = 'Đặt hàng';
-                return;
-            }
-            
-            // Validate phone format
-            const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
-            if (!phoneRegex.test(phone)) {
-                alert('Số điện thoại không hợp lệ.');
-                placeOrderBtn.disabled = false;
-                placeOrderBtn.textContent = 'Đặt hàng';
-                return;
-            }
-            
-            // Additional validations for payment methods
-            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-            
-            if (paymentMethod === 'credit_card') {
-                const cardNumber = document.getElementById('card_number').value;
-                const cardName = document.getElementById('card_name').value;
-                const cardExpiry = document.getElementById('card_expiry').value;
-                const cardCvv = document.getElementById('card_cvv').value;
-                
-                if (!cardNumber || !cardName || !cardExpiry || !cardCvv) {
-                    alert('Vui lòng điền đầy đủ thông tin thẻ thanh toán.');
+
+        if (checkoutForm) {
+            checkoutForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                placeOrderBtn.disabled = true;
+                placeOrderBtn.textContent = 'Đang xử lý...';
+
+                const name = document.getElementById('name').value;
+                const phone = document.getElementById('phone').value;
+                const street = document.getElementById('street').value;
+                const district = document.getElementById('district').value;
+                const province = document.getElementById('province').value;
+
+                if (!name || !phone || !street || !district || !province) {
+                    alert('Vui lòng điền đầy đủ thông tin giao hàng.');
                     placeOrderBtn.disabled = false;
                     placeOrderBtn.textContent = 'Đặt hàng';
                     return;
                 }
-                
-                // Basic card format validations
-                if (!/^\d{13,19}$/.test(cardNumber.replace(/\s/g, ''))) {
-                    alert('Số thẻ không hợp lệ.');
+
+                const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
+                if (!phoneRegex.test(phone)) {
+                    alert('Số điện thoại không hợp lệ.');
                     placeOrderBtn.disabled = false;
                     placeOrderBtn.textContent = 'Đặt hàng';
                     return;
                 }
-                
-                if (!/^\d{3,4}$/.test(cardCvv)) {
-                    alert('Mã CVV không hợp lệ.');
-                    placeOrderBtn.disabled = false;
-                    placeOrderBtn.textContent = 'Đặt hàng';
-                    return;
+
+                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+                if (paymentMethod === 'credit_card') {
+                    const cardNumber = document.getElementById('card_number').value;
+                    const cardName = document.getElementById('card_name').value;
+                    const cardExpiry = document.getElementById('card_expiry').value;
+                    const cardCvv = document.getElementById('card_cvv').value;
+
+                    if (!cardNumber || !cardName || !cardExpiry || !cardCvv) {
+                        alert('Vui lòng điền đầy đủ thông tin thẻ thanh toán.');
+                        placeOrderBtn.disabled = false;
+                        placeOrderBtn.textContent = 'Đặt hàng';
+                        return;
+                    }
+
+                    if (!/^\d{13,19}$/.test(cardNumber.replace(/\s/g, ''))) {
+                        alert('Số thẻ không hợp lệ.');
+                        placeOrderBtn.disabled = false;
+                        placeOrderBtn.textContent = 'Đặt hàng';
+                        return;
+                    }
+
+                    if (!/^\d{3,4}$/.test(cardCvv)) {
+                        alert('Mã CVV không hợp lệ.');
+                        placeOrderBtn.disabled = false;
+                        placeOrderBtn.textContent = 'Đặt hàng';
+                        return;
+                    }
+
+                    if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+                        alert('Định dạng ngày hết hạn không hợp lệ (MM/YY).');
+                        placeOrderBtn.disabled = false;
+                        placeOrderBtn.textContent = 'Đặt hàng';
+                        return;
+                    }
                 }
-                
-                if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
-                    alert('Định dạng ngày hết hạn không hợp lệ (MM/YY).');
-                    placeOrderBtn.disabled = false;
-                    placeOrderBtn.textContent = 'Đặt hàng';
-                    return;
-                }
-            }
-            
-            // Everything is valid, submit the form
-            checkoutForm.submit();
-        });
+
+                // Submit form
+                checkoutForm.submit();
+            });
+        }
     });
 </script>
