@@ -79,7 +79,17 @@ router.get('/privacy-policy', (req, res) => {
 });
 
 router.get('/contact', (req, res) => {
-  res.render('contact', { title: 'Contact Us' });
+  res.render('contact', { 
+    title: 'Liên hệ',
+    body: 'contact' // Thêm biến body
+  });
+});
+
+router.post('/contact', (req, res) => {
+  const { name, email, subject, message } = req.body;
+  console.log(`Liên hệ từ ${name} (${email}): ${subject} - ${message}`);
+  req.flash('success', 'Cảm ơn bạn đã liên hệ. Chúng tôi sẽ phản hồi sớm nhất.');
+  res.redirect('/contact');
 });
 
 module.exports = router;

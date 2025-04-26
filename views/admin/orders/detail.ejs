@@ -1,0 +1,287 @@
+<%- include('../partials/sidebar') %>
+
+<div class="admin-content">
+    <div class="admin-header">
+        <h1>Chi tiết đơn hàng #<%= order.orderNumber %></h1>
+        <div class="admin-header-actions">
+            <a href="/admin/orders" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h2>Thông tin đơn hàng</h2>
+                </div>
+                <div class="card-body">
+                    <div class="order-info-grid">
+                        <div class="order-info-section">
+                            <h3>Thông tin giao hàng</h3>
+                            <p><strong>Người nhận:</strong> <%= order.shippingAddress.name %></p>
+                            <p><strong>Địa chỉ:</strong> <%= order.shippingAddress.street %>, <%= order.shippingAddress.district %>, <%= order.shippingAddress.province %></p>
+                            <p><strong>Điện thoại:</strong> <%= order.shippingAddress.phone %></p>
+                        </div>
+                        
+                        <div class="order-info-section">
+                            <h3>Thông tin thanh toán</h3>
+                            <p><strong>Phương thức:</strong> 
+                                <% let paymentMethodText; %>
+                                <% switch(order.paymentMethod) { 
+                                    case 'cod': paymentMethodText = 'Thanh toán khi nhận hàng'; break;
+                                    case 'bank_transfer': paymentMethodText = 'Chuyển khoản ngân hàng'; break;
+                                    case 'credit_card': paymentMethodText = 'Thẻ tín dụng / Thẻ ghi nợ'; break;
+                                    default: paymentMethodText = order.paymentMethod;
+                                } %>
+                                <%= paymentMethodText %>
+                            </p>
+                            <p><strong>Trạng thái:</strong> 
+                                <span class="payment-status <%= order.paymentStatus %>">
+                                    <%= order.paymentStatus === 'pending' ? 'Chưa thanh toán' : 
+                                        order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Thất bại' %>
+                                </span>
+                            </p>
+                            
+                            <% if (order.paymentDetails) { %>
+                                <div class="payment-details">
+                                    <% if (order.paymentMethod === 'credit_card' && order.paymentDetails.cardLast4) { %>
+                                        <p><strong>Loại thẻ:</strong> <%= order.paymentDetails.cardType %></p>
+                                        <p><strong>Số thẻ:</strong> **** **** **** <%= order.paymentDetails.cardLast4 %></p>
+                                    <% } else if (order.paymentMethod === 'bank_transfer' && order.paymentDetails.referenceCode) { %>
+                                        <p><strong>Mã giao dịch:</strong> <%= order.paymentDetails.referenceCode %></p>
+                                    <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                    
+                    <div class="order-items mt-4">
+                        <h3>Sản phẩm</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Giá</th>
+                                    <th>Số lượng</th>
+                                    <th>Tổng</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% order.items.forEach(item => { %>
+                                    <tr>
+                                        <td>
+                                            <div class="product-cell">
+                                                <% if (item.product && item.product.images && item.product.images.length > 0) { %>
+                                                    <img src="/uploads/products/<%= item.product.images[0] %>" alt="<%= item.name %>">
+                                                <% } else { %>
+                                                    <img src="/images/no-image.png" alt="No Image">
+                                                <% } %>
+                                                <div>
+                                                    <strong><%= item.name %></strong>
+                                                    <% if (item.variant) { %>
+                                                        <div><%= item.variant.name %>: <%= item.variant.value %></div>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><%= item.price.toLocaleString('vi-VN') %> ₫</td>
+                                        <td><%= item.quantity %></td>
+                                        <td><%= (item.price * item.quantity).toLocaleString('vi-VN') %> ₫</td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-right"><strong>Tạm tính</strong></td>
+                                    <td><%= order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString('vi-VN') %> ₫</td>
+                                </tr>
+                                
+                                <% if (order.discount > 0) { %>
+                                    <tr>
+                                        <td colspan="3" class="text-right"><strong>Giảm giá</strong></td>
+                                        <td>-<%= (order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) * order.discount / 100).toLocaleString('vi-VN') %> ₫</td>
+                                    </tr>
+                                <% } %>
+                                
+                                <% if (order.loyaltyPointsUsed > 0) { %>
+                                    <tr>
+                                        <td colspan="3" class="text-right"><strong>Điểm tích lũy sử dụng</strong></td>
+                                        <td>-<%= (order.loyaltyPointsUsed * 1000).toLocaleString('vi-VN') %> ₫</td>
+                                    </tr>
+                                <% } %>
+                                
+                                <tr class="total-row">
+                                    <td colspan="3" class="text-right"><strong>Tổng cộng</strong></td>
+                                    <td><strong><%= order.totalAmount.toLocaleString('vi-VN') %> ₫</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="admin-card mt-4">
+                <div class="card-header">
+                    <h2>Quản lý trạng thái</h2>
+                </div>
+                <div class="card-body">
+                    <div class="current-status">
+                        <p><strong>Trạng thái hiện tại:</strong> 
+                            <span class="status-badge <%= order.status %>">
+                                <% let statusText; %>
+                                <% switch(order.status) { 
+                                    case 'processing': statusText = 'Đang xử lý'; break;
+                                    case 'confirmed': statusText = 'Đã xác nhận'; break;
+                                    case 'shipped': statusText = 'Đang giao hàng'; break;
+                                    case 'delivered': statusText = 'Đã giao hàng'; break;
+                                    case 'cancelled': statusText = 'Đã hủy'; break;
+                                    default: statusText = order.status;
+                                } %>
+                                <%= statusText %>
+                            </span>
+                        </p>
+                    </div>
+                    
+                    <div class="status-update-form mt-3">
+                        <form id="update-status-form">
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label for="status">Cập nhật trạng thái</label>
+                                    <select id="status" name="status" class="form-control">
+                                        <option value="processing" <%= order.status === 'processing' ? 'selected' : '' %>>Đang xử lý</option>
+                                        <option value="confirmed" <%= order.status === 'confirmed' ? 'selected' : '' %>>Đã xác nhận</option>
+                                        <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Đang giao hàng</option>
+                                        <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Đã giao hàng</option>
+                                        <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Đã hủy</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="note">Ghi chú</label>
+                                    <input type="text" id="note" name="note" class="form-control" placeholder="Ghi chú cho trạng thái mới">
+                                </div>
+                                <div class="form-group col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary" id="update-status-btn">Cập nhật</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="admin-card">
+                <div class="card-header">
+                    <h2>Thông tin khách hàng</h2>
+                </div>
+                <div class="card-body">
+                    <% if (order.user) { %>
+                        <p><strong>Tên:</strong> <%= order.user.name %></p>
+                        <p><strong>Email:</strong> <%= order.user.email %></p>
+                        <% if (order.user.phone) { %>
+                            <p><strong>Điện thoại:</strong> <%= order.user.phone %></p>
+                        <% } %>
+                        <div class="mt-3">
+                            <a href="/admin/users/<%= order.user._id %>" class="btn btn-sm btn-outline-primary">Xem thông tin chi tiết</a>
+                        </div>
+                    <% } else { %>
+                        <p>Đơn hàng được đặt bởi khách không đăng nhập</p>
+                        <p><strong>Người đặt:</strong> <%= order.shippingAddress.name %></p>
+                        <p><strong>Điện thoại:</strong> <%= order.shippingAddress.phone %></p>
+                    <% } %>
+                </div>
+            </div>
+            
+            <div class="admin-card mt-4">
+                <div class="card-header">
+                    <h2>Lịch sử đơn hàng</h2>
+                </div>
+                <div class="card-body">
+                    <ul class="status-history">
+                        <% order.statusHistory.slice().reverse().forEach(history => { %>
+                            <li class="status-history-item">
+                                <div class="status-history-time">
+                                    <%= new Date(history.date).toLocaleString('vi-VN') %>
+                                </div>
+                                <div class="status-history-info">
+                                    <span class="status-badge small <%= history.status %>">
+                                        <% let historyText; %>
+                                        <% switch(history.status) { 
+                                            case 'processing': historyText = 'Đang xử lý'; break;
+                                            case 'confirmed': historyText = 'Đã xác nhận'; break;
+                                            case 'shipped': historyText = 'Đang giao hàng'; break;
+                                            case 'delivered': historyText = 'Đã giao hàng'; break;
+                                            case 'cancelled': historyText = 'Đã hủy'; break;
+                                            default: historyText = history.status;
+                                        } %>
+                                        <%= historyText %>
+                                    </span>
+                                    <% if (history.note) { %>
+                                        <div class="status-note"><%= history.note %></div>
+                                    <% } %>
+                                </div>
+                            </li>
+                        <% }) %>
+                    </ul>
+                </div>
+            </div>
+            
+            <% if (order.note) { %>
+                <div class="admin-card mt-4">
+                    <div class="card-header">
+                        <h2>Ghi chú đơn hàng</h2>
+                    </div>
+                    <div class="card-body">
+                        <p><%= order.note %></p>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const updateStatusForm = document.getElementById('update-status-form');
+    const updateStatusBtn = document.getElementById('update-status-btn');
+    
+    updateStatusForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const status = document.getElementById('status').value;
+        const note = document.getElementById('note').value;
+        
+        // Disable button while processing
+        updateStatusBtn.disabled = true;
+        updateStatusBtn.textContent = 'Đang cập nhật...';
+        
+        // Send AJAX request to update order status
+        fetch('/admin/orders/<%= order._id %>/status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status, note })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload the page to show updated status
+                location.reload();
+            } else {
+                alert('Lỗi: ' + data.message);
+                updateStatusBtn.disabled = false;
+                updateStatusBtn.textContent = 'Cập nhật';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Đã xảy ra lỗi khi cập nhật trạng thái đơn hàng.');
+            updateStatusBtn.disabled = false;
+            updateStatusBtn.textContent = 'Cập nhật';
+        });
+    });
+});
+</script>
