@@ -241,73 +241,26 @@ exports.removeItem = async (req, res) => {
 exports.applyCoupon = async (req, res) => {
   try {
     const { couponCode } = req.body;
-    
-    // Find cart
-    let cart;
-    if (req.user) {
-      cart = await Cart.findOne({ user: req.user._id });
-    } else if (req.session.cartId) {
-      cart = await Cart.findOne({ sessionId: req.session.cartId });
+
+    const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), active: true });
+    if (!coupon || !coupon.isValid()) {
+      return res.status(400).json({ success: false, message: 'Coupon không hợp lệ hoặc đã hết hạn.' });
     }
-    
-    if (!cart || cart.items.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy giỏ hàng hoặc giỏ hàng trống.'
-      });
-    }
-    
-    // Find coupon
-    const coupon = await Coupon.findOne({
-      code: couponCode.toUpperCase(),
-      active: true,
-      startDate: { $lte: new Date() },
-      endDate: { $gte: new Date() }
-    });
-    
-    if (!coupon) {
-      return res.status(404).json({
-        success: false,
-        message: 'Mã giảm giá không tồn tại hoặc đã hết hạn.'
-      });
-    }
-    
-    // Check if coupon has reached max uses
-    if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
+
+    // Check minimum amount
+    const cartTotal = req.session.cartTotal || 0;
+    if (cartTotal < coupon.minAmount) {
       return res.status(400).json({
         success: false,
-        message: 'Mã giảm giá đã hết lượt sử dụng.'
+        message: `Đơn hàng phải có giá trị tối thiểu ${coupon.minAmount.toLocaleString('vi-VN')} ₫ để áp dụng coupon này.`
       });
     }
-    
-    // Check if cart total meets minimum amount
-    if (cart.calculateTotal() < coupon.minAmount) {
-      return res.status(400).json({
-        success: false,
-        message: `Đơn hàng phải có giá trị ít nhất ${coupon.minAmount.toLocaleString('vi-VN')} ₫ để sử dụng mã này.`
-      });
-    }
-    
-    // Apply coupon
-    cart.coupon = {
-      code: coupon.code,
-      discount: coupon.discount
-    };
-    
-    await cart.save();
-    
-    return res.status(200).json({
-      success: true,
-      message: 'Mã giảm giá đã được áp dụng.',
-      discount: coupon.discount,
-      newTotal: cart.calculateTotalWithDiscount()
-    });
+
+    req.session.coupon = coupon;
+    res.status(200).json({ success: true, message: 'Coupon đã được áp dụng thành công.' });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({
-      success: false,
-      message: 'Đã xảy ra lỗi khi áp dụng mã giảm giá.'
-    });
+    res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi áp dụng coupon.' });
   }
 };
 

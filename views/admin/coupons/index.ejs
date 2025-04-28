@@ -1,0 +1,46 @@
+<!-- filepath: c:\Users\khahe\OneDrive\Documents\GitHub\Final_NodeJS\views\admin\coupons\index.ejs -->
+<%- include('../../partials/header') %>
+
+<div class="admin-content">
+  <div class="admin-header">
+    <h1>Quản lý Coupon</h1>
+    <a href="/admin/coupons/add" class="btn btn-primary">Thêm Coupon</a>
+  </div>
+
+  <% if (coupons.length > 0) { %>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Mã</th>
+          <th>Mô tả</th>
+          <th>Giảm giá</th>
+          <th>Ngày bắt đầu</th>
+          <th>Ngày kết thúc</th>
+          <th>Trạng thái</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% coupons.forEach(coupon => { %>
+          <tr>
+            <td><%= coupon.code %></td>
+            <td><%= coupon.description %></td>
+            <td><%= coupon.discount %>%</td>
+            <td><%= new Date(coupon.startDate).toLocaleDateString('vi-VN') %></td>
+            <td><%= new Date(coupon.endDate).toLocaleDateString('vi-VN') %></td>
+            <td><%= coupon.active ? 'Hoạt động' : 'Không hoạt động' %></td>
+            <td>
+              <form action="/admin/coupons/delete/<%= coupon._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mã giảm giá này?');">
+                <button type="submit" class="btn btn-danger">Xóa</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } else { %>
+    <p>Không có coupon nào.</p>
+  <% } %>
+</div>
+
+<%- include('../../partials/footer') %>
