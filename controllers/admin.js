@@ -693,6 +693,60 @@ exports.updateOrderStatus = async (req, res) => {
   }
 };
 
+// Hiển thị form chỉnh sửa đơn hàng
+exports.getEditOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findById(orderId).populate('items.product');
+    if (!order) {
+      req.flash('error', 'Không tìm thấy đơn hàng.');
+      return res.redirect('/admin/orders');
+    }
+
+    res.render('admin/orders/edit', {
+      title: `Chỉnh sửa đơn hàng #${order.orderNumber}`,
+      order,
+      path: '/orders'
+    });
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Đã xảy ra lỗi khi tải thông tin đơn hàng.');
+    res.redirect('/admin/orders');
+  }
+};
+
+// Xử lý cập nhật đơn hàng
+exports.postUpdateOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status, note } = req.body;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      req.flash('error', 'Không tìm thấy đơn hàng.');
+      return res.redirect('/admin/orders');
+    }
+
+    // Cập nhật trạng thái và ghi chú
+    order.status = status;
+    order.statusHistory.push({
+      status,
+      date: Date.now(),
+      note: note || `Trạng thái đơn hàng đã được cập nhật thành ${status}`
+    });
+
+    await order.save();
+
+    req.flash('success', 'Đơn hàng đã được cập nhật thành công.');
+    res.redirect(`/admin/orders/${orderId}`);
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Đã xảy ra lỗi khi cập nhật đơn hàng.');
+    res.redirect(`/admin/orders/edit/${req.params.orderId}`);
+  }
+};
+
 // User Management
 exports.getUsers = async (req, res) => {
   try {
@@ -916,15 +970,15 @@ exports.postAddCoupon = async (req, res) => {
       maxUses,
       active
     } = req.body;
-    
-    // Check if code exists
+
+    // Kiểm tra mã giảm giá đã tồn tại chưa
     const existingCoupon = await Coupon.findOne({ code: code.toUpperCase() });
     if (existingCoupon) {
       req.flash('error', 'Mã giảm giá này đã tồn tại.');
       return res.redirect('/admin/coupons/add');
     }
-    
-    // Create coupon
+
+    // Tạo coupon mới
     const coupon = new Coupon({
       code: code.toUpperCase(),
       description,
@@ -935,9 +989,9 @@ exports.postAddCoupon = async (req, res) => {
       maxUses: maxUses ? parseInt(maxUses) : null,
       active: active === 'on' || active === true
     });
-    
+
     await coupon.save();
-    
+
     req.flash('success', 'Mã giảm giá đã được thêm thành công.');
     res.redirect('/admin/coupons');
   } catch (err) {
@@ -1011,12 +1065,19 @@ exports.postUpdateCoupon = async (req, res) => {
 exports.deleteCoupon = async (req, res) => {
   try {
     const { couponId } = req.params;
-    
-    await Coupon.findByIdAndDelete(couponId);
-    
-    return res.status(200).json({ success: true, message: 'Mã giảm giá đã được xóa thành công.' });
+
+    // Tìm và xóa coupon
+    const coupon = await Coupon.findByIdAndDelete(couponId);
+    if (!coupon) {
+      req.flash('error', 'Không tìm thấy mã giảm giá.');
+      return res.redirect('/admin/coupons');
+    }
+
+    req.flash('success', 'Mã giảm giá đã được xóa thành công.');
+    res.redirect('/admin/coupons');
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi xóa mã giảm giá.' });
+    req.flash('error', 'Đã xảy ra lỗi khi xóa mã giảm giá.');
+    res.redirect('/admin/coupons');
   }
 };

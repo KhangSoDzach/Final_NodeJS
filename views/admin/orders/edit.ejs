@@ -1,0 +1,57 @@
+<!-- filepath: c:\Users\khahe\OneDrive\Documents\GitHub\Final_NodeJS\views\admin\orders\edit.ejs -->
+<%- include('../partials/sidebar') %>
+
+<div class="admin-content">
+  <div class="admin-header">
+    <h1>Chỉnh sửa đơn hàng #<%= order.orderNumber %></h1>
+    <a href="/admin/orders" class="btn btn-secondary">Quay lại</a>
+  </div>
+
+  <div class="admin-card">
+    <form action="/admin/orders/edit/<%= order._id %>" method="POST">
+      <div class="form-group">
+        <label for="status">Trạng thái</label>
+        <select id="status" name="status" class="form-control">
+          <option value="processing" <%= order.status === 'processing' ? 'selected' : '' %>>Đang xử lý</option>
+          <option value="confirmed" <%= order.status === 'confirmed' ? 'selected' : '' %>>Đã xác nhận</option>
+          <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Đang giao hàng</option>
+          <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Đã giao hàng</option>
+          <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Đã hủy</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="note">Ghi chú</label>
+        <textarea id="note" name="note" class="form-control" rows="3" placeholder="Nhập ghi chú (nếu có)"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Cập nhật đơn hàng</button>
+    </form>
+  </div>
+
+  <div class="admin-card mt-4">
+    <h3>Chi tiết đơn hàng</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Sản phẩm</th>
+          <th>Giá</th>
+          <th>Số lượng</th>
+          <th>Tổng</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% order.items.forEach(item => { %>
+          <tr>
+            <td><%= item.name %></td>
+            <td><%= item.price.toLocaleString('vi-VN') %> ₫</td>
+            <td><%= item.quantity %></td>
+            <td><%= (item.price * item.quantity).toLocaleString('vi-VN') %> ₫</td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

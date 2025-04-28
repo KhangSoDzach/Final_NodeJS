@@ -1,0 +1,57 @@
+<!-- filepath: c:\Users\khahe\OneDrive\Documents\GitHub\Final_NodeJS\views\admin\coupons\add.ejs -->
+<%- include('../../partials/header') %>
+
+<div class="admin-content">
+  <div class="admin-header">
+    <h1>Thêm mã giảm giá mới</h1>
+    <a href="/admin/coupons" class="btn btn-secondary">Quay lại</a>
+  </div>
+
+  <div class="admin-card">
+    <form action="/admin/coupons/add" method="POST">
+      <div class="form-group">
+        <label for="code">Mã giảm giá</label>
+        <input type="text" id="code" name="code" class="form-control" placeholder="Nhập mã giảm giá" required>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Mô tả</label>
+        <textarea id="description" name="description" class="form-control" rows="3" placeholder="Nhập mô tả" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="discount">Giảm giá (%)</label>
+        <input type="number" id="discount" name="discount" class="form-control" min="0" max="100" placeholder="Nhập phần trăm giảm giá" required>
+      </div>
+
+      <div class="form-group">
+        <label for="minAmount">Số tiền tối thiểu (₫)</label>
+        <input type="number" id="minAmount" name="minAmount" class="form-control" min="0" placeholder="Nhập số tiền tối thiểu">
+      </div>
+
+      <div class="form-group">
+        <label for="startDate">Ngày bắt đầu</label>
+        <input type="date" id="startDate" name="startDate" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="endDate">Ngày kết thúc</label>
+        <input type="date" id="endDate" name="endDate" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="maxUses">Số lần sử dụng tối đa</label>
+        <input type="number" id="maxUses" name="maxUses" class="form-control" min="0" placeholder="Không giới hạn nếu để trống">
+      </div>
+
+      <div class="form-group">
+        <label for="active">Kích hoạt</label>
+        <input type="checkbox" id="active" name="active" checked>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Thêm mã giảm giá</button>
+    </form>
+  </div>
+</div>
+
+<%- include('../../partials/footer') %>

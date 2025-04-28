@@ -119,6 +119,15 @@
     <% } %>
 </div>
 
+<div class="coupon-section">
+  <h3>Áp dụng Coupon</h3>
+  <form id="couponForm">
+    <input type="text" id="couponCode" name="couponCode" placeholder="Nhập mã coupon" required>
+    <button type="submit" class="btn btn-primary">Áp dụng</button>
+  </form>
+  <div id="couponMessage"></div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Quantity change buttons
@@ -331,4 +340,24 @@
             }, 300);
         });
     }
+
+    document.getElementById('couponForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const couponCode = document.getElementById('couponCode').value.trim();
+    
+        const response = await fetch('/cart/apply-coupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ couponCode })
+        });
+    
+        const data = await response.json();
+        const messageDiv = document.getElementById('couponMessage');
+        if (data.success) {
+          messageDiv.innerHTML = `<p class="text-success">${data.message}</p>`;
+          location.reload();
+        } else {
+          messageDiv.innerHTML = `<p class="text-danger">${data.message}</p>`;
+        }
+      });
 </script>

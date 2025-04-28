@@ -17,12 +17,12 @@ const couponSchema = new Schema({
     type: Number,
     required: true,
     min: 0,
-    max: 100
+    max: 100 // Discount in percentage
   },
   minAmount: {
     type: Number,
     default: 0,
-    min: 0
+    min: 0 // Minimum order amount to apply the coupon
   },
   startDate: {
     type: Date,
@@ -34,7 +34,7 @@ const couponSchema = new Schema({
   },
   maxUses: {
     type: Number,
-    default: null
+    default: null // Unlimited if null
   },
   usedCount: {
     type: Number,
@@ -53,18 +53,13 @@ const couponSchema = new Schema({
 });
 
 // Method to check if coupon is valid
-couponSchema.methods.isValid = function() {
+couponSchema.methods.isValid = function () {
   const now = new Date();
-  
-  // Check if coupon is active
+
   if (!this.active) return false;
-  
-  // Check if coupon is within date range
   if (now < this.startDate || now > this.endDate) return false;
-  
-  // Check if max uses is reached
   if (this.maxUses !== null && this.usedCount >= this.maxUses) return false;
-  
+
   return true;
 };
 
