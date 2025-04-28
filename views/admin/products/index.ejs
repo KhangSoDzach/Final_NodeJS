@@ -40,7 +40,7 @@
                                 <a href="/admin/products/edit/<%= product._id %>" class="btn btn-warning btn-sm">
                                     <i class="fas fa-edit"></i> Sửa
                                 </a>
-                                <form action="/admin/products/delete/<%= product._id %>" method="POST" style="display: inline-block;">
+                                <form action="/admin/products/delete/<%= product._id %>?_method=DELETE" method="POST" style="display: inline-block;">
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">
                                         <i class="fas fa-trash"></i> Xóa
                                     </button>
@@ -53,3 +53,29 @@
         </div>
     </div>
 </div>
+
+<script>
+    function deleteProduct(productId) {
+        if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+            fetch(`/admin/products/delete/${productId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.reload(); // Làm mới trang sau khi xóa thành công
+                } else {
+                    alert(data.message || 'Đã xảy ra lỗi khi xóa sản phẩm.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Đã xảy ra lỗi khi xóa sản phẩm.');
+            });
+        }
+    }
+</script>

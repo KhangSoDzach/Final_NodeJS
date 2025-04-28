@@ -349,29 +349,33 @@ exports.postUpdateProduct = async (req, res) => {
 
 // Xóa sản phẩm
 exports.deleteProduct = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm.' });
+    try {
+        const { productId } = req.params;
+
+        // Tìm sản phẩm theo ID
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm.' });
+        }
+
+        // Xóa hình ảnh sản phẩm
+        if (product.images && product.images.length) {
+            product.images.forEach(img => {
+                const imagePath = path.join(__dirname, '../../public/uploads/products', img);
+                if (fs.existsSync(imagePath)) {
+                    fs.unlinkSync(imagePath);
+                }
+            });
+        }
+
+        // Xóa sản phẩm khỏi database
+        await Product.deleteOne({ _id: productId });
+
+        return res.status(200).json({ success: true, message: 'Sản phẩm đã được xóa thành công.' });
+    } catch (err) {
+        console.error('Error deleting product:', err);
+        return res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi xóa sản phẩm.' });
     }
-    
-    // Xóa hình ảnh sản phẩm
-    product.images.forEach(img => {
-      const imagePath = path.join(__dirname, '../public/uploads/products', img);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
-    });
-    
-    await Product.deleteOne({ _id: productId });
-    
-    return res.status(200).json({ success: true, message: 'Sản phẩm đã được xóa thành công.' });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi xóa sản phẩm.' });
-  }
 };
 
 // Quản lý hàng tồn kho

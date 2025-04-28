@@ -1,0 +1,113 @@
+<!-- filepath: c:\Users\khahe\OneDrive\Documents\GitHub\Final_NodeJS\views\contact.ejs -->
+<%- include('layouts/main') %>
+
+<div class="contact-page">
+    <div class="page-header">
+        <h1>Liên hệ</h1>
+        <p>Chúng tôi rất vui lòng được hỗ trợ bạn. Hãy để lại thông tin và chúng tôi sẽ liên hệ lại sớm nhất.</p>
+    </div>
+
+    <div class="contact-container">
+        <div class="contact-info">
+            <h2>Thông tin liên hệ</h2>
+            <p><i class="fas fa-map-marker-alt"></i> Địa chỉ: 123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</p>
+            <p><i class="fas fa-phone"></i> Điện thoại: <a href="tel:+84123456789">+84 123 456 789</a></p>
+            <p><i class="fas fa-envelope"></i> Email: <a href="mailto:contact@example.com">contact@example.com</a></p>
+            <p><i class="fas fa-clock"></i> Giờ làm việc: Thứ 2 - Thứ 6, 8:00 - 17:00</p>
+        </div>
+
+        <div class="contact-form">
+            <h2>Gửi tin nhắn cho chúng tôi</h2>
+            <form action="/contact" method="POST">
+                <div class="form-group">
+                    <label for="name">Họ và tên</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Nhập họ và tên" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="Nhập email" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Chủ đề</label>
+                    <input type="text" id="subject" name="subject" class="form-control" placeholder="Nhập chủ đề" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Nội dung</label>
+                    <textarea id="message" name="message" class="form-control" rows="5" placeholder="Nhập nội dung" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Gửi</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .contact-page {
+        margin: 2rem 0;
+    }
+
+    .contact-container {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .contact-info {
+        flex: 1;
+        background-color: #f9f9f9;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .contact-info p {
+        margin: 0.5rem 0;
+    }
+
+    .contact-info i {
+        margin-right: 0.5rem;
+        color: var(--primary-color);
+    }
+
+    .contact-form {
+        flex: 1;
+        background-color: #fff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .contact-form h2 {
+        margin-bottom: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: #fff;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-color-dark);
+    }
+</style>
