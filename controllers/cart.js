@@ -237,30 +237,96 @@ exports.removeItem = async (req, res) => {
   }
 };
 
-// Apply coupon code
+// Apply coupon code - cải thiện với nhiều kiểm tra hơn
 exports.applyCoupon = async (req, res) => {
   try {
     const { couponCode } = req.body;
-
-    const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), active: true });
-    if (!coupon || !coupon.isValid()) {
-      return res.status(400).json({ success: false, message: 'Coupon không hợp lệ hoặc đã hết hạn.' });
-    }
-
-    // Check minimum amount
-    const cartTotal = req.session.cartTotal || 0;
-    if (cartTotal < coupon.minAmount) {
+    
+    if (!couponCode || couponCode.trim() === '') {
       return res.status(400).json({
         success: false,
-        message: `Đơn hàng phải có giá trị tối thiểu ${coupon.minAmount.toLocaleString('vi-VN')} ₫ để áp dụng coupon này.`
+        message: 'Vui lòng nhập mã giảm giá.'
       });
     }
-
-    req.session.coupon = coupon;
-    res.status(200).json({ success: true, message: 'Coupon đã được áp dụng thành công.' });
+    
+    // Tìm coupon trong database
+    const coupon = await Coupon.findOne({ 
+      code: couponCode.toUpperCase().trim(), 
+      active: true,
+      startDate: { $lte: new Date() },
+      endDate: { $gte: new Date() }
+    });
+    
+    // Kiểm tra coupon có tồn tại không
+    if (!coupon) {
+      return res.status(404).json({
+        success: false,
+        message: 'Mã giảm giá không hợp lệ hoặc đã hết hạn.'
+      });
+    }
+    
+    // Kiểm tra số lượt sử dụng
+    if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mã giảm giá đã hết lượt sử dụng.'
+      });
+    }
+    
+    // Tìm giỏ hàng
+    let cart;
+    if (req.user) {
+      cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+    } else if (req.session.cartId) {
+      cart = await Cart.findOne({ sessionId: req.session.cartId }).populate('items.product');
+    }
+    
+    if (!cart || cart.items.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy giỏ hàng hoặc giỏ hàng trống.'
+      });
+    }
+    
+    // Tính tổng giỏ hàng
+    const cartTotal = cart.calculateTotal();
+    
+    // Kiểm tra giá trị tối thiểu
+    if (coupon.minAmount > 0 && cartTotal < coupon.minAmount) {
+      return res.status(400).json({
+        success: false,
+        message: `Đơn hàng phải có giá trị tối thiểu ${coupon.minAmount.toLocaleString('vi-VN')} ₫ để áp dụng mã giảm giá này.`
+      });
+    }
+    
+    // Áp dụng coupon vào giỏ hàng
+    cart.coupon = {
+      code: coupon.code,
+      discount: Number(coupon.discount)  // Đảm bảo discount là số
+    };
+    
+    // Lưu giỏ hàng và tăng số lần sử dụng của coupon
+    await cart.save();
+    console.log('Saved coupon to cart:', JSON.stringify(cart.coupon));
+    
+    // Tính toán tổng mới với giảm giá
+    const newTotal = cart.calculateTotalWithDiscount();
+    const discountAmount = cartTotal - newTotal;
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Mã giảm giá đã được áp dụng.',
+      discount: coupon.discount,
+      discountAmount: discountAmount,
+      originalTotal: cartTotal,
+      newTotal: newTotal
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi áp dụng coupon.' });
+    console.error('Error applying coupon:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Đã xảy ra lỗi khi áp dụng mã giảm giá.'
+    });
   }
 };
 

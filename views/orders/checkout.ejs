@@ -249,206 +249,31 @@
     </div>
 </div>
 
+<!-- Đầu tiên, khởi tạo dữ liệu server dưới dạng biến ẩn -->
+<script type="application/json" id="checkout-data">
+{
+    "userLoyaltyPoints": <%= user && typeof user.loyaltyPoints !== 'undefined' ? user.loyaltyPoints : 0 %>,
+    "cartTotalNoDiscount": <%= cart ? cart.calculateTotal() : 0 %>,
+    "cartTotalWithDiscount": <%= cart && cart.coupon ? cart.calculateTotalWithDiscount() : (cart ? cart.calculateTotal() : 0) %>,
+    "isUserLoggedIn": <%= !!user %>,
+    "addresses": <%- user && user.addresses ? JSON.stringify(user.addresses) : '[]' %>
+}
+</script>
+
+<!-- Import JavaScript cho trang thanh toán -->
+<script src="/js/checkout/checkout.js"></script>
 <script>
+    // Chuẩn bị dữ liệu cho JavaScript
     document.addEventListener('DOMContentLoaded', function() {
-        // Handle saved addresses
-        const savedAddressSelect = document.getElementById('saved-address');
-        if (savedAddressSelect) {
-            savedAddressSelect.addEventListener('change', function() {
-                if (this.value !== '') {
-                    const index = parseInt(this.value);
-                    const addresses = <% if (user && user.addresses) { %><%- JSON.stringify(user.addresses) %><% } else { %>[]<% } %>;
-                    const address = addresses[index];
-                    
-                    document.getElementById('street').value = address.street;
-                    document.getElementById('district').value = address.district;
-                    document.getElementById('province').value = address.province;
-                }
-            });
-        }
-        
-        // Handle payment method selection
-        const paymentMethods = document.querySelectorAll('input[name="paymentMethod"]');
-        paymentMethods.forEach(method => {
-            method.addEventListener('change', function() {
-                // Hide all payment details
-                document.querySelectorAll('.payment-details').forEach(el => {
-                    el.style.display = 'none';
-                });
-                
-                // Show selected payment details
-                if (this.value === 'bank_transfer') {
-                    document.querySelector('.bank-transfer-details').style.display = 'block';
-                } else if (this.value === 'credit_card') {
-                    document.querySelector('.credit-card-details').style.display = 'block';
-                }
-            });
-        });
-        
-        // Store values in variables for client-side scripts
-        let userLoyaltyPoints = <% if (user && typeof user.loyaltyPoints !== 'undefined') { %><%= user.loyaltyPoints %><% } else { %>0<% } %>;
-        
-        let cartTotalNoDiscount = <% if (cart) { %><%= cart.calculateTotal() %><% } else { %>0<% } %>;
-        let cartTotalWithDiscount = cartTotalNoDiscount;
-
-        <% if (cart && cart.coupon) { %>
-            cartTotalWithDiscount = <%= cart.calculateTotalWithDiscount() %>;
-        <% } %>
-
-        // Handle loyalty points checkbox
-        const loyaltyCheckbox = document.getElementById('useLoyaltyPoints');
-        if (loyaltyCheckbox) {
-            loyaltyCheckbox.addEventListener('change', function() {
-                const loyaltyDiscount = document.querySelector('.loyalty-discount');
-                const orderTotal = document.querySelector('.order-total');
-
-                if (this.checked) {
-                    loyaltyDiscount.style.display = 'flex';
-
-                    const loyaltyValue = userLoyaltyPoints * 1000;
-                    let newTotal = cartTotalWithDiscount - loyaltyValue;
-                    if (newTotal < 0) newTotal = 0;
-
-                    orderTotal.textContent = newTotal.toLocaleString('vi-VN') + ' ₫';
-                } else {
-                    loyaltyDiscount.style.display = 'none';
-                    orderTotal.textContent = cartTotalWithDiscount.toLocaleString('vi-VN') + ' ₫';
-                }
-            });
-        }
-
-        // Handle coupon code application
-        const applyCouponBtn = document.getElementById('apply-coupon');
-        if (applyCouponBtn) {
-            applyCouponBtn.addEventListener('click', function() {
-                const couponCode = document.getElementById('coupon-code').value.trim();
-                const couponMessage = document.getElementById('coupon-message');
-
-                if (!couponCode) {
-                    couponMessage.innerHTML = '<p class="text-danger">Vui lòng nhập mã giảm giá</p>';
-                    return;
-                }
-
-                fetch('/cart/apply-coupon', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ couponCode })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        couponMessage.innerHTML = `<p class="text-success">${data.message}</p>`;
-                        location.reload();
-                    } else {
-                        couponMessage.innerHTML = `<p class="text-danger">${data.message}</p>`;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    couponMessage.innerHTML = '<p class="text-danger">Đã xảy ra lỗi khi áp dụng mã giảm giá</p>';
-                });
-            });
-        }
-
-        // Handle coupon removal
-        const removeCouponBtn = document.getElementById('remove-coupon');
-        if (removeCouponBtn) {
-            removeCouponBtn.addEventListener('click', function() {
-                fetch('/cart/remove-coupon', {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert(data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Đã xảy ra lỗi khi xóa mã giảm giá');
-                });
-            });
-        }
-
-        // Form validation
-        const checkoutForm = document.getElementById('checkout-form');
-        const placeOrderBtn = document.getElementById('place-order-btn');
-
-        if (checkoutForm) {
-            checkoutForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                placeOrderBtn.disabled = true;
-                placeOrderBtn.textContent = 'Đang xử lý...';
-
-                const name = document.getElementById('name').value;
-                const phone = document.getElementById('phone').value;
-                const street = document.getElementById('street').value;
-                const district = document.getElementById('district').value;
-                const province = document.getElementById('province').value;
-
-                if (!name || !phone || !street || !district || !province) {
-                    alert('Vui lòng điền đầy đủ thông tin giao hàng.');
-                    placeOrderBtn.disabled = false;
-                    placeOrderBtn.textContent = 'Đặt hàng';
-                    return;
-                }
-
-                const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
-                if (!phoneRegex.test(phone)) {
-                    alert('Số điện thoại không hợp lệ.');
-                    placeOrderBtn.disabled = false;
-                    placeOrderBtn.textContent = 'Đặt hàng';
-                    return;
-                }
-
-                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-
-                if (paymentMethod === 'credit_card') {
-                    const cardNumber = document.getElementById('card_number').value;
-                    const cardName = document.getElementById('card_name').value;
-                    const cardExpiry = document.getElementById('card_expiry').value;
-                    const cardCvv = document.getElementById('card_cvv').value;
-
-                    if (!cardNumber || !cardName || !cardExpiry || !cardCvv) {
-                        alert('Vui lòng điền đầy đủ thông tin thẻ thanh toán.');
-                        placeOrderBtn.disabled = false;
-                        placeOrderBtn.textContent = 'Đặt hàng';
-                        return;
-                    }
-
-                    if (!/^\d{13,19}$/.test(cardNumber.replace(/\s/g, ''))) {
-                        alert('Số thẻ không hợp lệ.');
-                        placeOrderBtn.disabled = false;
-                        placeOrderBtn.textContent = 'Đặt hàng';
-                        return;
-                    }
-
-                    if (!/^\d{3,4}$/.test(cardCvv)) {
-                        alert('Mã CVV không hợp lệ.');
-                        placeOrderBtn.disabled = false;
-                        placeOrderBtn.textContent = 'Đặt hàng';
-                        return;
-                    }
-
-                    if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
-                        alert('Định dạng ngày hết hạn không hợp lệ (MM/YY).');
-                        placeOrderBtn.disabled = false;
-                        placeOrderBtn.textContent = 'Đặt hàng';
-                        return;
-                    }
-                }
-
-                // Submit form
-                checkoutForm.submit();
-            });
+        try {
+            // Đọc dữ liệu từ thẻ script JSON đã tạo trước đó
+            const dataElement = document.getElementById('checkout-data');
+            const checkoutData = JSON.parse(dataElement.textContent);
+            
+            // Khởi tạo trang thanh toán với dữ liệu
+            window.initCheckoutPage(checkoutData);
+        } catch (error) {
+            console.error('Lỗi khởi tạo trang thanh toán:', error);
         }
     });
 </script>

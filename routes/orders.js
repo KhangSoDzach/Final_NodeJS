@@ -6,8 +6,11 @@ const { isAuth } = require('../middleware/auth');
 // Checkout page
 router.get('/checkout', ordersController.getCheckout);
 
-// Process order
-router.post('/create', ordersController.postOrder);
+// Process order - fix middleware handling
+router.post('/create', (req, res, next) => {
+  console.log('Order form received:', req.body); // Debug log
+  next();
+}, ordersController.postOrder);
 
 // Order detail
 router.get('/:orderId', isAuth, ordersController.getOrderDetail);

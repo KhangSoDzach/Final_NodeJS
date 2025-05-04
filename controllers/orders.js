@@ -59,29 +59,27 @@ exports.getCheckout = async (req, res) => {
 
 exports.postOrder = async (req, res) => {
   try {
-    // Get form data
+    console.log('Received order creation request:', req.body);
+
+    // Extract form data
     const { name, phone, street, district, province, paymentMethod, note, useLoyaltyPoints } = req.body;
-    
-    // Check if user exists or create a new user if guest checkout
+
+    // Check if user exists or create a new user for guest checkout
     let user = req.user;
-    
     if (!user) {
       const { email, password } = req.body;
-      
-      // Check if email is provided for guest checkout
+
       if (!email) {
         req.flash('error', 'Email là bắt buộc.');
         return res.redirect('/orders/checkout');
       }
-      
-      // Check if email already exists
+
       const existingUser = await User.findOne({ email });
       if (existingUser) {
         req.flash('error', 'Email đã tồn tại, vui lòng đăng nhập.');
         return res.redirect('/auth/login?returnTo=/orders/checkout');
       }
-      
-      // Create a new user (guest account)
+
       user = new User({
         name,
         email,
@@ -94,37 +92,40 @@ exports.postOrder = async (req, res) => {
           default: true
         }]
       });
-      
+
       await user.save();
+      console.log('Created new user for guest checkout:', user._id);
     }
-    
-    // Get cart
-    let cart = await Cart.findOne({ 
+
+    // Retrieve cart
+    let cart = await Cart.findOne({
       $or: [
         { user: user._id },
         { sessionId: req.session.cartId }
       ]
     }).populate('items.product');
-    
+
     if (!cart || cart.items.length === 0) {
       req.flash('error', 'Giỏ hàng trống không thể thanh toán.');
       return res.redirect('/cart');
     }
-    
-    // Check if all products are in stock
+
+    console.log('Found cart:', cart._id, 'with', cart.items.length, 'items');
+
+    // Validate stock for each item
     for (const item of cart.items) {
       if (!item.product) {
         req.flash('error', 'Một số sản phẩm trong giỏ hàng không còn tồn tại.');
         return res.redirect('/cart');
       }
-      
+
       if (item.variant && item.variant.name && item.variant.value) {
         const variant = item.product.variants.find(v => v.name === item.variant.name);
         if (!variant) {
           req.flash('error', `Biến thể ${item.variant.name} của sản phẩm ${item.product.name} không còn tồn tại.`);
           return res.redirect('/cart');
         }
-        
+
         const option = variant.options.find(o => o.value === item.variant.value);
         if (!option || option.stock < item.quantity) {
           req.flash('error', `Biến thể ${item.variant.value} của sản phẩm ${item.product.name} không đủ hàng.`);
@@ -135,160 +136,219 @@ exports.postOrder = async (req, res) => {
         return res.redirect('/cart');
       }
     }
+
+    // Validate cart items before calculating total
+    for (const item of cart.items) {
+      if (!item || typeof item.price !== 'number' || typeof item.quantity !== 'number') {
+        console.error('Invalid item in cart:', item);
+        req.flash('error', 'Có lỗi xảy ra với sản phẩm trong giỏ hàng. Vui lòng thử lại.');
+        return res.redirect('/cart');
+      }
+    }
+
+    // Kiểm tra và xử lý coupon không hợp lệ
+    try {
+      if (cart.coupon) {
+        // Xác thực coupon một lần nữa
+        if (!cart.coupon.code || !cart.coupon.discount || typeof cart.coupon.discount !== 'number') {
+          console.log('Phát hiện coupon không hợp lệ, đang xóa khỏi giỏ hàng:', JSON.stringify(cart.coupon));
+          cart.coupon = null;
+          await cart.save();
+          console.log('Đã xóa coupon không hợp lệ khỏi giỏ hàng');
+        } else {
+          console.log('Sử dụng coupon hợp lệ:', JSON.stringify(cart.coupon));
+        }
+      }
+    } catch (couponError) {
+      console.error('Lỗi khi kiểm tra coupon:', couponError);
+      // Đảm bảo tiếp tục xử lý, không để lỗi coupon ảnh hưởng đến việc tạo đơn hàng
+    }
+
+    // Calculate total amount - sử dụng cách đơn giản và chắc chắn để tính tổng
+    let totalAmount = cart.items.reduce((total, item) => {
+      return total + (Number(item.price) * Number(item.quantity));
+    }, 0);
+    console.log('Tổng tiền trước khi áp dụng giảm giá:', totalAmount);
     
-    // Calculate total amount
-    let totalAmount = cart.calculateTotalWithDiscount();
+    // Áp dụng giảm giá nếu có coupon hợp lệ
     let loyaltyPointsUsed = 0;
+    let discountAmount = 0;
     
-    // Apply loyalty points if requested
+    if (cart.coupon && typeof cart.coupon.discount === 'number' && cart.coupon.discount > 0) {
+      discountAmount = Math.round(totalAmount * (cart.coupon.discount / 100));
+      totalAmount -= discountAmount;
+      console.log('Giảm giá từ coupon:', discountAmount, 'Tổng sau giảm giá:', totalAmount);
+    }
+
+    // Ensure totalAmount is a valid number
+    if (isNaN(totalAmount)) {
+      console.error('totalAmount is NaN after calculations, setting to 0');
+      totalAmount = 0;
+    }
+
+    // Apply loyalty points
     if (useLoyaltyPoints && user.loyaltyPoints > 0) {
       const maxPointsValue = totalAmount;
       const pointsValue = Math.min(user.loyaltyPoints * 1000, maxPointsValue);
-      
+
       totalAmount -= pointsValue;
       loyaltyPointsUsed = Math.floor(pointsValue / 1000);
     }
-    
-    // Determine payment status based on payment method
+
+    // Final validation to ensure totalAmount is a proper number
+    totalAmount = Math.max(totalAmount, 0); // Ensure totalAmount is not negative
+    console.log('Final totalAmount:', totalAmount);
+
+    // Calculate loyalty points earned
+    const loyaltyPointsEarned = Math.floor(totalAmount * 0.1 / 1000) || 0;
+
+    // Determine payment status
     let paymentStatus = 'pending';
     let paymentDetails = null;
-    
+
     if (paymentMethod === 'credit_card') {
-      // Store partial card info for reference
       const { card_number, card_name, card_expiry } = req.body;
-      
+
       if (card_number && card_name && card_expiry) {
         const last4Digits = card_number.replace(/\s/g, '').slice(-4);
-        
         paymentDetails = {
           cardType: getCardType(card_number),
           cardLast4: last4Digits,
           cardHolder: card_name.toUpperCase(),
           cardExpiry: card_expiry
         };
-        
-        // In a real production app, we would process the payment with a payment gateway
-        // and set paymentStatus based on the result
         paymentStatus = 'paid';
       }
-    } else if (paymentMethod === 'bank_transfer') {
-      paymentStatus = 'pending';
-      paymentDetails = {
-        bankName: 'Vietcombank',
-        accountNumber: '1234567890',
-        accountName: 'Source Computer',
-        referenceCode: `ORDER-${Date.now()}`
-      };
     }
-    
-    // Create order
-    const order = new Order({
-      user: user._id,
-      items: cart.items.map(item => {
-        const orderItem = {
-          product: item.product._id,
-          name: item.product.name,
-          price: item.price,
-          quantity: item.quantity
-        };
-        
-        // Only add variant if it exists and has both name and value
-        if (item.variant && item.variant.name && item.variant.value) {
-          orderItem.variant = {
-            name: item.variant.name,
-            value: item.variant.value
-          };
-        }
-        
-        return orderItem;
-      }),
-      totalAmount: totalAmount || 0, // Ensure totalAmount is never NaN
-      shippingAddress: {
-        name,
-        street,
-        district,
-        province,
-        phone
-      },
-      paymentMethod,
-      paymentStatus,
-      paymentDetails,
-      status: 'processing',
-      statusHistory: [{
+
+    // Khai báo biến savedOrder để lưu kết quả đơn hàng đã lưu
+    let savedOrder = null;
+    let order = null;
+
+    // Create order with fixed structure
+    try {
+      const orderData = {
+        user: user._id,
+        items: cart.items.map(item => ({
+          product: item.product._id || item.product, // Handle both populated and unpopulated references
+          name: item.product.name || 'Sản phẩm',  // Provide a default name if product reference is broken
+          price: Number(item.price),
+          quantity: Number(item.quantity),
+          variant: item.variant ? { name: item.variant.name, value: item.variant.value } : null
+        })),
+        totalAmount,
+        shippingAddress: { 
+          name, 
+          street, 
+          district, 
+          province, 
+          phone 
+        },
+        paymentMethod,
+        paymentStatus,
+        paymentDetails,
         status: 'processing',
-        date: Date.now(),
-        note: 'Đơn hàng đã được tạo'
-      }],
-      couponCode: cart.coupon ? cart.coupon.code : null,
-      discount: cart.coupon ? cart.coupon.discount : 0,
-      loyaltyPointsUsed: loyaltyPointsUsed || 0,
-      loyaltyPointsEarned: totalAmount ? Math.floor(totalAmount * 0.1 / 1000) : 0, // Prevent NaN
-      note
-    });
-    
-    await order.save();
-    
-    // Update product stock and sold count
-    for (const item of cart.items) {
-      if (item.variant) {
-        // Update variant stock
-        await Product.updateOne(
-          { _id: item.product._id, 'variants.name': item.variant.name, 'variants.options.value': item.variant.value },
-          {
-            $inc: {
-              'variants.$[v].options.$[o].stock': -item.quantity,
-              sold: item.quantity
-            }
-          },
-          {
-            arrayFilters: [
-              { 'v.name': item.variant.name },
-              { 'o.value': item.variant.value }
-            ]
-          }
-        );
-      } else {
-        // Update product stock
-        await Product.updateOne(
-          { _id: item.product._id },
-          {
-            $inc: {
-              stock: -item.quantity,
-              sold: item.quantity
-            }
-          }
-        );
+        statusHistory: [{ 
+          status: 'processing', 
+          date: Date.now(), 
+          note: 'Đơn hàng đã được tạo' 
+        }],
+        couponCode: cart.coupon ? cart.coupon.code : null,
+        discount: cart.coupon ? Number(cart.coupon.discount) : 0,
+        loyaltyPointsUsed: Number(loyaltyPointsUsed),
+        loyaltyPointsEarned: Number(loyaltyPointsEarned),
+        note
+      };
+
+      console.log('Creating order with data:', JSON.stringify({
+        totalAmount,
+        items: orderData.items.length,
+        paymentMethod,
+        coupon: cart.coupon ? cart.coupon.code : 'none'
+      }));
+      
+      order = new Order(orderData);
+      savedOrder = await order.save();
+      
+      // If order was successfully saved, log confirmation
+      if (savedOrder) {
+        console.log('Order saved successfully with ID:', savedOrder._id);
+        console.log('Order number:', savedOrder.orderNumber);
       }
-    }
-    
-    // Update coupon usage if applied
-    if (cart.coupon && cart.coupon.code) {
-      await Coupon.updateOne(
-        { code: cart.coupon.code },
-        { $inc: { usedCount: 1 } }
-      );
-    }
-    
-    // Update user's loyalty points
-    await User.updateOne(
-      { _id: user._id },
-      {
-        $inc: {
-          loyaltyPoints: order.loyaltyPointsEarned - loyaltyPointsUsed
+    } catch (saveError) {
+      console.error('Error saving order - FULL DETAILS:', saveError);
+      
+      if (saveError.name === 'ValidationError') {
+        for (const field in saveError.errors) {
+          console.error(`Field ${field} error:`, saveError.errors[field].message);
         }
       }
-    );
-    
-    // Clear cart
-    await Cart.deleteOne({ _id: cart._id });
-    if (req.session.cartId) {
-      delete req.session.cartId;
+      
+      req.flash('error', `Đã xảy ra lỗi khi lưu đơn hàng: ${saveError.message}`);
+      return res.redirect('/orders/checkout');
     }
-    
-    req.flash('success', `Đơn hàng #${order.orderNumber} đã được tạo thành công.`);
-    res.redirect(`/orders/${order._id}`);
+
+    if (!savedOrder) {
+      console.error('Order was not saved but no error was thrown');
+      req.flash('error', 'Đã xảy ra lỗi không xác định khi tạo đơn hàng.');
+      return res.redirect('/orders/checkout');
+    }
+
+    try {
+      // Update user's loyalty points if applicable
+      if (loyaltyPointsUsed > 0) {
+        await User.updateOne(
+          { _id: user._id },
+          { $inc: { loyaltyPoints: -loyaltyPointsUsed } }
+        );
+        console.log(`Deducted ${loyaltyPointsUsed} loyalty points from user ${user._id}`);
+      }
+      
+      if (loyaltyPointsEarned > 0) {
+        await User.updateOne(
+          { _id: user._id },
+          { $inc: { loyaltyPoints: loyaltyPointsEarned } }
+        );
+        console.log(`Added ${loyaltyPointsEarned} loyalty points to user ${user._id}`);
+      }
+    } catch (loyaltyError) {
+      console.error('Error updating loyalty points:', loyaltyError);
+      // Không redirect ở đây, vẫn tiếp tục xử lý đơn hàng
+    }
+
+    // Update stock and clear cart
+    try {
+      for (const item of cart.items) {
+        if (item.variant) {
+          await Product.updateOne(
+            { _id: item.product._id, 'variants.name': item.variant.name, 'variants.options.value': item.variant.value },
+            { $inc: { 'variants.$[v].options.$[o].stock': -item.quantity, sold: item.quantity } },
+            { arrayFilters: [{ 'v.name': item.variant.name }, { 'o.value': item.variant.value }] }
+          );
+        } else {
+          await Product.updateOne(
+            { _id: item.product._id },
+            { $inc: { stock: -item.quantity, sold: item.quantity } }
+          );
+        }
+      }
+      console.log('Product stock updated');
+    } catch (stockError) {
+      console.error('Error updating product stock:', stockError);
+    }
+
+    try {
+      await Cart.deleteOne({ _id: cart._id });
+      if (req.session.cartId) delete req.session.cartId;
+      console.log('Cart cleared');
+    } catch (cartError) {
+      console.error('Error clearing cart:', cartError);
+    }
+
+    req.flash('success', `Đơn hàng #${savedOrder.orderNumber} đã được tạo thành công.`);
+    res.redirect(`/orders/${savedOrder._id}`);
   } catch (err) {
-    console.error(err);
+    console.error('Order creation error:', err);
     req.flash('error', 'Đã xảy ra lỗi khi tạo đơn hàng.');
     res.redirect('/orders/checkout');
   }
