@@ -49,14 +49,17 @@ module.exports = function(passport) {
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL
+        callbackURL: 'http://localhost:3000/auth/google/callback', // Cập nhật URL callback với cổng 3000
+        passReqToCallback: true // Bật tùy chọn này để truy cập req trong callback
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (req, accessToken, refreshToken, profile, done) => {
         try {
+          console.log('Google authentication started for profile:', profile.id);
           // Check if user already exists
           let user = await User.findOne({ googleId: profile.id });
           
           if (user) {
+            console.log('Existing Google user found:', user.email);
             // Return existing user
             return done(null, user);
           }
@@ -65,12 +68,14 @@ module.exports = function(passport) {
           user = await User.findOne({ email: profile.emails[0].value });
           
           if (user) {
+            console.log('Linking Google ID to existing user:', user.email);
             // Link Google ID to existing user
             user.googleId = profile.id;
             await user.save();
             return done(null, user);
           }
           
+          console.log('Creating new Google user:', profile.emails[0].value);
           // Create new user
           const newUser = new User({
             googleId: profile.id,
@@ -83,20 +88,21 @@ module.exports = function(passport) {
           await newUser.save();
           
           // Move guest cart to user cart if exists
-          if (profile.req && profile.req.session && profile.req.session.cartId) {
-            const guestCart = await Cart.findOne({ sessionId: profile.req.session.cartId });
+          if (req.session && req.session.cartId) {
+            const guestCart = await Cart.findOne({ sessionId: req.session.cartId });
             
             if (guestCart) {
               guestCart.user = newUser._id;
               guestCart.sessionId = null;
               await guestCart.save();
               
-              delete profile.req.session.cartId;
+              delete req.session.cartId;
             }
           }
           
           return done(null, newUser);
         } catch (err) {
+          console.error('Google authentication error:', err);
           return done(err);
         }
       }

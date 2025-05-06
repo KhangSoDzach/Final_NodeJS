@@ -1,22 +1,22 @@
-FROM node:18
+FROM node:20.12-alpine3.19
 
-# Create app directory
+# Tạo thư mục làm việc
 WORKDIR /usr/src/app
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# Cài đặt nodemon cho hot reloading
+RUN npm install -g nodemon
+
+# Sao chép package.json và package-lock.json
 COPY package*.json ./
 
+# Cài đặt dependencies
 RUN npm install
 
-# Bundle app source
+# Sao chép mã nguồn
 COPY . .
 
-# Set environment variables
-ENV NODE_ENV=production
-
-# Expose the port
+# Mở cổng
 EXPOSE 3000
 
-# Command to run the application
-CMD ["node", "app.js"]
+# Khởi động ứng dụng với seed data
+CMD ["sh", "-c", "npm run seed && nodemon --legacy-watch --ignore node_modules/ --watch . --ext js,ejs,css app.js"]

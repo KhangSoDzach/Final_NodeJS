@@ -28,7 +28,7 @@
                     <% } %>
                 </a>
                 
-                <% if (user) { %>
+                <% if (typeof user !== 'undefined' && user) { %>
                     <div class="dropdown">
                         <a href="#" class="dropdown-toggle">
                             <i class="fas fa-user"></i> <%= user.name %>

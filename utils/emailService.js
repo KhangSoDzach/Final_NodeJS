@@ -1,18 +1,15 @@
 const nodemailer = require('nodemailer');
 const emailConfig = require('../config/email');
 
-// Remove spaces from app password if present
-let emailPass = emailConfig.auth.pass;
-if (emailPass) {
-  emailPass = emailPass.replace(/\s+/g, '');
-}
-
-// Create transporter with the updated config
+// Create transporter
 let transporter = nodemailer.createTransport({
-  ...emailConfig,
+  service: 'gmail',
   auth: {
-    ...emailConfig.auth,
-    pass: emailPass
+    user: process.env.EMAIL_USER || emailConfig.auth.user,
+    pass: process.env.EMAIL_PASSWORD || emailConfig.auth.pass
+  },
+  tls: {
+    rejectUnauthorized: false
   }
 });
 

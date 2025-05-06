@@ -1,26 +1,31 @@
-version: '3'
-
 services:
-  app:
-    build: .
+  # Frontend service
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongo:27017/sourcecomputer
-      - PORT=3000
+      - NODE_ENV=development
       - SESSION_SECRET=1366b2f926d0eee726d7e597cf2a2f060df34db388c0f25682143b8f6bb9dbe2
+      - MONGODB_URI=mongodb://mongo:27017/sourcecomputer
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # Thêm các biến môi trường cho Google OAuth
       - GOOGLE_CLIENT_ID=16788479489-8sehea2kcf4bq6j2bf6c5vak4p0tuhnt.apps.googleusercontent.com
       - GOOGLE_CLIENT_SECRET=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
-      - GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
     depends_on:
       - mongo
+      - redis
     restart: always
-    volumes:
-      - ./uploads:/usr/src/app/uploads
     networks:
       - app-network
 
+  # MongoDB database
   mongo:
     image: mongo:latest
     restart: always
@@ -28,6 +33,18 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+      # Thêm volume cho scripts khởi tạo nếu cần
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+  # Redis for caching and session management
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
     networks:
       - app-network
 
@@ -37,4 +54,8 @@ networks:
 
 volumes:
   mongodb_data:
+    name: sourcecomputer_mongodb_data
+    driver: local
+  redis_data:
+    name: sourcecomputer_redis_data
     driver: local

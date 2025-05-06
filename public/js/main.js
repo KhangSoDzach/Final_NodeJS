@@ -3,6 +3,12 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Debug flash messages
+    console.log('Flash messages in DOM:', {
+        success: document.querySelectorAll('.alert-success').length > 0,
+        error: document.querySelectorAll('.alert-danger').length > 0
+    });
+    
     // Xử lý hiển thị thông báo toast
     const toasts = document.querySelectorAll('.toast');
     toasts.forEach(toast => {
@@ -19,6 +25,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const toast = this.closest('.toast');
             if (toast) {
                 toast.classList.remove('show');
+            }
+        });
+    });
+    
+    // Flash message handling - make sure they don't auto-disappear
+    const alertCloseButtons = document.querySelectorAll('.alert .close-alert');
+    alertCloseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const alert = this.closest('.alert');
+            if (alert) {
+                alert.style.display = 'none';
             }
         });
     });

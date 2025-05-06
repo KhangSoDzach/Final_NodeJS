@@ -139,13 +139,25 @@ exports.postRegister = async (req, res) => {
 };
 
 // Google OAuth controllers
-exports.getGoogleAuth = passport.authenticate('google', {
-  scope: ['profile', 'email']
-});
+exports.getGoogleAuth = (req, res, next) => {
+  // Lưu lại đường dẫn trả về nếu có
+  if (req.query.returnTo) {
+    req.session.returnTo = req.query.returnTo;
+  }
+  
+  console.log('Starting Google authentication, session ID:', req.sessionID);
+  
+  passport.authenticate('google', {
+    scope: ['profile', 'email']
+  })(req, res, next);
+};
 
 exports.getGoogleCallback = (req, res, next) => {
   const returnTo = req.session.returnTo || '/';
   delete req.session.returnTo;
+  
+  console.log('Google callback received, session ID:', req.sessionID);
+  console.log('Callback URL:', req.originalUrl);
   
   passport.authenticate('google', {
     successRedirect: returnTo,

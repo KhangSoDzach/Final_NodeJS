@@ -252,7 +252,7 @@
 <!-- Đầu tiên, khởi tạo dữ liệu server dưới dạng biến ẩn -->
 <script type="application/json" id="checkout-data">
 {
-    "userLoyaltyPoints": <%= user && typeof user.loyaltyPoints !== 'undefined' ? user.loyaltyPoints : 0 %>,
+    "usersLoyaltyPoints": <%= user && typeof user.loyaltyPoints !== 'undefined' ? user.loyaltyPoints : 0 %>,
     "cartTotalNoDiscount": <%= cart ? cart.calculateTotal() : 0 %>,
     "cartTotalWithDiscount": <%= cart && cart.coupon ? cart.calculateTotalWithDiscount() : (cart ? cart.calculateTotal() : 0) %>,
     "isUserLoggedIn": <%= !!user %>,
