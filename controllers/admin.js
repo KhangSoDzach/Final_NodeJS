@@ -635,19 +635,30 @@ exports.getOrders = async (req, res) => {
 exports.getOrderDetail = async (req, res) => {
   try {
     const { orderId } = req.params;
-    
+
     const order = await Order.findById(orderId)
       .populate({
         path: 'items.product',
         select: 'name images slug'
       })
       .populate('user', 'name email phone');
-    
+
     if (!order) {
       req.flash('error', 'Không tìm thấy đơn hàng.');
       return res.redirect('/admin/orders');
     }
-    
+
+    // Đảm bảo `shippingAddress` tồn tại
+    if (!order.shippingAddress) {
+      order.shippingAddress = {
+        name: 'Không có thông tin',
+        street: 'Không có thông tin',
+        district: 'Không có thông tin',
+        province: 'Không có thông tin',
+        phone: 'Không có thông tin'
+      };
+    }
+
     res.render('admin/orders/detail', {
       title: `Đơn hàng #${order.orderNumber}`,
       order,

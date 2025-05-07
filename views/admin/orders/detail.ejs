@@ -20,9 +20,13 @@
                     <div class="order-info-grid">
                         <div class="order-info-section">
                             <h3>Thông tin giao hàng</h3>
-                            <p><strong>Người nhận:</strong> <%= order.shippingAddress.name %></p>
-                            <p><strong>Địa chỉ:</strong> <%= order.shippingAddress.street %>, <%= order.shippingAddress.district %>, <%= order.shippingAddress.province %></p>
-                            <p><strong>Điện thoại:</strong> <%= order.shippingAddress.phone %></p>
+                            <% if (order.shippingAddress) { %>
+                                <p><strong>Người nhận:</strong> <%= order.shippingAddress.name %></p>
+                                <p><strong>Địa chỉ:</strong> <%= order.shippingAddress.street %>, <%= order.shippingAddress.district %>, <%= order.shippingAddress.province %></p>
+                                <p><strong>Điện thoại:</strong> <%= order.shippingAddress.phone %></p>
+                            <% } else { %>
+                                <p>Không có thông tin giao hàng.</p>
+                            <% } %>
                         </div>
                         
                         <div class="order-info-section">

@@ -1,472 +1,77 @@
-<div class="checkout-page">
-    <div class="page-header">
-        <h1>Thanh toán</h1>
+<%- include('../partials/header') %>
+<div class="container checkout-page">
+  <h1>Thanh toán</h1>
+  <div class="checkout-grid">
+    <!-- Thông tin giỏ hàng -->
+    <div class="checkout-details">
+      <div class="checkout-section">
+        <h2>Giỏ hàng của bạn</h2>
+        <% if (cart && cart.items.length > 0) { %>
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>Sản phẩm</th>
+                <th>Số lượng</th>
+                <th>Giá</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% cart.items.forEach(item => { %>
+                <tr>
+                  <td><%= item.product.name %></td>
+                  <td><%= item.quantity %></td>
+                  <td><%= (item.price * item.quantity).toLocaleString('vi-VN') %> VND</td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } else { %>
+          <p>Giỏ hàng của bạn đang trống.</p>
+        <% } %>
+      </div>
     </div>
-    
-    <div class="checkout-container">
-        <form action="/orders/create" method="POST" id="checkout-form">
-            <div class="checkout-grid">
-                <div class="checkout-details">
-                    <div class="checkout-section">
-                        <h2>Thông tin giao hàng</h2>
-                        
-                        <% if (!user) { %>
-                            <div class="guest-message">
-                                <p>Bạn đã có tài khoản? <a href="/auth/login?returnTo=/orders/checkout">Đăng nhập</a></p>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="email">Email <span class="required">*</span></label>
-                                <input type="email" id="email" name="email" required>
-                            </div>
-                            
-                            <div class="form-group password-group">
-                                <label for="password">Mật khẩu (tùy chọn)</label>
-                                <input type="password" id="password" name="password">
-                                <small>Tạo mật khẩu để đăng ký tài khoản và theo dõi đơn hàng sau này</small>
-                            </div>
-                        <% } %>
-                        
-                        <div class="form-group">
-                            <label for="name">Họ tên <span class="required">*</span></label>
-                            <input type="text" id="name" name="name" value="<%= user ? user.name : '' %>" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="phone">Số điện thoại <span class="required">*</span></label>
-                            <input type="tel" id="phone" name="phone" value="<%= user && user.phone ? user.phone : '' %>" required>
-                        </div>
-                        
-                        <% if (user && user.addresses && user.addresses.length > 0) { %>
-                            <div class="form-group">
-                                <label>Địa chỉ đã lưu</label>
-                                <div class="saved-addresses">
-                                    <select id="saved-address" class="form-control">
-                                        <option value="">-- Chọn địa chỉ --</option>
-                                        <% user.addresses.forEach((address, index) => { %>
-                                            <option value="<%= index %>" <%= address.default ? 'selected' : '' %>>
-                                                <%= address.street %>, <%= address.district %>, <%= address.province %>
-                                            </option>
-                                        <% }) %>
-                                    </select>
-                                </div>
-                            </div>
-                        <% } %>
-                        
-                        <div class="form-group">
-                            <label for="street">Địa chỉ <span class="required">*</span></label>
-                            <input type="text" id="street" name="street" 
-                                value="<%= user && user.addresses && user.addresses.find(a => a.default) ? user.addresses.find(a => a.default).street : '' %>" 
-                                required>
-                        </div>
-                        
-                        <div class="address-grid">
-                            <div class="form-group">
-                                <label for="district">Quận/Huyện <span class="required">*</span></label>
-                                <input type="text" id="district" name="district" 
-                                    value="<%= user && user.addresses && user.addresses.find(a => a.default) ? user.addresses.find(a => a.default).district : '' %>" 
-                                    required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="province">Tỉnh/Thành phố <span class="required">*</span></label>
-                                <input type="text" id="province" name="province" 
-                                    value="<%= user && user.addresses && user.addresses.find(a => a.default) ? user.addresses.find(a => a.default).province : '' %>" 
-                                    required>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="checkout-section">
-                        <h2>Phương thức thanh toán</h2>
-                        
-                        <div class="payment-methods">
-                            <div class="payment-method">
-                                <input type="radio" id="cod" name="paymentMethod" value="cod" checked>
-                                <label for="cod">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                    Thanh toán khi nhận hàng (COD)
-                                </label>
-                            </div>
-                            
-                            <div class="payment-method">
-                                <input type="radio" id="bank_transfer" name="paymentMethod" value="bank_transfer">
-                                <label for="bank_transfer">
-                                    <i class="fas fa-university"></i>
-                                    Chuyển khoản ngân hàng
-                                </label>
-                                <div class="payment-details bank-transfer-details" style="display: none;">
-                                    <p>Vui lòng chuyển khoản đến tài khoản sau:</p>
-                                    <p><strong>Ngân hàng:</strong> Vietcombank</p>
-                                    <p><strong>Số tài khoản:</strong> 1234567890</p>
-                                    <p><strong>Chủ tài khoản:</strong> Source Computer</p>
-                                    <p><strong>Nội dung:</strong> Thanh toán đơn hàng - [Họ tên của bạn]</p>
-                                </div>
-                            </div>
-                            
-                            <div class="payment-method">
-                                <input type="radio" id="credit_card" name="paymentMethod" value="credit_card">
-                                <label for="credit_card">
-                                    <i class="fas fa-credit-card"></i>
-                                    Thẻ tín dụng / Thẻ ghi nợ
-                                </label>
-                                <div class="payment-details credit-card-details" style="display: none;">
-                                    <div class="form-group">
-                                        <label>Số thẻ</label>
-                                        <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456">
-                                    </div>
-                                    
-                                    <div class="card-info-grid">
-                                        <div class="form-group">
-                                            <label>Tên trên thẻ</label>
-                                            <input type="text" id="card_name" name="card_name" placeholder="NGUYEN VAN A">
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label>Hết hạn</label>
-                                            <input type="text" id="card_expiry" name="card_expiry" placeholder="MM/YY">
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label>CVV</label>
-                                            <input type="text" id="card_cvv" name="card_cvv" placeholder="123">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="checkout-section">
-                        <h2>Mã giảm giá</h2>
-                        
-                        <div class="coupon-section">
-                            <div class="coupon-input">
-                                <input type="text" id="coupon-code" placeholder="Nhập mã giảm giá" class="form-control">
-                                <button type="button" id="apply-coupon" class="btn btn-primary">Áp dụng</button>
-                            </div>
-                            <div id="coupon-message" class="mt-2"></div>
-                            <% if (cart.coupon) { %>
-                                <div class="coupon-info mt-2">
-                                    <p>Mã <strong><%= cart.coupon.code %></strong> đã được áp dụng: Giảm <%= cart.coupon.discount %>%</p>
-                                    <button type="button" id="remove-coupon" class="btn btn-sm btn-outline-danger">Xóa</button>
-                                </div>
-                            <% } %>
-                        </div>
-                    </div>
-                    
-                    <% if (user && user.loyaltyPoints > 0) { %>
-                        <div class="checkout-section">
-                            <h2>Điểm tích lũy</h2>
-                            
-                            <div class="loyalty-points">
-                                <p>Bạn có <strong><%= user.loyaltyPoints %> điểm</strong> (tương đương <%= (user.loyaltyPoints * 1000).toLocaleString('vi-VN') %> ₫)</p>
-                                
-                                <div class="form-group">
-                                    <input type="checkbox" id="useLoyaltyPoints" name="useLoyaltyPoints">
-                                    <label for="useLoyaltyPoints">Sử dụng điểm tích lũy cho đơn hàng này</label>
-                                </div>
-                            </div>
-                        </div>
-                    <% } %>
-                    
-                    <div class="checkout-section">
-                        <h2>Ghi chú đơn hàng</h2>
-                        
-                        <div class="form-group">
-                            <textarea id="note" name="note" rows="4" placeholder="Ghi chú về đơn hàng, ví dụ: thời gian hay chỉ dẫn địa điểm giao hàng chi tiết hơn."></textarea>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="checkout-summary">
-                    <div class="summary-card">
-                        <h3>Đơn hàng của bạn</h3>
-                        
-                        <div class="summary-products">
-                            <table class="summary-table">
-                                <thead>
-                                    <tr>
-                                        <th>Sản phẩm</th>
-                                        <th>Thành tiền</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% cart.items.forEach(item => { %>
-                                        <tr>
-                                            <td>
-                                                <%= item.product ? item.product.name : 'Sản phẩm đã bị xóa' %> 
-                                                <% if (item.variant) { %>
-                                                    (<%= item.variant.name %>: <%= item.variant.value %>)
-                                                <% } %>
-                                                <span class="item-quantity">× <%= item.quantity %></span>
-                                            </td>
-                                            <td><%= (item.price * item.quantity).toLocaleString('vi-VN') %> ₫</td>
-                                        </tr>
-                                    <% }) %>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="summary-totals">
-                            <div class="summary-row">
-                                <span>Tạm tính</span>
-                                <span><%= cart.calculateTotal().toLocaleString('vi-VN') %> ₫</span>
-                            </div>
-                            
-                            <% if (cart.coupon) { %>
-                                <div class="summary-row discount">
-                                    <span>Giảm giá (<%= cart.coupon.code %> - <%= cart.coupon.discount %>%)</span>
-                                    <span>-<%= (cart.calculateTotal() - cart.calculateTotalWithDiscount()).toLocaleString('vi-VN') %> ₫</span>
-                                </div>
-                            <% } %>
-                            
-                            <% if (user && user.loyaltyPoints > 0) { %>
-                                <div class="summary-row discount loyalty-discount" style="display: none;">
-                                    <span>Điểm tích lũy (<%= user.loyaltyPoints %> điểm)</span>
-                                    <span>-<%= (Math.min(user.loyaltyPoints * 1000, cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal())).toLocaleString('vi-VN') %> ₫</span>
-                                </div>
-                            <% } %>
-                            
-                            <div class="summary-row total">
-                                <span>Tổng cộng</span>
-                                <span class="order-total">
-                                    <%= (cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal()).toLocaleString('vi-VN') %> ₫
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="checkout-actions">
-                            <button type="submit" class="btn btn-primary btn-block" id="place-order-btn">Đặt hàng</button>
-                            <a href="/cart" class="back-to-cart">
-                                <i class="fas fa-arrow-left"></i> Quay lại giỏ hàng
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Handle saved addresses
-        const savedAddressSelect = document.getElementById('saved-address');
-        if (savedAddressSelect) {
-            savedAddressSelect.addEventListener('change', function() {
-                if (this.value !== '') {
-                    const index = parseInt(this.value);
-                    const addresses = JSON.parse('<%- JSON.stringify(user ? user.addresses : []) %>');
-                    const address = addresses[index];
-                    
-                    document.getElementById('street').value = address.street;
-                    document.getElementById('district').value = address.district;
-                    document.getElementById('province').value = address.province;
-                }
-            });
-        }
-        
-        // Handle payment method selection
-        const paymentMethods = document.querySelectorAll('input[name="paymentMethod"]');
-        paymentMethods.forEach(method => {
-            method.addEventListener('change', function() {
-                // Hide all payment details
-                document.querySelectorAll('.payment-details').forEach(el => {
-                    el.style.display = 'none';
-                });
-                
-                // Show selected payment details
-                const detailsEl = document.querySelector(`.${this.value}-details`);
-                if (detailsEl) {
-                    detailsEl.style.display = 'block';
-                }
-            });
-        });
-        
-        // Store values in variables for client-side scripts
-        let userLoyaltyPoints = 0;
-         if (user && typeof user.loyaltyPoints !== 'undefined') { 
-            userLoyaltyPoints = user.loyaltyPoints ;
-         } 
-        
-        let cartTotalWithDiscount = 0;
-        let cartTotalNoDiscount = 0;
-         if (cart) { 
-            cartTotalNoDiscount =  cart.calculateTotal() ;
-             if (cart.coupon) { 
-                cartTotalWithDiscount =  cart.calculateTotalWithDiscount() ;
-            } else { 
-                cartTotalWithDiscount =  cart.calculateTotal() ;
-             } 
-         } 
-        
-        // Handle loyalty points checkbox
-        const loyaltyCheckbox = document.getElementById('useLoyaltyPoints');
-        if (loyaltyCheckbox) {
-            loyaltyCheckbox.addEventListener('change', function() {
-                const loyaltyDiscount = document.querySelector('.loyalty-discount');
-                const orderTotal = document.querySelector('.order-total');
-                
-                if (this.checked) {
-                    loyaltyDiscount.style.display = 'flex';
-                    
-                    // Calculate new total with loyalty points
-                    const loyaltyValue = userLoyaltyPoints * 1000;
-                    const currentTotal = cartTotalWithDiscount;
-                    
-                    let newTotal = currentTotal - loyaltyValue;
-                    if (newTotal < 0) newTotal = 0;
-                    
-                    orderTotal.textContent = newTotal.toLocaleString('vi-VN') + ' ₫';
-                } else {
-                    loyaltyDiscount.style.display = 'none';
-                    
-                    // Restore original total
-                    orderTotal.textContent = cartTotalWithDiscount.toLocaleString('vi-VN') + ' ₫';
-                }
-            });
-        }
-        
-        // Handle coupon code application
-        const applyCouponBtn = document.getElementById('apply-coupon');
-        if (applyCouponBtn) {
-            applyCouponBtn.addEventListener('click', function() {
-                const couponCode = document.getElementById('coupon-code').value.trim();
-                const couponMessage = document.getElementById('coupon-message');
-                
-                if (!couponCode) {
-                    couponMessage.innerHTML = '<p class="text-danger">Vui lòng nhập mã giảm giá</p>';
-                    return;
-                }
-                
-                // Send AJAX request to apply coupon
-                fetch('/cart/apply-coupon', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ couponCode })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        couponMessage.innerHTML = `<p class="text-success">${data.message}</p>`;
-                        // Reload page to update the cart
-                        location.reload();
-                    } else {
-                        couponMessage.innerHTML = `<p class="text-danger">${data.message}</p>`;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    couponMessage.innerHTML = '<p class="text-danger">Đã xảy ra lỗi khi áp dụng mã giảm giá</p>';
-                });
-            });
-        }
-        
-        // Handle coupon removal
-        const removeCouponBtn = document.getElementById('remove-coupon');
-        if (removeCouponBtn) {
-            removeCouponBtn.addEventListener('click', function() {
-                // Send AJAX request to remove coupon
-                fetch('/cart/remove-coupon', {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Reload page to update the cart
-                        location.reload();
-                    } else {
-                        alert(data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Đã xảy ra lỗi khi xóa mã giảm giá');
-                });
-            });
-        }
-        
-        // Form validation
-        const checkoutForm = document.getElementById('checkout-form');
-        const placeOrderBtn = document.getElementById('place-order-btn');
-        
-        checkoutForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Disable button to prevent double submission
-            placeOrderBtn.disabled = true;
-            placeOrderBtn.textContent = 'Đang xử lý...';
-            
-            // Basic validations
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const street = document.getElementById('street').value;
-            const district = document.getElementById('district').value;
-            const province = document.getElementById('province').value;
-            
-            if (!name || !phone || !street || !district || !province) {
-                alert('Vui lòng điền đầy đủ thông tin giao hàng.');
-                placeOrderBtn.disabled = false;
-                placeOrderBtn.textContent = 'Đặt hàng';
-                return;
-            }
-            
-            // Validate phone format
-            const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
-            if (!phoneRegex.test(phone)) {
-                alert('Số điện thoại không hợp lệ.');
-                placeOrderBtn.disabled = false;
-                placeOrderBtn.textContent = 'Đặt hàng';
-                return;
-            }
-            
-            // Additional validations for payment methods
-            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-            
-            if (paymentMethod === 'credit_card') {
-                const cardNumber = document.getElementById('card_number').value;
-                const cardName = document.getElementById('card_name').value;
-                const cardExpiry = document.getElementById('card_expiry').value;
-                const cardCvv = document.getElementById('card_cvv').value;
-                
-                if (!cardNumber || !cardName || !cardExpiry || !cardCvv) {
-                    alert('Vui lòng điền đầy đủ thông tin thẻ thanh toán.');
-                    placeOrderBtn.disabled = false;
-                    placeOrderBtn.textContent = 'Đặt hàng';
-                    return;
-                }
-                
-                // Basic card format validations
-                if (!/^\d{13,19}$/.test(cardNumber.replace(/\s/g, ''))) {
-                    alert('Số thẻ không hợp lệ.');
-                    placeOrderBtn.disabled = false;
-                    placeOrderBtn.textContent = 'Đặt hàng';
-                    return;
-                }
-                
-                if (!/^\d{3,4}$/.test(cardCvv)) {
-                    alert('Mã CVV không hợp lệ.');
-                    placeOrderBtn.disabled = false;
-                    placeOrderBtn.textContent = 'Đặt hàng';
-                    return;
-                }
-                
-                if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
-                    alert('Định dạng ngày hết hạn không hợp lệ (MM/YY).');
-                    placeOrderBtn.disabled = false;
-                    placeOrderBtn.textContent = 'Đặt hàng';
-                    return;
-                }
-            }
-            
-            // Everything is valid, submit the form
-            checkoutForm.submit();
-        });
-    });
-</script>
+    <!-- Địa chỉ giao hàng -->
+    <div class="checkout-details">
+      <div class="checkout-section">
+        <h2>Địa chỉ giao hàng</h2>
+        <form action="/orders/checkout" method="POST">
+          <div class="form-group">
+            <label for="name">Họ và tên</label>
+            <input type="text" id="name" name="name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="address">Địa chỉ</label>
+            <input type="text" id="address" name="address" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="phone">Số điện thoại</label>
+            <input type="text" id="phone" name="phone" class="form-control" required>
+          </div>
+      </div>
+
+      <!-- Phương thức thanh toán -->
+      <div class="checkout-section">
+        <h2>Phương thức thanh toán</h2>
+        <div class="form-group">
+          <label>
+            <input type="radio" name="paymentMethod" value="cod" required> Thanh toán khi nhận hàng (COD)
+          </label>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="radio" name="paymentMethod" value="online" required> Thanh toán trực tuyến
+          </label>
+        </div>
+      </div>
+
+      <!-- Nút xác nhận -->
+      <div class="checkout-actions">
+        <button type="submit" class="btn btn-primary checkout-button">Xác nhận thanh toán</button>
+        <a href="/cart" class="btn btn-secondary back-to-cart">Quay lại giỏ hàng</a>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+<%- include('../partials/footer') %>
