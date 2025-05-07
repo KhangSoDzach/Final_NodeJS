@@ -1,9 +1,9 @@
-exports.isAuth = (req, res, next) => {
-    if (!req.session.isAuthenticated && !req.isAuthenticated()) {
-        req.flash('error', 'Vui lòng đăng nhập.');
-        return res.redirect('/auth/login');
-    }
-    next();
+module.exports.isAuth = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  req.flash('error', 'Bạn cần đăng nhập để tiếp tục.');
+  res.redirect('/auth/login');
 };
 
 exports.isAdmin = (req, res, next) => {

@@ -1,0 +1,16 @@
+<%- include('../partials/header') %>
+<div class="container">
+  <h1>Theo dõi đơn hàng</h1>
+  <p><strong>Mã đơn hàng:</strong> <%= order._id %></p>
+  <p><strong>Trạng thái hiện tại:</strong> <%= order.status %></p>
+  <h2>Lịch sử trạng thái</h2>
+  <ul>
+    <% order.statusHistory.forEach(status => { %>
+      <li>
+        <strong><%= status.status %></strong> - <%= new Date(status.date).toLocaleString() %>
+        <% if (status.note) { %> (<%= status.note %>) <% } %>
+      </li>
+    <% }) %>
+  </ul>
+</div>
+<%- include('../partials/footer') %>

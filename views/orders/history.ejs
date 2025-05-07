@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+<div class="container">
+  <h1>Lịch sử đơn hàng</h1>
+  <% if (orders.length > 0) { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Mã đơn hàng</th>
+          <th>Ngày đặt</th>
+          <th>Tổng tiền</th>
+          <th>Trạng thái</th>
+          <th>Chi tiết</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% orders.forEach(order => { %>
+          <tr>
+            <td><%= order._id %></td>
+            <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
+            <td><%= order.totalAmount.toLocaleString('vi-VN') %> VND</td>
+            <td><%= order.status %></td>
+            <td><a href="/orders/track/<%= order._id %>">Xem chi tiết</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } else { %>
+    <p>Bạn chưa có đơn hàng nào.</p>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

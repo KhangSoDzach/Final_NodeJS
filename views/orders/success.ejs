@@ -1,0 +1,8 @@
+<%- include('../partials/header') %>
+<div class="container">
+  <h1>Đặt hàng thành công!</h1>
+  <p>Cảm ơn bạn đã đặt hàng. Mã đơn hàng của bạn là <strong><%= orderId %></strong>.</p>
+  <p>Bạn có thể theo dõi trạng thái đơn hàng <a href="/orders/track/<%= orderId %>">tại đây</a>.</p>
+  <a href="/orders/history" class="btn btn-primary">Xem lịch sử đơn hàng</a>
+</div>
+<%- include('../partials/footer') %>

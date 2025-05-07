@@ -1,219 +1,46 @@
-<div class="order-detail-page">
-    <div class="page-header">
-        <h1>Chi tiết đơn hàng #<%= order.orderNumber %></h1>
-    </div>
-    
-    <div class="order-container">
-        <div class="order-status">
-            <div class="status-badge <%= order.status %>">
-                <% let statusText; %>
-                <% switch(order.status) { 
-                    case 'processing': statusText = 'Đang xử lý'; break;
-                    case 'confirmed': statusText = 'Đã xác nhận'; break;
-                    case 'shipped': statusText = 'Đang giao hàng'; break;
-                    case 'delivered': statusText = 'Đã giao hàng'; break;
-                    case 'cancelled': statusText = 'Đã hủy'; break;
-                    default: statusText = order.status;
-                } %>
-                <%= statusText %>
-            </div>
-            <div class="order-date">
-                Ngày đặt: <%= new Date(order.createdAt).toLocaleDateString('vi-VN') %>
-            </div>
-        </div>
-        
-        <div class="order-grid">
-            <div class="order-info">
-                <div class="info-card">
-                    <h3>Thông tin giao hàng</h3>
-                    <p><strong>Người nhận:</strong> <%= order.shippingAddress.name %></p>
-                    <p><strong>Địa chỉ:</strong> <%= order.shippingAddress.street %>, <%= order.shippingAddress.district %>, <%= order.shippingAddress.province %></p>
-                    <p><strong>Điện thoại:</strong> <%= order.shippingAddress.phone %></p>
-                </div>
-                
-                <div class="info-card">
-                    <h3>Phương thức thanh toán</h3>
-                    <p>
-                        <% let paymentText; %>
-                        <% switch(order.paymentMethod) { 
-                            case 'cod': paymentText = 'Thanh toán khi nhận hàng (COD)'; break;
-                            case 'bank_transfer': paymentText = 'Chuyển khoản ngân hàng'; break;
-                            case 'credit_card': paymentText = 'Thẻ tín dụng / Thẻ ghi nợ'; break;
-                            default: paymentText = order.paymentMethod;
-                        } %>
-                        <%= paymentText %>
-                    </p>
-                    <p><strong>Trạng thái:</strong> 
-                        <span class="payment-status <%= order.paymentStatus %>">
-                            <%= order.paymentStatus === 'pending' ? 'Chưa thanh toán' : 
-                                order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Thất bại' %>
-                        </span>
-                    </p>
-                    
-                    <% if (order.paymentDetails) { %>
-                        <% if (order.paymentMethod === 'credit_card' && order.paymentDetails.cardLast4) { %>
-                            <div class="payment-details">
-                                <p><strong>Loại thẻ:</strong> <%= order.paymentDetails.cardType %></p>
-                                <p><strong>Số thẻ:</strong> **** **** **** <%= order.paymentDetails.cardLast4 %></p>
-                                <p><strong>Chủ thẻ:</strong> <%= order.paymentDetails.cardHolder %></p>
-                            </div>
-                        <% } else if (order.paymentMethod === 'bank_transfer' && order.paymentDetails.referenceCode) { %>
-                            <div class="payment-details">
-                                <p><strong>Ngân hàng:</strong> <%= order.paymentDetails.bankName %></p>
-                                <p><strong>Số tham chiếu:</strong> <%= order.paymentDetails.referenceCode %></p>
-                                <p><strong>Vui lòng chuyển khoản đến:</strong></p>
-                                <p>Chủ tài khoản: <%= order.paymentDetails.accountName %></p>
-                                <p>Số tài khoản: <%= order.paymentDetails.accountNumber %></p>
-                                <p>Nội dung CK: Thanh toán đơn hàng #<%= order.orderNumber %></p>
-                            </div>
-                        <% } %>
-                    <% } %>
-                </div>
-                
-                <% if (order.note) { %>
-                <div class="info-card">
-                    <h3>Ghi chú</h3>
-                    <p><%= order.note %></p>
-                </div>
-                <% } %>
-                
-                <div class="info-card">
-                    <h3>Lịch sử trạng thái</h3>
-                    <ul class="status-history">
-                        <% order.statusHistory.slice().reverse().forEach(status => { %>
-                            <li>
-                                <span class="status-badge <%= status.status %>">
-                                    <% let statusHistoryText; %>
-                                    <% switch(status.status) { 
-                                        case 'processing': statusHistoryText = 'Đang xử lý'; break;
-                                        case 'confirmed': statusHistoryText = 'Đã xác nhận'; break;
-                                        case 'shipped': statusHistoryText = 'Đang giao hàng'; break;
-                                        case 'delivered': statusHistoryText = 'Đã giao hàng'; break;
-                                        case 'cancelled': statusHistoryText = 'Đã hủy'; break;
-                                        default: statusHistoryText = status.status;
-                                    } %>
-                                    <%= statusHistoryText %>
-                                </span>
-                                <div class="status-info">
-                                    <span class="status-date"><%= new Date(status.date).toLocaleString('vi-VN') %></span>
-                                    <% if (status.note) { %>
-                                        <span class="status-note"><%= status.note %></span>
-                                    <% } %>
-                                </div>
-                            </li>
-                        <% }) %>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="order-summary">
-                <div class="summary-card">
-                    <h3>Tóm tắt đơn hàng</h3>
-                    
-                    <div class="summary-items">
-                        <% order.items.forEach(item => { %>
-                            <div class="summary-item">
-                                <div class="item-info">
-                                    <% if (item.product && item.product.images && item.product.images.length > 0) { %>
-                                        <img src="/uploads/products/<%= item.product.images[0] %>" alt="<%= item.name %>">
-                                    <% } else { %>
-                                        <img src="/images/no-image.png" alt="No Image Available">
-                                    <% } %>
-                                    <div>
-                                        <h4>
-                                            <% if (item.product && item.product.slug) { %>
-                                                <a href="/products/<%= item.product.slug %>"><%= item.name %></a>
-                                            <% } else { %>
-                                                <%= item.name %>
-                                            <% } %>
-                                        </h4>
-                                        <% if (item.variant) { %>
-                                            <p class="item-variant"><%= item.variant.name %>: <%= item.variant.value %></p>
-                                        <% } %>
-                                        <p class="item-price"><%= item.price.toLocaleString('vi-VN') %> ₫ x <%= item.quantity %></p>
-                                    </div>
-                                </div>
-                                <div class="item-subtotal">
-                                    <%= (item.price * item.quantity).toLocaleString('vi-VN') %> ₫
-                                </div>
-                            </div>
-                        <% }) %>
-                    </div>
-                    
-                    <div class="summary-totals">
-                        <div class="summary-row">
-                            <span>Tạm tính</span>
-                            <span>
-                                <% const subtotal = order.items.reduce((total, item) => total + (item.price * item.quantity), 0); %>
-                                <%= subtotal.toLocaleString('vi-VN') %> ₫
-                            </span>
-                        </div>
-                        
-                        <% if (order.discount > 0) { %>
-                            <div class="summary-row discount">
-                                <span>Giảm giá (<%= order.couponCode %> - <%= order.discount %>%)</span>
-                                <span>-<%= Math.round(subtotal * order.discount / 100).toLocaleString('vi-VN') %> ₫</span>
-                            </div>
-                        <% } %>
-                        
-                        <% if (order.loyaltyPointsUsed > 0) { %>
-                            <div class="summary-row discount">
-                                <span>Điểm tích lũy (<%= order.loyaltyPointsUsed %> điểm)</span>
-                                <span>-<%= (order.loyaltyPointsUsed * 1000).toLocaleString('vi-VN') %> ₫</span>
-                            </div>
-                        <% } %>
-                        
-                        <div class="summary-row total">
-                            <span>Tổng cộng</span>
-                            <span><%= order.totalAmount.toLocaleString('vi-VN') %> ₫</span>
-                        </div>
-                    </div>
-                    
-                    <% if (order.loyaltyPointsEarned > 0) { %>
-                        <div class="loyalty-points-earned">
-                            <i class="fas fa-award"></i> Bạn đã nhận <%= order.loyaltyPointsEarned %> điểm tích lũy từ đơn hàng này
-                        </div>
-                    <% } %>
+<%- include('../partials/header') %>
+<div class="container order-detail-page">
+  <h1>Chi tiết đơn hàng</h1>
+  <div class="order-container">
+    <h2>Thông tin đơn hàng</h2>
+    <p><strong>Mã đơn hàng:</strong> <%= order._id %></p>
+    <p><strong>Ngày đặt hàng:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
+    <p><strong>Tổng tiền:</strong> <%= order.totalAmount.toLocaleString('vi-VN') %> VND</p>
+    <p><strong>Trạng thái:</strong> <span class="status-badge <%= order.status %>"><%= order.status %></span></p>
 
-                    <% if (order.paymentStatus === 'pending' && order.status !== 'cancelled') { %>
-                        <div class="payment-actions">
-                            <a href="/orders/pay/<%= order._id %>" class="btn btn-primary btn-block">Thanh toán ngay</a>
-                        </div>
-                    <% } %>
-                </div>
-            </div>
-        </div>
-    </div>
+    <h3>Sản phẩm</h3>
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>Sản phẩm</th>
+          <th>Số lượng</th>
+          <th>Giá</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% order.items.forEach(item => { %>
+          <tr>
+            <td>
+              <strong><%= item.product.name %></strong>
+            </td>
+            <td><%= item.quantity %></td>
+            <td><%= item.price.toLocaleString('vi-VN') %> VND</td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <h3>Lịch sử trạng thái</h3>
+    <ul class="status-history">
+      <% order.statusHistory.reverse().forEach(status => { %>
+        <li>
+          <strong><%= status.status %></strong> - <%= new Date(status.date).toLocaleString() %>
+          <% if (status.note) { %>
+            <p><em>Ghi chú:</em> <%= status.note %></p>
+          <% } %>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
 </div>
-
-<style>
-.payment-status {
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 0.85em;
-    font-weight: 500;
-    display: inline-block;
-}
-.payment-status.pending {
-    background-color: #fff3cd;
-    color: #856404;
-}
-.payment-status.paid {
-    background-color: #d4edda;
-    color: #155724;
-}
-.payment-status.failed {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-.payment-details {
-    margin-top: 10px;
-    padding: 10px;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    font-size: 0.9em;
-}
-.payment-actions {
-    margin-top: 20px;
-}
-</style>
+<%- include('../partials/footer') %>
