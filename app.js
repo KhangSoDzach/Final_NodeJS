@@ -61,7 +61,7 @@ global.broadcastReview = (productSlug, review) => {
   });
 };
 
-// Database connection
+// Database connection - Sửa đường dẫn kết nối
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/sourcecomputer')
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('MongoDB connection error:', err));

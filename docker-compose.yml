@@ -1,61 +1,168 @@
+version: '3.8'
+
 services:
-  # Frontend service
+  # Nginx Reverse Proxy for load balancing
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./uploads:/usr/share/nginx/html/uploads
+    depends_on:
+      - frontend
+      - product-service
+      - auth-service
+    networks:
+      - app-network
+    restart: always
+
+  # Frontend - Web UI
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=development
-      - SESSION_SECRET=1366b2f926d0eee726d7e597cf2a2f060df34db388c0f25682143b8f6bb9dbe2
+      - PORT=3000
       - MONGODB_URI=mongodb://mongo:27017/sourcecomputer
+      - SESSION_SECRET=your_session_secret
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      # Thêm các biến môi trường cho Google OAuth
-      - GOOGLE_CLIENT_ID=16788479489-8sehea2kcf4bq6j2bf6c5vak4p0tuhnt.apps.googleusercontent.com
-      - GOOGLE_CLIENT_SECRET=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
+      - AUTH_SERVICE_URL=http://auth-service:4000
+      - PRODUCT_SERVICE_URL=http://product-service:4001
+      - SERVICE_REGISTRY_URL=http://service-registry:4100
     volumes:
-      - ./:/usr/src/app
+      - ./public:/usr/src/app/public
+      - ./views:/usr/src/app/views
+      - ./uploads:/usr/src/app/uploads
+      - ./models:/usr/src/app/models
+      - ./routes:/usr/src/app/routes
+      - ./config:/usr/src/app/config
+      - ./controllers:/usr/src/app/controllers
+      - ./middleware:/usr/src/app/middleware
+      - ./utils:/usr/src/app/utils
+      - ./.env:/usr/src/app/.env
+      - ./app.js:/usr/src/app/app.js
+      - /usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+      - redis
+      - auth-service
+      - product-service
+    networks:
+      - app-network
+    restart: always
+    deploy:
+      replicas: 1
+
+  # Auth Service - Manages users, auth, and sessions
+  auth-service:
+    build:
+      context: ./docker/auth-service
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - MONGODB_URI=mongodb://mongo:27017/sourcecomputer
+      - JWT_SECRET=your_jwt_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SERVICE_REGISTRY_URL=http://service-registry:4100
+      - SERVICE_NAME=auth-service
+      - SERVICE_VERSION=1.0.0
+    volumes:
+      - ./models/user.js:/usr/src/app/models/user.js
+      - ./controllers/auth.js:/usr/src/app/controllers/auth.js
+      - ./routes/auth.js:/usr/src/app/routes/auth.js
       - /usr/src/app/node_modules
     depends_on:
       - mongo
       - redis
-    restart: always
+      - service-registry
     networks:
       - app-network
-
-  # MongoDB database
-  mongo:
-    image: mongo:latest
     restart: always
-    ports:
-      - "27017:27017"
+    deploy:
+      replicas: 1
+
+  # Product Service - Manages products and categories
+  product-service:
+    build:
+      context: ./docker/product-service
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - PORT=4001
+      - MONGODB_URI=mongodb://mongo:27017/sourcecomputer
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SERVICE_REGISTRY_URL=http://service-registry:4100
+      - SERVICE_NAME=product-service
+      - SERVICE_VERSION=1.0.0
     volumes:
-      - mongodb_data:/data/db
-      # Thêm volume cho scripts khởi tạo nếu cần
+      - ./controllers/products.js:/usr/src/app/controllers/products.js
+      - ./models/product.js:/usr/src/app/models/product.js
+      - ./routes/products.js:/usr/src/app/routes/products.js
+      - ./uploads:/usr/src/app/uploads
+      - /usr/src/app/node_modules
+    depends_on:
+      - mongo
+      - redis
+      - service-registry
+    networks:
+      - app-network
+    restart: always
+    deploy:
+      replicas: 1
+
+  # Service Registry - Manages service discovery
+  service-registry:
+    build:
+      context: ./docker/service-registry
+      dockerfile: Dockerfile
+    ports:
+      - "4100:4100"
+    environment:
+      - NODE_ENV=development
+      - PORT=4100
+    networks:
+      - app-network
+    restart: always
+    depends_on:
+      - redis
+
+  # Database Service
+  mongo:
+    image: mongo:6.0
+    volumes:
+      - mongo-data:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d
+    ports:
+      - "27018:27017"
+    restart: always
+    environment:
+      - MONGO_INITDB_DATABASE=sourcecomputer
     networks:
       - app-network
 
-  # Redis for caching and session management
+  # Redis for caching and pub/sub messaging
   redis:
-    image: redis:latest
+    image: redis:7.0-alpine
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - redis-data:/data
     networks:
       - app-network
+    restart: always
 
 networks:
   app-network:
     driver: bridge
 
 volumes:
-  mongodb_data:
-    name: sourcecomputer_mongodb_data
-    driver: local
-  redis_data:
-    name: sourcecomputer_redis_data
-    driver: local
+  mongo-data:
+  redis-data:

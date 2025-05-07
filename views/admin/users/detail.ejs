@@ -4,9 +4,9 @@
     <div class="admin-header">
         <h1>Thông tin chi tiết người dùng</h1>
         <div class="admin-header-actions">
-            <a href="/admin/users" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Quay lại</a>
+            <a href="/admin/user" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Quay lại</a>
             
-            <% if (!users.isBanned) { %>
+            <% if (!user.isBanned) { %>
                 <button class="btn btn-danger" id="banUserBtn">
                     <i class="fas fa-ban"></i> Khóa tài khoản
                 </button>
@@ -28,23 +28,23 @@
                     <table class="detail-table">
                         <tr>
                             <th>ID:</th>
-                            <td><%= users._id %></td>
+                            <td><%= user._id %></td>
                         </tr>
                         <tr>
                             <th>Tên:</th>
-                            <td><%= users.name %></td>
+                            <td><%= user.name %></td>
                         </tr>
                         <tr>
                             <th>Email:</th>
-                            <td><%= users.email %></td>
+                            <td><%= user.email %></td>
                         </tr>
                         <tr>
                             <th>Vai trò:</th>
                             <td>
                                 <div class="role-selector">
                                     <select id="roleSelect">
-                                        <option value="customer" <%= users.role === 'customer' ? 'selected' : '' %>>Khách hàng</option>
-                                        <option value="admin" <%= users.role === 'admin' ? 'selected' : '' %>>Quản trị viên</option>
+                                        <option value="customer" <%= user.role === 'customer' ? 'selected' : '' %>>Khách hàng</option>
+                                        <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Quản trị viên</option>
                                     </select>
                                     <button id="updateRoleBtn" class="btn btn-sm btn-primary">Cập nhật</button>
                                 </div>
@@ -53,22 +53,22 @@
                         <tr>
                             <th>Trạng thái:</th>
                             <td>
-                                <span class="status-badge <%= users.isBanned ? 'banned' : 'active' %>">
-                                    <%= users.isBanned ? 'Đã khóa' : 'Đang hoạt động' %>
+                                <span class="status-badge <%= user.isBanned ? 'banned' : 'active' %>">
+                                    <%= user.isBanned ? 'Đã khóa' : 'Đang hoạt động' %>
                                 </span>
                             </td>
                         </tr>
                         <tr>
                             <th>Ngày đăng ký:</th>
-                            <td><%= new Date(users.createdAt).toLocaleString('vi-VN') %></td>
+                            <td><%= new Date(user.createdAt).toLocaleString('vi-VN') %></td>
                         </tr>
                         <tr>
                             <th>Đăng nhập qua Google:</th>
-                            <td><%= users.googleId ? 'Có' : 'Không' %></td>
+                            <td><%= user.googleId ? 'Có' : 'Không' %></td>
                         </tr>
                         <tr>
                             <th>Điểm tích lũy:</th>
-                            <td><%= users.loyaltyPoints || 0 %> điểm</td>
+                            <td><%= user.loyaltyPoints || 0 %> điểm</td>
                         </tr>
                     </table>
                 </div>
@@ -77,12 +77,12 @@
             <!-- Địa chỉ của người dùng -->
             <div class="admin-card mt-4">
                 <div class="card-header">
-                    <h3>Địa chỉ (<%= users.addresses ? users.addresses.length : 0 %>)</h3>
+                    <h3>Địa chỉ (<%= user.addresses ? user.addresses.length : 0 %>)</h3>
                 </div>
                 <div class="card-body">
-                    <% if (users.addresses && users.addresses.length > 0) { %>
+                    <% if (user.addresses && user.addresses.length > 0) { %>
                         <div class="address-list">
-                            <% users.addresses.forEach((address, index) => { %>
+                            <% user.addresses.forEach((address, index) => { %>
                                 <div class="address-item <%= address.default ? 'default' : '' %>">
                                     <% if (address.default) { %>
                                         <span class="default-badge">Mặc định</span>
@@ -156,7 +156,7 @@
                         </table>
                         
                         <div class="view-all">
-                            <a href="/admin/orders?users=<%= users._id %>">Xem tất cả đơn hàng của người dùng này</a>
+                            <a href="/admin/orders?user=<%= user._id %>">Xem tất cả đơn hàng của người dùng này</a>
                         </div>
                     <% } else { %>
                         <p class="no-data">Người dùng chưa có đơn hàng nào.</p>
@@ -169,13 +169,13 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const userId = '<%= users._id %>';
+    const userId = '<%= user._id %>';
     
     // Cập nhật vai trò
     document.getElementById('updateRoleBtn').addEventListener('click', function() {
         const role = document.getElementById('roleSelect').value;
         
-        fetch(`/admin/users/${userId}/role`, {
+        fetch(`/admin/user/${userId}/role`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateUserStatus(status) {
-        fetch(`/admin/users/${userId}/status`, {
+        fetch(`/admin/user/${userId}/status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
