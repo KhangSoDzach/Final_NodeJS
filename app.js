@@ -42,23 +42,11 @@ const wss = new WebSocket.Server({ server });
 // WebSocket handlers
 wss.on('connection', function connection(ws, req) {
   console.log('WebSocket client connected');
-  
-  // Example of handling product review updates via WebSocket
   if (req.url.startsWith('/ws/reviews/')) {
     const productSlug = decodeURIComponent(req.url.split('/ws/reviews/')[1]);
     console.log(`Client subscribed to reviews for product: ${productSlug}`);
-    
-    // Store the product slug in the WebSocket object for later use
     ws.productSlug = productSlug;
   }
-  
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
-  });
-  
-  ws.on('close', function() {
-    console.log('WebSocket client disconnected');
-  });
 });
 
 // Function to broadcast review updates to subscribers
@@ -142,37 +130,15 @@ app.use((req, res, next) => {
 app.use(async (req, res, next) => {
   try {
     const Cart = require('./models/cart');
-    let cart;
-    
-    if (req.user) {
-      // Logged-in user
-      cart = await Cart.findOne({ user: req.user._id });
-      
-      // Transfer cart from session to user if exists
-      if (!cart && req.session.cartId) {
-        cart = await Cart.findOne({ sessionId: req.session.cartId });
-        if (cart) {
-          cart.user = req.user._id;
-          cart.sessionId = null;
-          await cart.save();
-          delete req.session.cartId;
-        }
-      }
-    } else if (req.session.cartId) {
-      // Guest user with cart
-      cart = await Cart.findOne({ sessionId: req.session.cartId });
+    let cart = await Cart.findOne({ user: req.user._id });
+    if (!cart) {
+      cart = new Cart({ user: req.user._id, items: [] });
+      await cart.save();
     }
-    
-    if (cart) {
-      await cart.populate('items.product');
-      res.locals.cartCount = cart.items.reduce((total, item) => total + item.quantity, 0);
-    } else {
-      res.locals.cartCount = 0;
-    }
-    
+    res.locals.cart = cart;
     next();
   } catch (err) {
-    console.error('Cart middleware error:', err);
+    console.error('Lỗi middleware giỏ hàng:', err);
     next();
   }
 });
@@ -182,7 +148,7 @@ const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const cartRoutes = require('./routes/cart');
-const orderRoutes = require('./routes/orders');
+const orderRoutes = require('./routes/order');
 const userRoutes = require('./routes/user');
 const adminRoutes = require('./routes/admin');
 const adminProductRoutes = require('./routes/admin/products');
@@ -207,7 +173,7 @@ app.use((err, req, res, next) => {
   console.error(err);
   res.status(err.status || 500).render('error', {
     title: 'Error',
-    error: process.env.NODE_ENV === 'development' ? err.message : 'An error occurred'
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Đã xảy ra lỗi trong hệ thống.'
   });
 });
 
