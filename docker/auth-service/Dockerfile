@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 COPY package.json .
 
-RUN npm install express mongoose bcryptjs jsonwebtoken passport passport-local passport-google-oauth20 redis axios
+RUN npm install express mongoose bcryptjs jsonwebtoken passport passport-local passport-google-oauth20 redis axios nodemailer
 
 COPY . .
 

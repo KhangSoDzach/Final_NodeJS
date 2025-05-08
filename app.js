@@ -129,13 +129,25 @@ app.use((req, res, next) => {
 // Cart middleware
 app.use(async (req, res, next) => {
   try {
-    const Cart = require('./models/cart');
-    let cart = await Cart.findOne({ user: req.user._id });
-    if (!cart) {
-      cart = new Cart({ user: req.user._id, items: [] });
-      await cart.save();
+    // Kiểm tra nếu user đã đăng nhập
+    if (req.user) {
+      const Cart = require('./models/cart');
+      let cart = await Cart.findOne({ user: req.user._id });
+      if (!cart) {
+        cart = new Cart({ user: req.user._id, items: [] });
+        await cart.save();
+      }
+      res.locals.cart = cart;
+    } else {
+      // Xử lý cart cho khách không đăng nhập (nếu cần)
+      if (req.session.cartId) {
+        const Cart = require('./models/cart');
+        let cart = await Cart.findOne({ sessionId: req.session.cartId });
+        if (cart) {
+          res.locals.cart = cart;
+        }
+      }
     }
-    res.locals.cart = cart;
     next();
   } catch (err) {
     console.error('Lỗi middleware giỏ hàng:', err);

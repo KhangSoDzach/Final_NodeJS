@@ -15,8 +15,17 @@ RUN npm install
 # Sao chép mã nguồn
 COPY . .
 
+# Tạo thư mục uploads nếu chưa tồn tại
+RUN mkdir -p uploads/products
+
+# Sao chép hình ảnh từ thư mục public/image vào uploads/products
+RUN if [ -d "public/image/products" ]; then cp -r public/image/products/* uploads/products/; fi
+RUN if [ -d "public/image/laptops" ]; then cp -r public/image/laptops/* uploads/products/; fi
+RUN if [ -d "public/image/components" ]; then cp -r public/image/components/* uploads/products/; fi
+RUN if [ -d "public/image/accessories" ]; then cp -r public/image/accessories/* uploads/products/; fi
+
 # Mở cổng
 EXPOSE 3000
 
-# Khởi động ứng dụng với seed data
-CMD ["sh", "-c", "npm run seed && nodemon --legacy-watch --ignore node_modules/ --watch . --ext js,ejs,css app.js"]
+# Khởi động ứng dụng
+CMD ["node", "app.js"]
