@@ -61,11 +61,8 @@ global.broadcastReview = (productSlug, review) => {
   });
 };
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+// Database connection - Sửa đường dẫn kết nối
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/sourcecomputer')
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('MongoDB connection error:', err));
 
@@ -90,10 +87,10 @@ app.use(compression());
 
 // Session configuration
 app.use(session({
-  secret: 'e2f3c4d5e6f7a8b9c0d1e2f3c4d5e6f7a8b9c0d1e2f3c4d5e6f7a8b9c0d1e2f3',  // Thay đổi giá trị này
+  secret: process.env.SESSION_SECRET || 'e2f3c4d5e6f7a8b9c0d1e2f3c4d5e6f7a8b9c0d1e2f3',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: 'mongodb://localhost:27017/sourcecomputer' }),
+  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:27017/sourcecomputer' }),
   cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 ngày
 }));
 
@@ -107,28 +104,50 @@ require('./config/passport')(passport);
 // Flash messages
 app.use(flash());
 
-// Đảm bảo tất cả middleware có next()
+// Flash and User Middleware - setting up global variables for templates
 app.use((req, res, next) => {
-  res.locals.isAuthenticated = req.session.isAuthenticated;
-  res.locals.isAdmin = req.session.isAdmin || (req.user && req.user.role === 'admin');
-  res.locals.user = req.user || (req.session.user || null);
-  next(); // Quan trọng: Cho phép request tiếp tục
+  // User authentication data
+  res.locals.isAuthenticated = req.isAuthenticated();
+  res.locals.isAdmin = req.user && req.user.role === 'admin';
+  res.locals.user = req.user || null;
+  
+  // Flash messages
+  res.locals.success = req.flash('success');
+  res.locals.error = req.flash('error');
+  res.locals.warning = req.flash('warning');
+  
+  // For debugging
+  console.log('Session ID:', req.sessionID);
+  console.log('Flash messages:', { 
+    success: res.locals.success,
+    error: res.locals.error
+  });
+  
+  next();
 });
-
-// Thêm vào sau khai báo flash middleware
-const { setLocals } = require('./middleware/auth');
-app.use(setLocals);
 
 // Cart middleware
 app.use(async (req, res, next) => {
   try {
-    const Cart = require('./models/cart');
-    let cart = await Cart.findOne({ user: req.user._id });
-    if (!cart) {
-      cart = new Cart({ user: req.user._id, items: [] });
-      await cart.save();
+    // Kiểm tra nếu user đã đăng nhập
+    if (req.user) {
+      const Cart = require('./models/cart');
+      let cart = await Cart.findOne({ user: req.user._id });
+      if (!cart) {
+        cart = new Cart({ user: req.user._id, items: [] });
+        await cart.save();
+      }
+      res.locals.cart = cart;
+    } else {
+      // Xử lý cart cho khách không đăng nhập (nếu cần)
+      if (req.session.cartId) {
+        const Cart = require('./models/cart');
+        let cart = await Cart.findOne({ sessionId: req.session.cartId });
+        if (cart) {
+          res.locals.cart = cart;
+        }
+      }
     }
-    res.locals.cart = cart;
     next();
   } catch (err) {
     console.error('Lỗi middleware giỏ hàng:', err);

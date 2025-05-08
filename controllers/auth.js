@@ -139,13 +139,25 @@ exports.postRegister = async (req, res) => {
 };
 
 // Google OAuth controllers
-exports.getGoogleAuth = passport.authenticate('google', {
-  scope: ['profile', 'email']
-});
+exports.getGoogleAuth = (req, res, next) => {
+  // Lưu lại đường dẫn trả về nếu có
+  if (req.query.returnTo) {
+    req.session.returnTo = req.query.returnTo;
+  }
+  
+  console.log('Starting Google authentication, session ID:', req.sessionID);
+  
+  passport.authenticate('google', {
+    scope: ['profile', 'email']
+  })(req, res, next);
+};
 
 exports.getGoogleCallback = (req, res, next) => {
   const returnTo = req.session.returnTo || '/';
   delete req.session.returnTo;
+  
+  console.log('Google callback received, session ID:', req.sessionID);
+  console.log('Callback URL:', req.originalUrl);
   
   passport.authenticate('google', {
     successRedirect: returnTo,
@@ -185,16 +197,23 @@ exports.postForgotPassword = async (req, res) => {
     await user.save();
     console.log(`Reset token generated for user: ${user._id}`);
     
-    // Send reset email
+    // Send reset email with improved URL and error handling
     const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password/${token}`;
-    const emailSent = await mailer.sendPasswordResetEmail(user.email, resetUrl);
+    console.log(`Reset URL generated: ${resetUrl}`);
     
-    if (emailSent) {
-      console.log(`Password reset email sent successfully to: ${email}`);
-      req.flash('success', 'Email khôi phục mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn.');
-    } else {
-      console.log(`Failed to send password reset email to: ${email}`);
-      req.flash('error', 'Không thể gửi email khôi phục mật khẩu. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.');
+    try {
+      const emailSent = await mailer.sendPasswordResetEmail(user.email, resetUrl);
+      
+      if (emailSent) {
+        console.log(`Password reset email sent successfully to: ${email}`);
+        req.flash('success', 'Email khôi phục mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn (và thư mục spam nếu cần).');
+      } else {
+        console.log(`Failed to send password reset email to: ${email}`);
+        req.flash('error', 'Không thể gửi email khôi phục mật khẩu. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.');
+      }
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+      req.flash('error', `Lỗi gửi email: ${emailError.message}. Vui lòng liên hệ quản trị viên.`);
     }
     
     res.redirect('/auth/forgot-password');

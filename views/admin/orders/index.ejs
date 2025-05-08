@@ -51,7 +51,7 @@
                         <% orders.forEach(order => { %>
                             <tr>
                                 <td><%= order.orderNumber %></td>
-                                <td><%= order.user ? order.user.name : 'Khách vãng lai' %></td>
+                                <td><%= order.users ? order.users.name : 'Khách vãng lai' %></td>
                                 <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
                                 <td><%= order.totalAmount.toLocaleString('vi-VN') %> ₫</td>
                                 <td>

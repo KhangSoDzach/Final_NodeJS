@@ -39,30 +39,30 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <% users.forEach(user => { %>
+                    <% users.forEach(users => { %>
                         <tr>
-                            <td><%= user._id %></td>
-                            <td><%= user.name %></td>
-                            <td><%= user.email %></td>
+                            <td><%= users._id %></td>
+                            <td><%= users.name %></td>
+                            <td><%= users.email %></td>
                             <td>
-                                <span class="role-badge <%= user.role %>">
-                                    <%= user.role === 'admin' ? 'Quản trị viên' : 'Khách hàng' %>
+                                <span class="role-badge <%= users.role %>">
+                                    <%= users.role === 'admin' ? 'Quản trị viên' : 'Khách hàng' %>
                                 </span>
                             </td>
-                            <td><%= new Date(user.createdAt).toLocaleDateString('vi-VN') %></td>
+                            <td><%= new Date(users.createdAt).toLocaleDateString('vi-VN') %></td>
                             <td>
-                                <span class="status-badge <%= user.isBanned ? 'banned' : 'active' %>">
-                                    <%= user.isBanned ? 'Đã khóa' : 'Đang hoạt động' %>
+                                <span class="status-badge <%= users.isBanned ? 'banned' : 'active' %>">
+                                    <%= users.isBanned ? 'Đã khóa' : 'Đang hoạt động' %>
                                 </span>
                             </td>
                             <td class="actions">
                                 <a href="/admin/users/<%= user._id %>" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <button class="btn btn-sm btn-outline-<%= user.isBanned ? 'success' : 'danger' %> toggle-user-status" 
+                                <button class="btn btn-sm btn-outline-<%= users.isBanned ? 'success' : 'danger' %> toggle-user-status" 
                                     data-user-id="<%= user._id %>" 
-                                    data-current-status="<%= user.isBanned ? 'banned' : 'active' %>">
-                                    <i class="fas <%= user.isBanned ? 'fa-unlock' : 'fa-ban' %>"></i>
+                                    data-current-status="<%= users.isBanned ? 'banned' : 'active' %>">
+                                    <i class="fas <%= users.isBanned ? 'fa-unlock' : 'fa-ban' %>"></i>
                                 </button>
                             </td>
                         </tr>

@@ -1,5 +1,22 @@
 <header>
     <div class="container">
+        <div class="flash-messages">
+            <% if (success && success.length > 0) { %>
+                <div class="alert alert-success">
+                    <%= success %>
+                </div>
+            <% } %>
+            <% if (error && error.length > 0) { %>
+                <div class="alert alert-danger">
+                    <%= error %>
+                </div>
+            <% } %>
+            <% if (warning && warning.length > 0) { %>
+                <div class="alert alert-warning">
+                    <%= warning %>
+                </div>
+            <% } %>
+        </div>
         <div class="top-header">
             <div class="logo">
                 <a href="/">
@@ -28,7 +45,7 @@
                     <% } %>
                 </a>
                 
-                <% if (user) { %>
+                <% if (typeof user !== 'undefined' && user) { %>
                     <div class="dropdown">
                         <a href="#" class="dropdown-toggle">
                             <i class="fas fa-user"></i> <%= user.name %>

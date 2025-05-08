@@ -267,6 +267,12 @@ exports.postOrder = async (req, res) => {
         coupon: cart.coupon ? cart.coupon.code : 'none'
       }));
       
+      // Đảm bảo discount là một số hợp lệ
+      if (cart.coupon && (isNaN(cart.coupon.discount) || typeof cart.coupon.discount !== 'number')) {
+        console.log('Phát hiện discount không hợp lệ:', cart.coupon.discount);
+        orderData.discount = 0;
+      }
+      
       order = new Order(orderData);
       savedOrder = await order.save();
       

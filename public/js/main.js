@@ -3,6 +3,12 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Debug flash messages
+    console.log('Flash messages in DOM:', {
+        success: document.querySelectorAll('.alert-success').length > 0,
+        error: document.querySelectorAll('.alert-danger').length > 0
+    });
+    
     // Xử lý hiển thị thông báo toast
     const toasts = document.querySelectorAll('.toast');
     toasts.forEach(toast => {
@@ -19,6 +25,40 @@ document.addEventListener('DOMContentLoaded', function() {
             const toast = this.closest('.toast');
             if (toast) {
                 toast.classList.remove('show');
+            }
+        });
+    });
+    
+    // Flash message handling - Cải thiện xử lý flash messages
+    const alerts = document.querySelectorAll('.alert');
+    if (alerts.length > 0) {
+        // Cuộn lên đầu trang khi có flash message
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Thêm class để kích hoạt animation (nếu có)
+        alerts.forEach(alert => {
+            alert.classList.add('alert-visible');
+            
+            // Tự động ẩn alerts sau 5 giây
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 500);
+            }, 5000);
+        });
+    }
+    
+    // Xử lý nút đóng thông báo
+    const alertCloseButtons = document.querySelectorAll('.alert .close-alert');
+    alertCloseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const alert = this.closest('.alert');
+            if (alert) {
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 500);
             }
         });
     });

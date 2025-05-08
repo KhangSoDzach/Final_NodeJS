@@ -4,7 +4,7 @@
     <div class="admin-header">
         <h1>Thông tin chi tiết người dùng</h1>
         <div class="admin-header-actions">
-            <a href="/admin/users" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Quay lại</a>
+            <a href="/admin/user" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Quay lại</a>
             
             <% if (!user.isBanned) { %>
                 <button class="btn btn-danger" id="banUserBtn">
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('updateRoleBtn').addEventListener('click', function() {
         const role = document.getElementById('roleSelect').value;
         
-        fetch(`/admin/users/${userId}/role`, {
+        fetch(`/admin/user/${userId}/role`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function updateUserStatus(status) {
-        fetch(`/admin/users/${userId}/status`, {
+        fetch(`/admin/user/${userId}/status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
