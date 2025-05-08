@@ -1,46 +1,47 @@
 <!-- <%- include('../partials/header') %> -->
 <div class="container order-detail-page">
   <h1>Chi tiết đơn hàng</h1>
-  <div class="order-container">
-    <h2>Thông tin đơn hàng</h2>
-    <p><strong>Mã đơn hàng:</strong> <%= order._id %></p>
-    <p><strong>Ngày đặt hàng:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
-    <p><strong>Tổng tiền:</strong> <%= order.totalAmount.toLocaleString('vi-VN') %> VND</p>
-    <p><strong>Trạng thái:</strong> <span class="status-badge <%= order.status %>"><%= order.status %></span></p>
+  <p><strong>Mã đơn hàng:</strong> <%= order.orderNumber %></p>
+  <p><strong>Ngày đặt hàng:</strong> <%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></p>
+  <p><strong>Tổng tiền:</strong> <%= order.totalAmount.toLocaleString('vi-VN') %> ₫</p>
+  <p><strong>Trạng thái:</strong> <span class="status-badge <%= order.status %>"><%= order.status %></span></p>
 
-    <h3>Sản phẩm</h3>
-    <table class="summary-table">
-      <thead>
+  <h2>Sản phẩm</h2>
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th>Sản phẩm</th>
+        <th>Số lượng</th>
+        <th>Giá</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% order.items.forEach(item => { %>
         <tr>
-          <th>Sản phẩm</th>
-          <th>Số lượng</th>
-          <th>Giá</th>
+          <td><%= item.product.name %></td>
+          <td><%= item.quantity %></td>
+          <td><%= (item.price * item.quantity).toLocaleString('vi-VN') %> ₫</td>
         </tr>
-      </thead>
-      <tbody>
-        <% order.items.forEach(item => { %>
-          <tr>
-            <td>
-              <strong><%= item.product.name %></strong>
-            </td>
-            <td><%= item.quantity %></td>
-            <td><%= item.price.toLocaleString('vi-VN') %> VND</td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-
-    <h3>Lịch sử trạng thái</h3>
-    <ul class="status-history">
-      <% order.statusHistory.reverse().forEach(status => { %>
-        <li>
-          <strong><%= status.status %></strong> - <%= new Date(status.date).toLocaleString() %>
-          <% if (status.note) { %>
-            <p><em>Ghi chú:</em> <%= status.note %></p>
-          <% } %>
-        </li>
       <% }) %>
-    </ul>
-  </div>
+    </tbody>
+  </table>
+
+  <h2>Lịch sử trạng thái</h2>
+  <ul>
+    <% order.statusHistory.forEach(status => { %>
+      <li>
+        <strong><%= status.status %></strong> - <%= new Date(status.date).toLocaleString('vi-VN') %>
+        <% if (status.note) { %> (<%= status.note %>) <% } %>
+      </li>
+    <% }) %>
+  </ul>
+
+  <% if (order.status !== 'cancelled' && order.status !== 'delivered') { %>
+    <form action="/user/orders/<%= order._id %>/cancel" method="POST">
+      <button type="submit" class="btn btn-danger">Hủy đơn hàng</button>
+    </form>
+  <% } else { %>
+    <p class="text-muted">Không thể hủy đơn hàng này.</p>
+  <% } %>
 </div>
 <!-- <%- include('../partials/footer') %> -->

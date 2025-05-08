@@ -203,18 +203,18 @@ exports.getUserOrders = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
     const skip = (page - 1) * limit;
-    
+
     const total = await Order.countDocuments({ user: req.user._id });
     const orders = await Order.find({ user: req.user._id })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
-    
+
     res.render('user/orders', {
       title: 'Lịch sử đơn hàng',
       orders,
       currentPage: page,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit),
     });
   } catch (err) {
     console.error(err);
@@ -245,5 +245,62 @@ exports.getLoyaltyPoints = async (req, res) => {
     console.error(err);
     req.flash('error', 'Đã xảy ra lỗi khi tải thông tin điểm tích lũy.');
     res.redirect('/user/profile');
+  }
+};
+
+exports.getOrderDetail = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId).populate('items.product');
+
+    if (!order || order.user.toString() !== req.user._id.toString()) {
+      req.flash('error', 'Không tìm thấy đơn hàng.');
+      return res.redirect('/user/orders');
+    }
+
+    res.render('orders/detail', {
+      title: `Chi tiết đơn hàng #${order.orderNumber}`,
+      order,
+    });
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Đã xảy ra lỗi khi tải chi tiết đơn hàng.');
+    res.redirect('/user/orders');
+  }
+};
+
+exports.cancelOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    // Tìm đơn hàng theo ID và kiểm tra quyền sở hữu
+    const order = await Order.findById(orderId);
+    if (!order || order.user.toString() !== req.user._id.toString()) {
+      req.flash('error', 'Không tìm thấy đơn hàng.');
+      return res.redirect('/user/orders');
+    }
+
+    // Kiểm tra trạng thái đơn hàng (chỉ cho phép hủy nếu chưa giao hàng)
+    if (order.status === 'shipped' || order.status === 'delivered') {
+      req.flash('error', 'Không thể hủy đơn hàng đã được giao.');
+      return res.redirect('/user/orders');
+    }
+
+    // Cập nhật trạng thái đơn hàng
+    order.status = 'cancelled';
+    order.statusHistory.push({
+      status: 'cancelled',
+      date: Date.now(),
+      note: 'Đơn hàng đã được hủy bởi người dùng.',
+    });
+
+    await order.save();
+
+    req.flash('success', 'Đơn hàng đã được hủy thành công.');
+    res.redirect('/user/orders');
+  } catch (err) {
+    console.error(err);
+    req.flash('error', 'Đã xảy ra lỗi khi hủy đơn hàng.');
+    res.redirect('/user/orders');
   }
 };

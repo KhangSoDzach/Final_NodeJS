@@ -66,16 +66,11 @@ exports.createOrder = async (req, res) => {
 exports.trackOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
-
     const order = await Order.findById(orderId).populate('items.product');
     if (!order || order.user.toString() !== req.user._id.toString()) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng.' });
     }
-
-    res.render('orders/track', {
-      title: `Theo dõi đơn hàng #${order._id}`,
-      order
-    });
+    res.render('orders/track', { title: `Theo dõi đơn hàng #${order._id}`, order });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi theo dõi đơn hàng.' });
