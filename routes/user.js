@@ -34,6 +34,10 @@ router.post('/change-password', isAuth, userController.postChangePassword);
 
 // Order history
 router.get('/orders', isAuth, userController.getUserOrders);
+router.get('/orders/:orderId', isAuth, userController.getOrderDetail);
+
+// Route để hủy đơn hàng
+router.post('/orders/:orderId/cancel', isAuth, userController.cancelOrder);
 
 // Loyalty points
 router.get('/loyalty-points', isAuth, userController.getLoyaltyPoints);

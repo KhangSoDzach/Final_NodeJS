@@ -78,7 +78,16 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <a href="/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                                            <a href="/user/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                                        </td>
+                                        <td>
+                                            <% if (order.status !== 'cancelled' && order.status !== 'delivered') { %>
+                                                <form action="/user/orders/<%= order._id %>/cancel" method="POST" style="display:inline;">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Hủy đơn</button>
+                                                </form>
+                                            <% } else { %>
+                                                <span class="text-muted">Không thể hủy</span>
+                                            <% } %>
                                         </td>
                                     </tr>
                                 <% }) %>
