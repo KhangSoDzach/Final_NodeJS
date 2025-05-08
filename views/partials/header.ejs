@@ -1,5 +1,22 @@
 <header>
     <div class="container">
+        <div class="flash-messages">
+            <% if (success && success.length > 0) { %>
+                <div class="alert alert-success">
+                    <%= success %>
+                </div>
+            <% } %>
+            <% if (error && error.length > 0) { %>
+                <div class="alert alert-danger">
+                    <%= error %>
+                </div>
+            <% } %>
+            <% if (warning && warning.length > 0) { %>
+                <div class="alert alert-warning">
+                    <%= warning %>
+                </div>
+            <% } %>
+        </div>
         <div class="top-header">
             <div class="logo">
                 <a href="/">

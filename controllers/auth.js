@@ -197,16 +197,23 @@ exports.postForgotPassword = async (req, res) => {
     await user.save();
     console.log(`Reset token generated for user: ${user._id}`);
     
-    // Send reset email
+    // Send reset email with improved URL and error handling
     const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password/${token}`;
-    const emailSent = await mailer.sendPasswordResetEmail(user.email, resetUrl);
+    console.log(`Reset URL generated: ${resetUrl}`);
     
-    if (emailSent) {
-      console.log(`Password reset email sent successfully to: ${email}`);
-      req.flash('success', 'Email khôi phục mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn.');
-    } else {
-      console.log(`Failed to send password reset email to: ${email}`);
-      req.flash('error', 'Không thể gửi email khôi phục mật khẩu. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.');
+    try {
+      const emailSent = await mailer.sendPasswordResetEmail(user.email, resetUrl);
+      
+      if (emailSent) {
+        console.log(`Password reset email sent successfully to: ${email}`);
+        req.flash('success', 'Email khôi phục mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn (và thư mục spam nếu cần).');
+      } else {
+        console.log(`Failed to send password reset email to: ${email}`);
+        req.flash('error', 'Không thể gửi email khôi phục mật khẩu. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.');
+      }
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+      req.flash('error', `Lỗi gửi email: ${emailError.message}. Vui lòng liên hệ quản trị viên.`);
     }
     
     res.redirect('/auth/forgot-password');

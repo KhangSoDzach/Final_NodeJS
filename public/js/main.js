@@ -29,13 +29,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Flash message handling - make sure they don't auto-disappear
+    // Flash message handling - Cải thiện xử lý flash messages
+    const alerts = document.querySelectorAll('.alert');
+    if (alerts.length > 0) {
+        // Cuộn lên đầu trang khi có flash message
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Thêm class để kích hoạt animation (nếu có)
+        alerts.forEach(alert => {
+            alert.classList.add('alert-visible');
+            
+            // Tự động ẩn alerts sau 5 giây
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 500);
+            }, 5000);
+        });
+    }
+    
+    // Xử lý nút đóng thông báo
     const alertCloseButtons = document.querySelectorAll('.alert .close-alert');
     alertCloseButtons.forEach(button => {
         button.addEventListener('click', function() {
             const alert = this.closest('.alert');
             if (alert) {
-                alert.style.display = 'none';
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 500);
             }
         });
     });

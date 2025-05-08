@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const emailConfig = require('../config/email');
 
-// Create transporter
+// Create transporter with more reliable configuration
 let transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -10,7 +10,8 @@ let transporter = nodemailer.createTransport({
   },
   tls: {
     rejectUnauthorized: false
-  }
+  },
+  debug: true // Enable debugging to see detailed logs
 });
 
 // Test the connection when the service starts
@@ -22,11 +23,14 @@ transporter.verify(function(error, success) {
   }
 });
 
-// Send password reset email
+// Send password reset email with improved error handling
 exports.sendPasswordResetEmail = async (email, resetUrl) => {
   try {
+    console.log(`Attempting to send password reset email to: ${email}`);
+    console.log(`Using email account: ${process.env.EMAIL_USER}`);
+    
     const mailOptions = {
-      from: emailConfig.auth.user,
+      from: `"Source Computer" <${process.env.EMAIL_USER || emailConfig.auth.user}>`,
       to: email,
       subject: 'Đặt lại mật khẩu Source Computer',
       html: `
@@ -50,14 +54,15 @@ exports.sendPasswordResetEmail = async (email, resetUrl) => {
             <p>© ${new Date().getFullYear()} Source Computer. Mọi quyền được bảo lưu.</p>
           </div>
         </div>
-      `
+      `,
+      text: `Xin chào, bạn đã yêu cầu đặt lại mật khẩu cho tài khoản Source Computer. Vui lòng truy cập liên kết sau để đặt lại mật khẩu: ${resetUrl}. Liên kết này sẽ hết hạn sau 1 giờ.`
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent: %s', info.messageId);
+    console.log('Email sent successfully: %s', info.messageId);
     return true;
   } catch (error) {
-    console.error('Email send error:', error);
+    console.error('Email send error details:', error);
     return false;
   }
 };
