@@ -15,7 +15,8 @@ const orderItemSchema = new Schema({
   price: {
     type: Number,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
     required: true
-  }
+  },
+  variants: { type: Object } // Thêm dòng này để lưu các lựa chọn variant
 });
 
 const statusHistorySchema = new Schema({

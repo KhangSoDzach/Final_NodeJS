@@ -234,7 +234,8 @@ exports.postOrder = async (req, res) => {
           name: item.product.name || 'Sản phẩm',  // Provide a default name if product reference is broken
           price: Number(item.price),
           quantity: Number(item.quantity),
-          variant: item.variant ? { name: item.variant.name, value: item.variant.value } : null
+          variant: item.variant ? { name: item.variant.name, value: item.variant.value } : null,
+          variants: item.variants || null // Lưu variants vào đơn hàng
         })),
         totalAmount,
         shippingAddress: { 

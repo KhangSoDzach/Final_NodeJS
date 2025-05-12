@@ -317,4 +317,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Xử lý chọn variant và gửi đúng dữ liệu khi thêm vào giỏ
+    const addToCartForm = document.getElementById('addToCartForm');
+    if (addToCartForm) {
+        addToCartForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(addToCartForm);
+            const variants = {};
+            for (const [key, value] of formData.entries()) {
+                if (key.startsWith('variants[')) {
+                    const variantName = key.match(/variants\[(.+)\]/)[1];
+                    variants[variantName] = value;
+                }
+            }
+            // Gửi AJAX với variants
+            // ...AJAX code gửi productId, quantity, variants...
+        });
+    }
 });

@@ -69,6 +69,12 @@
                     <input type="checkbox" id="featured" name="featured">
                 </div>
 
+                <div class="form-group">
+                    <label>Tuỳ chọn sản phẩm (Option/Variant)</label>
+                    <div id="variant-list"></div>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-variant-btn">+ Thêm tuỳ chọn</button>
+                </div>
+
                 <button type="submit" class="btn btn-primary">Thêm sản phẩm</button>
             </form>
         </div>
@@ -95,5 +101,25 @@
             };
             reader.readAsDataURL(file);
         });
+    });
+
+    // Option/Variant dynamic fields
+    document.getElementById('add-variant-btn').addEventListener('click', function() {
+        const container = document.getElementById('variant-list');
+        const idx = container.children.length;
+        const html = `
+        <div class="variant-row" style="display:flex;gap:8px;margin-bottom:6px;">
+            <input type="text" name="variantName" placeholder="Tên tuỳ chọn (VD: Màu, RAM...)" class="form-control" style="width:20%;" required>
+            <input type="text" name="variantValue" placeholder="Giá trị (VD: Đỏ, 16GB...)" class="form-control" style="width:20%;" required>
+            <input type="number" name="variantAdditionalPrice" placeholder="Giá cộng thêm" class="form-control" style="width:20%;">
+            <input type="number" name="variantStock" placeholder="Tồn kho cho option" class="form-control" style="width:20%;">
+            <button type="button" class="btn btn-danger btn-sm remove-variant">X</button>
+        </div>`;
+        container.insertAdjacentHTML('beforeend', html);
+    });
+    document.getElementById('variant-list').addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-variant')) {
+            e.target.parentElement.remove();
+        }
     });
 </script>

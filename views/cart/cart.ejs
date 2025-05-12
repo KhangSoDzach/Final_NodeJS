@@ -26,8 +26,7 @@
                     <tbody>
                         <% cart.items.forEach(item => { %>
                             <tr class="cart-item" data-item-id="<%= item._id %>">
-                                <td class="product">
-                                    <% if (item.product && item.product.images && item.product.images.length > 0) { %>
+                                <td class="product">                                        <% if (item.product && item.product.images && item.product.images.length > 0) { %>
                                         <img src="/uploads/products/<%= item.product.images[0] %>" alt="<%= item.product.name %>">
                                     <% } else { %>
                                         <img src="/images/no-image.png" alt="No Image Available">
@@ -36,6 +35,13 @@
                                         <h3><%= item.product ? item.product.name : 'Sản phẩm đã bị xóa' %></h3>
                                         <% if (item.variant) { %>
                                             <p class="variant"><%= item.variant.name %>: <%= item.variant.value %></p>
+                                        <% } %>
+                                        <% if (item.variants) { %>
+                                            <div class="variants">
+                                                <% for (const [name, value] of Object.entries(item.variants)) { %>
+                                                    <p class="variant"><%= name %>: <%= value %></p>
+                                                <% } %>
+                                            </div>
                                         <% } %>
                                     </div>
                                 </td>
