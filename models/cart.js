@@ -16,10 +16,7 @@ const cartItemSchema = new Schema({
     type: Number,
     required: true
   },
-  variant: {
-    name: String,
-    value: String
-  }
+  variants: { type: Object } // Thêm dòng này để lưu nhiều lựa chọn variant
 });
 
 const cartSchema = new Schema({

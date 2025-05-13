@@ -28,7 +28,7 @@ exports.getCart = async (req, res) => {
 // Add item to cart
 exports.addToCart = async (req, res) => {
   try {
-    const { productId, quantity, variant, buyNow } = req.body;
+    const { productId, quantity, variants, buyNow } = req.body;
     
     // Validate quantity
     const qty = parseInt(quantity);
@@ -51,19 +51,20 @@ exports.addToCart = async (req, res) => {
     // Check if product is in stock
     let isInStock = true;
     let price = product.discountPrice || product.price;
-    
-    if (variant) {
-      // Check variant stock if specified
-      const productVariant = product.variants.find(v => v.name === variant.name);
-      if (productVariant) {
-        const variantOption = productVariant.options.find(o => o.value === variant.value);
-        if (variantOption) {
-          isInStock = variantOption.stock >= qty;
-          price += variantOption.additionalPrice || 0;
+
+    // Kiểm tra tồn kho cho từng lựa chọn variant
+    if (variants && typeof variants === 'object') {
+      for (const [variantName, variantValue] of Object.entries(variants)) {
+        const productVariant = product.variants.find(v => v.name === variantName);
+        if (productVariant) {
+          const variantOption = productVariant.options.find(o => o.value === variantValue);
+          if (variantOption) {
+            if (variantOption.stock < qty) isInStock = false;
+            price += variantOption.additionalPrice || 0;
+          }
         }
       }
     } else {
-      // Check general product stock
       isInStock = product.stock >= qty;
     }
     
@@ -98,11 +99,13 @@ exports.addToCart = async (req, res) => {
     const itemIndex = cart.items.findIndex(item => {
       if (item.product.toString() !== productId) return false;
       
-      if (variant && item.variant) {
-        return item.variant.name === variant.name && item.variant.value === variant.value;
+      if (variants && item.variants) {
+        return Object.entries(variants).every(([variantName, variantValue]) => {
+          return item.variants[variantName] === variantValue;
+        });
       }
       
-      return !item.variant;
+      return !item.variants;
     });
     
     if (itemIndex > -1) {
@@ -114,7 +117,7 @@ exports.addToCart = async (req, res) => {
         product: productId,
         quantity: qty,
         price,
-        variant: variant || null
+        variants: variants || null
       });
     }
     
