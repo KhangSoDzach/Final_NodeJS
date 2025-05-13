@@ -144,4 +144,24 @@ productSchema.methods.isVariantInStock = function(variantName, variantValue, qua
   return option.stock >= quantity;
 };
 
+// Helper method to update stock and track sales
+productSchema.methods.updateStock = function(quantity, isVariant = false, variantName = null, variantValue = null) {
+  if (isVariant && variantName && variantValue) {
+    const variant = this.variants.find(v => v.name === variantName);
+    if (variant) {
+      const option = variant.options.find(o => o.value === variantValue);
+      if (option) {
+        option.stock -= quantity;
+      }
+    }
+  } else {
+    this.stock -= quantity;
+  }
+  
+  // Always update the sold count for the product
+  this.sold += quantity;
+  
+  return this;
+};
+
 module.exports = mongoose.model('Product', productSchema);

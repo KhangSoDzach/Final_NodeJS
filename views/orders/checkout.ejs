@@ -35,18 +35,46 @@
     <div class="checkout-details">
       <div class="checkout-section">
         <h2>Địa chỉ giao hàng</h2>
-        <form action="/orders/checkout" method="POST">
+        <form action="/orders/checkout" method="POST" id="checkout-form">
           <div class="form-group">
             <label for="name">Họ và tên</label>
-            <input type="text" id="name" name="name" class="form-control" required>
+            <input type="text" id="name" name="name" class="form-control" value="<%= user ? user.name : '' %>" required>
           </div>
+          
+          <% if (user && user.addresses && user.addresses.length > 0) { %>
+            <div class="form-group">
+              <label for="saved-address">Chọn địa chỉ đã lưu</label>
+              <select id="saved-address" class="form-control">
+                <option value="">-- Chọn địa chỉ --</option>
+                <% user.addresses.forEach((address, index) => { %>
+                  <option value="<%= index %>" <%= (user.defaultAddress && address === user.defaultAddress) ? 'selected' : '' %>>
+                    <%= address.street %>, <%= address.district %>, <%= address.province %>
+                    <%= address.default ? ' (Mặc định)' : '' %>
+                  </option>
+                <% }) %>
+              </select>
+            </div>
+          <% } %>
+
           <div class="form-group">
             <label for="address">Địa chỉ</label>
-            <input type="text" id="address" name="address" class="form-control" required>
+            <input type="text" id="address" name="address" class="form-control" 
+              value="<%= user && user.defaultAddress ? user.defaultAddress.street : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label for="district">Quận/Huyện</label>
+            <input type="text" id="district" name="district" class="form-control" 
+              value="<%= user && user.defaultAddress ? user.defaultAddress.district : '' %>" required>
+          </div>
+          <div class="form-group">
+            <label for="province">Tỉnh/Thành phố</label>
+            <input type="text" id="province" name="province" class="form-control" 
+              value="<%= user && user.defaultAddress ? user.defaultAddress.province : '' %>" required>
           </div>
           <div class="form-group">
             <label for="phone">Số điện thoại</label>
-            <input type="text" id="phone" name="phone" class="form-control" required>
+            <input type="text" id="phone" name="phone" class="form-control" 
+              value="<%= user ? user.phone : '' %>" required>
           </div>
       </div>
 
@@ -55,7 +83,7 @@
         <h2>Phương thức thanh toán</h2>
         <div class="form-group">
           <label>
-            <input type="radio" name="paymentMethod" value="cod" required> Thanh toán khi nhận hàng (COD)
+            <input type="radio" name="paymentMethod" value="cod" checked required> Thanh toán khi nhận hàng (COD)
           </label>
         </div>
         <div class="form-group">
@@ -67,11 +95,55 @@
 
       <!-- Nút xác nhận -->
       <div class="checkout-actions">
-        <button type="submit" class="btn btn-primary checkout-button">Xác nhận thanh toán</button>
+        <button type="submit" class="btn btn-primary checkout-button" id="place-order-btn">Xác nhận thanh toán</button>
         <a href="/cart" class="btn btn-secondary back-to-cart">Quay lại giỏ hàng</a>
       </div>
       </form>
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Xử lý chọn địa chỉ đã lưu
+    const savedAddressSelect = document.getElementById('saved-address');
+    if (savedAddressSelect) {
+      savedAddressSelect.addEventListener('change', function() {
+        if (this.value !== '') {
+          const addresses = <%- user && user.addresses ? JSON.stringify(user.addresses) : '[]' %>;
+          const selectedIndex = parseInt(this.value);
+          
+          if (addresses[selectedIndex]) {
+            const address = addresses[selectedIndex];
+            document.getElementById('address').value = address.street || '';
+            document.getElementById('district').value = address.district || '';
+            document.getElementById('province').value = address.province || '';
+          }
+        }
+      });
+    }
+
+    // Xử lý form submit
+    const checkoutForm = document.getElementById('checkout-form');
+    if (checkoutForm) {
+      checkoutForm.addEventListener('submit', function(e) {
+        const name = document.getElementById('name').value;
+        const phone = document.getElementById('phone').value;
+        const address = document.getElementById('address').value;
+        const district = document.getElementById('district').value;
+        const province = document.getElementById('province').value;
+
+        if (!name || !phone || !address || !district || !province) {
+          e.preventDefault();
+          alert('Vui lòng điền đầy đủ thông tin giao hàng.');
+          return;
+        }
+
+        // Hiển thị thông báo đang xử lý
+        document.getElementById('place-order-btn').disabled = true;
+        document.getElementById('place-order-btn').innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
+      });
+    }
+  });
+</script>
 <!-- <%- include('../partials/footer') %> -->

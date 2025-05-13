@@ -643,6 +643,7 @@ nav {
   position: relative;
 }
 
+/* Initialize all dropdowns to be hidden by default */
 .dropdown-content {
   position: absolute;
   top: 100%;
@@ -655,6 +656,7 @@ nav {
   visibility: hidden;
   transform: translateY(10px);
   transition: all 0.3s ease;
+  display: none; /* Ensure hidden by default */
 }
 
 /* Desktop behavior - hover to show dropdown */
@@ -663,7 +665,15 @@ nav {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
+    display: block; /* Show on hover for desktop */
   }
+}
+
+/* User-specific dropdown positioning */
+.user-actions .dropdown-content {
+  right: 0;
+  left: auto; /* Override default left positioning */
+  min-width: 180px;
 }
 
 /* Mobile behavior - toggle class to show dropdown */
@@ -673,11 +683,16 @@ nav {
     opacity: 0;
     visibility: hidden;
     transform: translateY(0);
+    display: none !important; /* Ẩn hoàn toàn dropdown mặc định, thêm !important để đảm bảo ưu tiên */
+    pointer-events: none; /* Ngăn tương tác khi ẩn */
   }
   
   .dropdown-content.show {
     opacity: 1;
     visibility: visible;
+    display: block !important; /* Hiển thị block chỉ khi có class show, thêm !important để ghi đè */
+    pointer-events: auto; /* Cho phép tương tác khi hiện */
+    z-index: 9999; /* Đảm bảo hiển thị trên tất cả các phần tử khác */
   }
   
   /* User dropdown specific styles for mobile */
@@ -689,6 +704,7 @@ nav {
     width: 200px;
     background-color: white;
     box-shadow: var(--shadow-md);
+    z-index: 9999; /* Tăng z-index để đảm bảo hiển thị trên các phần tử khác */
   }
 }
 
@@ -710,6 +726,11 @@ nav {
   cursor: pointer;
 }
 
+.dropdown-toggle.active {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
 .dropdown-toggle i.fa-angle-down {
   margin-left: var(--spacing-xs);
   transition: transform 0.3s ease;
@@ -717,6 +738,11 @@ nav {
 
 .dropdown:hover .dropdown-toggle i.fa-angle-down {
   transform: rotate(180deg);
+}
+
+/* Thêm hiệu ứng khi dropdown được kích hoạt */
+.dropdown-toggle.active {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 /* ===== Footer ===== */
@@ -2268,6 +2294,17 @@ section {
   section {
     margin-bottom: var(--spacing-xl);
     width: 100%;
+  }
+  
+  /* Mobile styles for dropdown toggle */
+  .user-actions .dropdown-toggle {
+    padding: 8px;
+    border-radius: 4px;
+  }
+  
+  .user-actions .dropdown-content {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
   }
 }
 
