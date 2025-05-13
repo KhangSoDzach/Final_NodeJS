@@ -46,10 +46,28 @@ exports.getCheckout = async (req, res) => {
       }
     }
     
+    // Get user's default address if available
+    let userInfo = null;
+    if (req.user) {
+      userInfo = {
+        name: req.user.name,
+        email: req.user.email,
+        phone: req.user.phone || '',
+        addresses: req.user.addresses || []
+      };
+      
+      // Find default address
+      if (userInfo.addresses && userInfo.addresses.length > 0) {
+        const defaultAddress = userInfo.addresses.find(addr => addr.default) || userInfo.addresses[0];
+        userInfo.defaultAddress = defaultAddress;
+      }
+    }
+    
     res.render('orders/checkout', {
       title: 'Thanh toán',
       cart,
-      user: req.user
+      user: req.user,
+      userInfo
     });
   } catch (err) {
     console.error(err);

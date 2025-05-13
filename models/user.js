@@ -37,6 +37,9 @@ const userSchema = new Schema({
       return !this.googleId;
     }
   },
+  phone: {
+    type: String
+  },
   googleId: {
     type: String
   },
