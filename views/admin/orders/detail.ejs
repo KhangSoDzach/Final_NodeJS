@@ -87,6 +87,13 @@
                                                     <% if (item.variant) { %>
                                                         <div><%= item.variant.name %>: <%= item.variant.value %></div>
                                                     <% } %>
+                                                    <% if (item.variants) { %>
+                                                        <div>
+                                                            <% for (const [name, value] of Object.entries(item.variants)) { %>
+                                                                <span><%= name %>: <%= value %></span>
+                                                            <% } %>
+                                                        </div>
+                                                    <% } %>
                                                 </div>
                                             </div>
                                         </td>

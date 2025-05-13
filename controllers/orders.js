@@ -4,6 +4,7 @@ const User = require('../models/user');
 const Product = require('../models/product');
 const Coupon = require('../models/coupon');
 const bcrypt = require('bcryptjs');
+const emailService = require('../utils/emailService');
 
 exports.getCheckout = async (req, res) => {
   try {
@@ -234,7 +235,8 @@ exports.postOrder = async (req, res) => {
           name: item.product.name || 'Sản phẩm',  // Provide a default name if product reference is broken
           price: Number(item.price),
           quantity: Number(item.quantity),
-          variant: item.variant ? { name: item.variant.name, value: item.variant.value } : null
+          variant: item.variant ? { name: item.variant.name, value: item.variant.value } : null,
+          variants: item.variants || null // Lưu variants vào đơn hàng
         })),
         totalAmount,
         shippingAddress: { 
@@ -341,14 +343,31 @@ exports.postOrder = async (req, res) => {
       console.log('Product stock updated');
     } catch (stockError) {
       console.error('Error updating product stock:', stockError);
-    }
-
-    try {
+    }    try {
       await Cart.deleteOne({ _id: cart._id });
       if (req.session.cartId) delete req.session.cartId;
       console.log('Cart cleared');
     } catch (cartError) {
       console.error('Error clearing cart:', cartError);
+    }
+
+    // Send order confirmation email
+    try {
+      // Get user email
+      const userEmail = user.email;
+      
+      // Populate necessary product information for the email
+      const populatedOrder = await Order.findById(savedOrder._id).populate({
+        path: 'items.product',
+        select: 'name images slug'
+      });
+      
+      // Send confirmation email
+      await emailService.sendOrderConfirmationEmail(userEmail, populatedOrder);
+      console.log(`Order confirmation email sent to ${userEmail}`);
+    } catch (emailError) {
+      console.error('Error sending order confirmation email:', emailError);
+      // Continue execution even if email fails
     }
 
     req.flash('success', `Đơn hàng #${savedOrder.orderNumber} đã được tạo thành công.`);

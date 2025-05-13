@@ -171,6 +171,30 @@ exports.postAddProduct = async (req, res) => {
     try {
         const { name, description, price, discountPrice, category, brand, stock, featured } = req.body;
 
+        // Parse variants/options nếu có
+        let variants = [];
+        if (req.body['variantName'] && req.body['variantValue']) {
+            // Hỗ trợ nhiều option
+            const names = Array.isArray(req.body['variantName']) ? req.body['variantName'] : [req.body['variantName']];
+            const values = Array.isArray(req.body['variantValue']) ? req.body['variantValue'] : [req.body['variantValue']];
+            const additionalPrices = Array.isArray(req.body['variantAdditionalPrice']) ? req.body['variantAdditionalPrice'] : [req.body['variantAdditionalPrice']];
+            const stocks = Array.isArray(req.body['variantStock']) ? req.body['variantStock'] : [req.body['variantStock']];
+            // Gom nhóm theo tên option
+            const variantMap = {};
+            for (let i = 0; i < names.length; i++) {
+                if (!variantMap[names[i]]) variantMap[names[i]] = [];
+                variantMap[names[i]].push({
+                    value: values[i],
+                    additionalPrice: Number(additionalPrices[i]) || 0,
+                    stock: Number(stocks[i]) || 0
+                });
+            }
+            variants = Object.entries(variantMap).map(([name, options]) => ({
+                name,
+                options
+            }));
+        }
+
         // Tạo slug từ tên sản phẩm
         const slug = name
             .toLowerCase()
@@ -192,7 +216,8 @@ exports.postAddProduct = async (req, res) => {
             brand, 
             stock: parseInt(stock),
             images,
-            featured: featured === 'on'
+            featured: featured === 'on',
+            variants // Thêm dòng này
         });
 
         await product.save();
@@ -326,6 +351,28 @@ exports.postUpdateProduct = async (req, res) => {
         // Thêm hình ảnh mới
         product.images = [...product.images, ...newImages];
 
+        // Parse variants/options nếu có
+        let variants = [];
+        if (req.body['variantName'] && req.body['variantValue']) {
+            const names = Array.isArray(req.body['variantName']) ? req.body['variantName'] : [req.body['variantName']];
+            const values = Array.isArray(req.body['variantValue']) ? req.body['variantValue'] : [req.body['variantValue']];
+            const additionalPrices = Array.isArray(req.body['variantAdditionalPrice']) ? req.body['variantAdditionalPrice'] : [req.body['variantAdditionalPrice']];
+            const stocks = Array.isArray(req.body['variantStock']) ? req.body['variantStock'] : [req.body['variantStock']];
+            const variantMap = {};
+            for (let i = 0; i < names.length; i++) {
+                if (!variantMap[names[i]]) variantMap[names[i]] = [];
+                variantMap[names[i]].push({
+                    value: values[i],
+                    additionalPrice: Number(additionalPrices[i]) || 0,
+                    stock: Number(stocks[i]) || 0
+                });
+            }
+            variants = Object.entries(variantMap).map(([name, options]) => ({
+                name,
+                options
+            }));
+        }
+
         // Cập nhật các trường khác
         product.name = name;
         product.description = description;
@@ -335,6 +382,7 @@ exports.postUpdateProduct = async (req, res) => {
         product.brand = brand;
         product.stock = parseInt(stock);
         product.featured = featured === 'on';
+        product.variants = variants; // Thêm dòng này
 
         await product.save();
 

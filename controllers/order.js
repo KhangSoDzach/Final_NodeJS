@@ -2,6 +2,7 @@ const Order = require('../models/order');
 const Cart = require('../models/cart');
 const User = require('../models/user');
 const nodemailer = require('nodemailer');
+const emailService = require('../utils/emailService');
 
 // Order Creation
 exports.createOrder = async (req, res) => {
@@ -27,29 +28,23 @@ exports.createOrder = async (req, res) => {
       statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }]
     });
 
-    await order.save();
-
-    // Clear the user's cart
+    await order.save();    // Clear the user's cart
     cart.items = [];
     await cart.save();
 
-    // Send confirmation email
-    const transporter = nodemailer.createTransport({
-      service: 'Gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: req.user.email,
-      subject: 'Xác nhận đơn hàng',
-      text: `Cảm ơn bạn đã đặt hàng! Mã đơn hàng của bạn là ${order._id}. Tổng tiền: ${totalAmount.toLocaleString('vi-VN')} VND.`
-    };
-
-    await transporter.sendMail(mailOptions);
+    // Send confirmation email using the email service
+    try {
+      const populatedOrder = await Order.findById(order._id).populate({
+        path: 'items.product',
+        select: 'name images slug'
+      });
+      
+      await emailService.sendOrderConfirmationEmail(req.user.email, populatedOrder);
+      console.log(`Order confirmation email sent to ${req.user.email}`);
+    } catch (emailError) {
+      console.error('Error sending order confirmation email:', emailError);
+      // Continue execution even if email fails
+    }
 
     // Show success screen
     res.render('orders/success', {
@@ -156,6 +151,20 @@ exports.postCheckout = async (req, res) => {
     // Xóa giỏ hàng sau khi đặt hàng
     cart.items = [];
     await cart.save();
+
+    // Gửi email xác nhận đơn hàng
+    try {
+      const populatedOrder = await Order.findById(order._id).populate({
+        path: 'items.product',
+        select: 'name images slug'
+      });
+      
+      await emailService.sendOrderConfirmationEmail(req.user.email, populatedOrder);
+      console.log(`Order confirmation email sent to ${req.user.email}`);
+    } catch (emailError) {
+      console.error('Error sending order confirmation email:', emailError);
+      // Continue execution even if email fails
+    }
 
     // Chuyển hướng đến trang success
     res.redirect(`/orders/success/${order._id}`);

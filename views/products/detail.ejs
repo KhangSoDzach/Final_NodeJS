@@ -72,6 +72,22 @@
                 <p><%= product.description %></p>
             </div>
             
+            <% if (product.variants && product.variants.length > 0) { %>
+                <form id="addToCartForm">
+                    <% product.variants.forEach(variant => { %>
+                        <div class="variant-option">
+                            <label><%= variant.name %>:</label>
+                            <select name="variants[<%= variant.name %>]">
+                                <% variant.options.forEach(option => { %>
+                                    <option value="<%= option.value %>"><%= option.value %> <% if(option.additionalPrice > 0) { %> (+<%= option.additionalPrice.toLocaleString('vi-VN') %>₫) <% } %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                    <% }) %>
+                    <!-- ...nút thêm vào giỏ... -->
+                </form>
+            <% } %>
+            
             <form id="addToCartForm">
                 <% if (product.variants && product.variants.length > 0) { %>
                     <div class="variants">
