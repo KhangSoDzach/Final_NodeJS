@@ -455,7 +455,16 @@ exports.updateInventory = async (req, res) => {
     
     // Cập nhật tồn kho chính
     if (stock !== undefined) {
+      // Store the original stock value to calculate difference
+      const originalStock = product.stock;
       product.stock = parseInt(stock);
+      
+      // Don't adjust "sold" count if this is a restock (i.e., stock is being increased)
+      // Only adjust sold count if we are manually reducing stock (implying manual sales adjustment)
+      if (originalStock > parseInt(stock)) {
+        const stockReduction = originalStock - parseInt(stock);
+        product.sold += stockReduction; // Increase "sold" by the amount of stock reduction
+      }
     }
     
     // Cập nhật tồn kho cho các phiên bản
@@ -467,6 +476,8 @@ exports.updateInventory = async (req, res) => {
         if (variant) {
           const option = variant.options.find(o => o.value === variantValue);
           if (option) {
+            // For variants, we don't have a separate "sold" field per variant
+            // So we just update the stock
             option.stock = parseInt(stock);
           }
         }
@@ -478,7 +489,8 @@ exports.updateInventory = async (req, res) => {
     return res.status(200).json({ 
       success: true, 
       message: 'Đã cập nhật hàng tồn kho thành công.',
-      newStock: product.stock
+      newStock: product.stock,
+      sold: product.sold
     });
   } catch (err) {
     console.error(err);

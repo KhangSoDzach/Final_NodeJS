@@ -16,9 +16,7 @@ exports.createOrder = async (req, res) => {
     }
 
     // Calculate total amount
-    const totalAmount = cart.items.reduce((total, item) => total + item.quantity * item.price, 0);
-
-    // Create order
+    const totalAmount = cart.items.reduce((total, item) => total + item.quantity * item.price, 0);    // Create order
     const order = new Order({
       user: req.user._id,
       items: cart.items,
@@ -28,7 +26,28 @@ exports.createOrder = async (req, res) => {
       statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }]
     });
 
-    await order.save();    // Clear the user's cart
+    await order.save();
+    
+    // Cập nhật tồn kho và số lượng đã bán cho mỗi sản phẩm
+    for (const item of cart.items) {
+      const product = item.product;
+      if (product) {
+        // Kiểm tra xem có variant hay không
+        if (item.variants && Object.keys(item.variants).length > 0) {
+          // Nếu có variant, cập nhật cả variant và sản phẩm chính
+          for (const [variantName, variantValue] of Object.entries(item.variants)) {
+            product.updateStock(item.quantity, true, variantName, variantValue);
+          }
+        } else {
+          // Nếu không có variant, chỉ cập nhật sản phẩm chính
+          product.updateStock(item.quantity);
+        }
+        await product.save();
+        console.log(`Đã cập nhật tồn kho và số lượng đã bán cho sản phẩm ${product.name}`);
+      }
+    }
+    
+    // Clear the user's cart
     cart.items = [];
     await cart.save();
 
@@ -147,6 +166,25 @@ exports.postCheckout = async (req, res) => {
     });
 
     await order.save();
+    
+    // Cập nhật tồn kho và số lượng đã bán cho mỗi sản phẩm
+    for (const item of cart.items) {
+      const product = item.product;
+      if (product) {
+        // Kiểm tra xem có variant hay không
+        if (item.variants && Object.keys(item.variants).length > 0) {
+          // Nếu có variant, cập nhật cả variant và sản phẩm chính
+          for (const [variantName, variantValue] of Object.entries(item.variants)) {
+            product.updateStock(item.quantity, true, variantName, variantValue);
+          }
+        } else {
+          // Nếu không có variant, chỉ cập nhật sản phẩm chính
+          product.updateStock(item.quantity);
+        }
+        await product.save();
+        console.log(`Đã cập nhật tồn kho và số lượng đã bán cho sản phẩm ${product.name}`);
+      }
+    }
 
     // Xóa giỏ hàng sau khi đặt hàng
     cart.items = [];

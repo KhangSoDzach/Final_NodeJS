@@ -348,20 +348,31 @@ exports.postOrder = async (req, res) => {
         if (item.variant) {
           await Product.updateOne(
             { _id: item.product._id, 'variants.name': item.variant.name, 'variants.options.value': item.variant.value },
-            { $inc: { 'variants.$[v].options.$[o].stock': -item.quantity, sold: item.quantity } },
+            { 
+              $inc: { 
+                'variants.$[v].options.$[o].stock': -item.quantity, 
+                sold: item.quantity 
+              } 
+            },
             { arrayFilters: [{ 'v.name': item.variant.name }, { 'o.value': item.variant.value }] }
           );
         } else {
           await Product.updateOne(
             { _id: item.product._id },
-            { $inc: { stock: -item.quantity, sold: item.quantity } }
+            { 
+              $inc: { 
+                stock: -item.quantity, 
+                sold: item.quantity 
+              } 
+            }
           );
         }
       }
       console.log('Product stock updated');
     } catch (stockError) {
       console.error('Error updating product stock:', stockError);
-    }    try {
+    }
+    try {
       await Cart.deleteOne({ _id: cart._id });
       if (req.session.cartId) delete req.session.cartId;
       console.log('Cart cleared');
