@@ -221,39 +221,56 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
-    });
-    
-    // Xử lý dropdown menus trên thiết bị di động (cho nav-list)
+    });    // Xử lý dropdown menus trên thiết bị di động (cho nav-list)
     const navDropdownLinks = document.querySelectorAll('.nav-list .dropdown > a');
-    if (window.innerWidth <= 768) {
-        navDropdownLinks.forEach(link => {
-            link.addEventListener('click', function(e) {
-                // Chỉ ngăn mặc định khi đang ở chế độ mobile
-                if (window.innerWidth <= 768) {
-                    e.preventDefault();
-                    const dropdown = this.parentElement;
-                    dropdown.classList.toggle('open');
-                    const content = dropdown.querySelector('.dropdown-content');
-                    if (content) {
-                        if (content.style.display === 'block') {
-                            content.style.display = 'none';
-                        } else {
-                            content.style.display = 'block';
+    navDropdownLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            // Chỉ ngăn mặc định khi đang ở chế độ mobile
+            if (window.innerWidth <= 768) {
+                e.preventDefault();
+                e.stopPropagation(); // Ngăn lan sự kiện
+                
+                const dropdown = this.parentElement;
+                dropdown.classList.toggle('open');
+                
+                const content = dropdown.querySelector('.dropdown-content');
+                if (content) {
+                    // Đóng tất cả dropdown khác trước
+                    document.querySelectorAll('.nav-list .dropdown-content').forEach(otherContent => {
+                        if (otherContent !== content && otherContent.classList.contains('show')) {
+                            otherContent.classList.remove('show');
+                            otherContent.style.display = 'none';
+                            otherContent.parentElement.classList.remove('open');
                         }
+                    });
+                    
+                    if (content.classList.contains('show')) {
+                        content.classList.remove('show');
+                        content.style.display = 'none';
+                    } else {
+                        content.classList.add('show');
+                        content.style.display = 'block';
                     }
                 }
-            });
+            }
         });
-    }
-
-    // Xử lý menu dropdown trong user-actions
+    });// Xử lý menu dropdown trong user-actions
     const userDropdownToggle = document.querySelector('.user-actions .dropdown-toggle');
     const userDropdownContent = document.querySelector('.user-actions .dropdown-content');
     
     if (userDropdownToggle && userDropdownContent) {
+        console.log('Found dropdown elements:', userDropdownToggle, userDropdownContent);
+        
+        // Đảm bảo dropdown ẩn khi trang tải lần đầu
+        userDropdownContent.classList.remove('show');
+        userDropdownContent.style.display = 'none';
+        
         // Function để đóng user dropdown
         function closeUserDropdown() {
+            console.log('Closing dropdown');
             userDropdownContent.classList.remove('show');
+            userDropdownContent.style.display = 'none';
+            userDropdownToggle.classList.remove('active');
             // Xóa event listener
             document.removeEventListener('click', handleOutsideClick);
         }
@@ -263,23 +280,25 @@ document.addEventListener('DOMContentLoaded', function() {
             // Nếu click không phải vào dropdown toggle và không phải trong dropdown content
             if (!event.target.closest('.user-actions .dropdown-toggle') && 
                 !event.target.closest('.user-actions .dropdown-content')) {
+                console.log('Outside click detected');
                 closeUserDropdown();
             }
         }
         
         // Xử lý click cho dropdown menu người dùng
         userDropdownToggle.addEventListener('click', function(e) {
+            console.log('Dropdown toggle clicked');
             // Ngăn chặn hành vi mặc định của thẻ a
             e.preventDefault();
             e.stopPropagation();
-            
-            // Kiểm tra trạng thái hiện tại của dropdown
+              // Kiểm tra trạng thái hiện tại của dropdown
             const isCurrentlyOpen = userDropdownContent.classList.contains('show');
             
             // Đóng tất cả các dropdown khác trước khi mở cái mới
             document.querySelectorAll('.dropdown-content.show').forEach(dropdown => {
                 if (dropdown !== userDropdownContent) {
                     dropdown.classList.remove('show');
+                    dropdown.style.display = 'none';
                 }
             });
             
@@ -288,6 +307,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeUserDropdown();
             } else {
                 userDropdownContent.classList.add('show');
+                userDropdownContent.style.display = 'block';
+                userDropdownToggle.classList.add('active');
                 // Thêm event listener để đóng dropdown khi click ra ngoài
                 setTimeout(() => {
                     document.addEventListener('click', handleOutsideClick);
@@ -316,7 +337,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeUserDropdown();
             }
         });
-    }
+    }    // Đảm bảo đóng tất cả dropdown khi trang web tải lần đầu
+    const allDropdownContents = document.querySelectorAll('.dropdown-content');
+    allDropdownContents.forEach(dropdown => {
+        dropdown.classList.remove('show');
+        dropdown.style.display = 'none';
+    });
+
+    // Đảm bảo cũng đóng dropdown khi click vào màn hình di động
+    document.addEventListener('touchstart', function(e) {
+        // Kiểm tra nếu click không phải vào dropdown toggle và dropdown content
+        if (!e.target.closest('.dropdown-toggle') && !e.target.closest('.dropdown-content')) {
+            // Đóng tất cả dropdown
+            allDropdownContents.forEach(dropdown => {
+                dropdown.classList.remove('show');
+                dropdown.style.display = 'none';
+            });
+            
+            // Đảm bảo xóa class active trên tất cả toggle buttons
+            const allToggleButtons = document.querySelectorAll('.dropdown-toggle');
+            allToggleButtons.forEach(button => {
+                button.classList.remove('active');
+            });
+        }
+    });
 
     // Xử lý chọn variant và gửi đúng dữ liệu khi thêm vào giỏ
     const addToCartForm = document.getElementById('addToCartForm');
