@@ -4,7 +4,7 @@
     <div class="admin-header">
         <h1>Quản lý người dùng</h1>
         <div class="admin-header-actions">
-            <form action="/admin/users" method="GET" class="admin-search">
+            <form action="/admin/users" method="GET" class="filter-group" style="gap:1rem;">
                 <input type="text" name="search" placeholder="Tìm theo tên, email..." value="<%= filter.search || '' %>">
                 <select name="role">
                     <option value="">Tất cả vai trò</option>
@@ -26,49 +26,51 @@
             <h3>Danh sách người dùng (<%= totalUsers %>)</h3>
         </div>
         <div class="card-body">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tên</th>
-                        <th>Email</th>
-                        <th>Vai trò</th>
-                        <th>Ngày đăng ký</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% users.forEach(users => { %>
+            <div class="table-responsive" style="overflow-x:auto;">
+                <table class="data-table user-table">
+                    <thead>
                         <tr>
-                            <td><%= users._id %></td>
-                            <td><%= users.name %></td>
-                            <td><%= users.email %></td>
-                            <td>
-                                <span class="role-badge <%= users.role %>">
-                                    <%= users.role === 'admin' ? 'Quản trị viên' : 'Khách hàng' %>
-                                </span>
-                            </td>
-                            <td><%= new Date(users.createdAt).toLocaleDateString('vi-VN') %></td>
-                            <td>
-                                <span class="status-badge <%= users.isBanned ? 'banned' : 'active' %>">
-                                    <%= users.isBanned ? 'Đã khóa' : 'Đang hoạt động' %>
-                                </span>
-                            </td>
-                            <td class="actions">
-                                <a href="/admin/users/<%= user._id %>" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-<%= users.isBanned ? 'success' : 'danger' %> toggle-user-status" 
-                                    data-user-id="<%= user._id %>" 
-                                    data-current-status="<%= users.isBanned ? 'banned' : 'active' %>">
-                                    <i class="fas <%= users.isBanned ? 'fa-unlock' : 'fa-ban' %>"></i>
-                                </button>
-                            </td>
+                            <th>ID</th>
+                            <th>Tên</th>
+                            <th>Email</th>
+                            <th>Vai trò</th>
+                            <th>Ngày đăng ký</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
                         </tr>
-                    <% }) %>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <% users.forEach(user => { %>
+                            <tr>
+                                <td><%= user._id %></td>
+                                <td><%= user.name %></td>
+                                <td><%= user.email %></td>
+                                <td>
+                                    <span class="role-badge <%= user.role %>">
+                                        <%= user.role === 'admin' ? 'Quản trị viên' : 'Khách hàng' %>
+                                    </span>
+                                </td>
+                                <td><%= new Date(user.createdAt).toLocaleDateString('vi-VN') %></td>
+                                <td>
+                                    <span class="status-badge <%= user.isBanned ? 'banned' : 'active' %>">
+                                        <%= user.isBanned ? 'Đã khóa' : 'Đang hoạt động' %>
+                                    </span>
+                                </td>
+                                <td class="actions">
+                                    <a href="/admin/users/<%= user._id %>" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-<%= user.isBanned ? 'success' : 'danger' %> toggle-user-status" 
+                                        data-user-id="<%= user._id %>" 
+                                        data-current-status="<%= user.isBanned ? 'banned' : 'active' %>">
+                                        <i class="fas <%= user.isBanned ? 'fa-unlock' : 'fa-ban' %>"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
             
             <% if (totalPages > 1) { %>
                 <div class="pagination">
@@ -89,6 +91,25 @@
         </div>
     </div>
 </div>
+
+<style>
+.user-table th, .user-table td {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 0.75rem 1rem;
+    background: #fff;
+}
+.user-table th {
+    background: #f3f4f6;
+    font-weight: 600;
+}
+.user-table tr:hover {
+    background: #f7fafd;
+}
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+</style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

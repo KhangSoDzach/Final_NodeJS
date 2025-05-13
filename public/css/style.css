@@ -2009,7 +2009,7 @@ section {
   display: flex;
   align-items: center;
   padding: var(--spacing-sm) var(--spacing-md);
-  color: var(--dark-color);
+  color: var(--lighter-grey);
   border-radius: var(--border-radius-sm);
 }
 
@@ -2020,6 +2020,7 @@ section {
 
 .profile-nav a:hover:not(.active) {
   background-color: var(--lighter-grey);
+
 }
 
 .profile-nav i {

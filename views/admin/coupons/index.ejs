@@ -1,5 +1,5 @@
 <!-- filepath: c:\Users\khahe\OneDrive\Documents\GitHub\Final_NodeJS\views\admin\coupons\index.ejs -->
-<%- include('../../partials/header') %>
+<%- include('../partials/sidebar') %>
 
 <div class="admin-content">
   <div class="admin-header">
@@ -8,39 +8,63 @@
   </div>
 
   <% if (coupons.length > 0) { %>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Mã</th>
-          <th>Mô tả</th>
-          <th>Giảm giá</th>
-          <th>Ngày bắt đầu</th>
-          <th>Ngày kết thúc</th>
-          <th>Trạng thái</th>
-          <th>Hành động</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% coupons.forEach(coupon => { %>
+    <div class="table-responsive" style="overflow-x:auto;">
+      <table class="data-table coupon-table">
+        <thead>
           <tr>
-            <td><%= coupon.code %></td>
-            <td><%= coupon.description %></td>
-            <td><%= coupon.discount %>%</td>
-            <td><%= new Date(coupon.startDate).toLocaleDateString('vi-VN') %></td>
-            <td><%= new Date(coupon.endDate).toLocaleDateString('vi-VN') %></td>
-            <td><%= coupon.active ? 'Hoạt động' : 'Không hoạt động' %></td>
-            <td>
-              <form action="/admin/coupons/delete/<%= coupon._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mã giảm giá này?');">
-                <button type="submit" class="btn btn-danger">Xóa</button>
-              </form>
-            </td>
+            <th>Mã</th>
+            <th>Mô tả</th>
+            <th>Giảm giá</th>
+            <th>Ngày bắt đầu</th>
+            <th>Ngày kết thúc</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
           </tr>
-        <% }) %>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <% coupons.forEach(coupon => { %>
+            <tr>
+              <td><%= coupon.code %></td>
+              <td><%= coupon.description %></td>
+              <td><%= coupon.discount %>%</td>
+              <td><%= new Date(coupon.startDate).toLocaleDateString('vi-VN') %></td>
+              <td><%= new Date(coupon.endDate).toLocaleDateString('vi-VN') %></td>
+              <td>
+                <span class="status-badge <%= coupon.active ? 'active' : 'banned' %>">
+                  <%= coupon.active ? 'Hoạt động' : 'Không hoạt động' %>
+                </span>
+              </td>
+              <td>
+                <form action="/admin/coupons/delete/<%= coupon._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mã giảm giá này?');">
+                  <button type="submit" class="btn btn-danger">Xóa</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
   <% } else { %>
     <p>Không có coupon nào.</p>
   <% } %>
 </div>
 
-<%- include('../../partials/footer') %>
+<style>
+.coupon-table th, .coupon-table td {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 0.75rem 1rem;
+    background: #fff;
+}
+.coupon-table th {
+    background: #f3f4f6;
+    font-weight: 600;
+}
+.coupon-table tr:hover {
+    background: #f7fafd;
+}
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+</style>
+
