@@ -4,25 +4,23 @@
     <div class="admin-header">
         <h1>Quản lý đơn hàng</h1>
         <div class="admin-header-actions">
-            <form action="/admin/orders" method="GET" class="search-form">
-                <div class="form-row">
-                    <div class="form-group">
-                        <select name="status" class="form-control">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="processing" <%= filter && filter.status === 'processing' ? 'selected' : '' %>>Đang xử lý</option>
-                            <option value="confirmed" <%= filter && filter.status === 'confirmed' ? 'selected' : '' %>>Đã xác nhận</option>
-                            <option value="shipped" <%= filter && filter.status === 'shipped' ? 'selected' : '' %>>Đang giao hàng</option>
-                            <option value="delivered" <%= filter && filter.status === 'delivered' ? 'selected' : '' %>>Đã giao hàng</option>
-                            <option value="cancelled" <%= filter && filter.status === 'cancelled' ? 'selected' : '' %>>Đã hủy</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <div class="search-input">
-                            <input type="text" name="search" placeholder="Tìm đơn hàng..." value="<%= filter && filter.search ? filter.search : '' %>">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
+            <form action="/admin/orders" method="GET" class="filter-group" style="gap:1rem;">
+                <div class="form-group">
+                    <select name="status" class="form-control">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="processing" <%= filter && filter.status === 'processing' ? 'selected' : '' %>>Đang xử lý</option>
+                        <option value="confirmed" <%= filter && filter.status === 'confirmed' ? 'selected' : '' %>>Đã xác nhận</option>
+                        <option value="shipped" <%= filter && filter.status === 'shipped' ? 'selected' : '' %>>Đang giao hàng</option>
+                        <option value="delivered" <%= filter && filter.status === 'delivered' ? 'selected' : '' %>>Đã giao hàng</option>
+                        <option value="cancelled" <%= filter && filter.status === 'cancelled' ? 'selected' : '' %>>Đã hủy</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="search-input" style="display:flex;">
+                        <input type="text" name="search" placeholder="Tìm đơn hàng..." value="<%= filter && filter.search ? filter.search : '' %>">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
                 </div>
             </form>
@@ -34,63 +32,65 @@
             <h2>Danh sách đơn hàng</h2>
         </div>
         <div class="card-body">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Mã đơn hàng</th>
-                        <th>Khách hàng</th>
-                        <th>Ngày đặt</th>
-                        <th>Tổng tiền</th>
-                        <th>Phương thức thanh toán</th>
-                        <th>Trạng thái</th>
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% if (orders && orders.length > 0) { %>
-                        <% orders.forEach(order => { %>
-                            <tr>
-                                <td><%= order.orderNumber %></td>
-                                <td><%= order.users ? order.users.name : 'Khách vãng lai' %></td>
-                                <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
-                                <td><%= order.totalAmount.toLocaleString('vi-VN') %> ₫</td>
-                                <td>
-                                    <% if (order.paymentMethod === 'cod') { %>
-                                        COD
-                                    <% } else if (order.paymentMethod === 'bank_transfer') { %>
-                                        Chuyển khoản
-                                    <% } else if (order.paymentMethod === 'credit_card') { %>
-                                        Thẻ tín dụng
-                                    <% } %>
-                                </td>
-                                <td>
-                                    <span class="status-badge <%= order.status %>">
-                                        <% let statusText; %>
-                                        <% switch(order.status) { 
-                                            case 'processing': statusText = 'Đang xử lý'; break;
-                                            case 'confirmed': statusText = 'Đã xác nhận'; break;
-                                            case 'shipped': statusText = 'Đang giao hàng'; break;
-                                            case 'delivered': statusText = 'Đã giao hàng'; break;
-                                            case 'cancelled': statusText = 'Đã hủy'; break;
-                                            default: statusText = order.status;
-                                        } %>
-                                        <%= statusText %>
-                                    </span>
-                                </td>
-                                <td class="actions">
-                                    <a href="/admin/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        <% }) %>
-                    <% } else { %>
+            <div class="table-responsive" style="overflow-x:auto;">
+                <table class="data-table order-table">
+                    <thead>
                         <tr>
-                            <td colspan="7" class="text-center">Không có đơn hàng nào</td>
+                            <th>Mã đơn hàng</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Phương thức thanh toán</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
                         </tr>
-                    <% } %>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <% if (orders && orders.length > 0) { %>
+                            <% orders.forEach(order => { %>
+                                <tr>
+                                    <td><%= order.orderNumber %></td>
+                                    <td><%= order.users ? order.users.name : 'Khách vãng lai' %></td>
+                                    <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
+                                    <td><%= order.totalAmount.toLocaleString('vi-VN') %> ₫</td>
+                                    <td>
+                                        <% if (order.paymentMethod === 'cod') { %>
+                                            COD
+                                        <% } else if (order.paymentMethod === 'bank_transfer') { %>
+                                            Chuyển khoản
+                                        <% } else if (order.paymentMethod === 'credit_card') { %>
+                                            Thẻ tín dụng
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge <%= order.status %>">
+                                            <% let statusText; %>
+                                            <% switch(order.status) { 
+                                                case 'processing': statusText = 'Đang xử lý'; break;
+                                                case 'confirmed': statusText = 'Đã xác nhận'; break;
+                                                case 'shipped': statusText = 'Đang giao hàng'; break;
+                                                case 'delivered': statusText = 'Đã giao hàng'; break;
+                                                case 'cancelled': statusText = 'Đã hủy'; break;
+                                                default: statusText = order.status;
+                                            } %>
+                                            <%= statusText %>
+                                        </span>
+                                    </td>
+                                    <td class="actions">
+                                        <a href="/admin/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="7" class="text-center">Không có đơn hàng nào</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
             
             <% if (totalPages > 1) { %>
                 <div class="pagination">
@@ -116,3 +116,21 @@
         </div>
     </div>
 </div>
+<style>
+.order-table th, .order-table td {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 0.75rem 1rem;
+    background: #fff;
+}
+.order-table th {
+    background: #f3f4f6;
+    font-weight: 600;
+}
+.order-table tr:hover {
+    background: #f7fafd;
+}
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+</style>
