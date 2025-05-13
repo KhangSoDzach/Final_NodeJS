@@ -33,7 +33,7 @@ services:
       - GOOGLE_CALLBACK_URL=http://localhost/auth/google/callback
       # Email configuration
       - EMAIL_USER=lexa61313@gmail.com
-      - EMAIL_PASSWORD=dobd uiws oupm hixj
+      - EMAIL_PASSWORD=dnhl ieid rmoz bewa
     volumes:
       - ./:/usr/src/app
       - /usr/src/app/node_modules
