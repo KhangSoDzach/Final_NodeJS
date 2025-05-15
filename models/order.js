@@ -66,8 +66,26 @@ const orderSchema = new Schema({
     type: String,
     enum: ['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'],
     default: 'pending'
+  },  statusHistory: [statusHistorySchema],
+  couponCode: {
+    type: String,
+    default: null
   },
-  statusHistory: [statusHistorySchema],
+  discount: {
+    type: Number,
+    default: 0
+  },
+  loyaltyPointsUsed: {
+    type: Number,
+    default: 0
+  },
+  loyaltyPointsEarned: {
+    type: Number,
+    default: 0
+  },
+  note: {
+    type: String
+  },
   createdAt: {
     type: Date,
     default: Date.now

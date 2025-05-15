@@ -146,8 +146,7 @@ exports.sendOrderConfirmationEmail = async (email, order) => {
               </tfoot>
             </table>
           </div>
-          
-          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <h3 style="margin-top: 0; color: #333;">Địa chỉ giao hàng:</h3>
             <p><strong>Người nhận:</strong> ${order.shippingAddress.name}</p>
             <p><strong>Địa chỉ:</strong> ${order.shippingAddress.street}, ${order.shippingAddress.district}, ${order.shippingAddress.province}</p>

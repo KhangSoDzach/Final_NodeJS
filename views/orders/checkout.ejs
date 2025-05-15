@@ -1,4 +1,4 @@
-<!-- <%- include('../partials/header') %> -->
+
 <div class="container checkout-page">
   <h1>Thanh toán</h1>
   <div class="checkout-grid">
@@ -21,9 +21,29 @@
                   <td><%= item.product.name %></td>
                   <td><%= item.quantity %></td>
                   <td><%= (item.price * item.quantity).toLocaleString('vi-VN') %> VND</td>
-                </tr>
-              <% }) %>
+                </tr>              <% }) %>
             </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2"><strong>Tạm tính:</strong></td>
+                <td><%= cart.calculateTotal().toLocaleString('vi-VN') %> VND</td>
+              </tr>
+              <% if (cart.coupon) { %>
+              <tr class="discount-row">
+                <td colspan="2"><strong>Giảm giá (<%= cart.coupon.code %> - <%= cart.coupon.discount %>%):</strong></td>
+                <td>-<%= (cart.calculateTotal() - cart.calculateTotalWithDiscount()).toLocaleString('vi-VN') %> VND</td>
+              </tr>
+              <tr>
+                <td colspan="2"><strong>Tổng cộng:</strong></td>
+                <td><strong><%= cart.calculateTotalWithDiscount().toLocaleString('vi-VN') %> VND</strong></td>
+              </tr>
+              <% } else { %>
+              <tr>
+                <td colspan="2"><strong>Tổng cộng:</strong></td>
+                <td><strong><%= cart.calculateTotal().toLocaleString('vi-VN') %> VND</strong></td>
+              </tr>
+              <% } %>
+            </tfoot>
           </table>
         <% } else { %>
           <p>Giỏ hàng của bạn đang trống.</p>
@@ -44,10 +64,9 @@
           <% if (user && user.addresses && user.addresses.length > 0) { %>
             <div class="form-group">
               <label for="saved-address">Chọn địa chỉ đã lưu</label>
-              <select id="saved-address" class="form-control">
-                <option value="">-- Chọn địa chỉ --</option>
+              <select id="saved-address" class="form-control">                <option value="">-- Chọn địa chỉ --</option>
                 <% user.addresses.forEach((address, index) => { %>
-                  <option value="<%= index %>" <%= (user.defaultAddress && address === user.defaultAddress) ? 'selected' : '' %>>
+                  <option value="<%= index %>" <%= address.default ? 'selected' : '' %>>
                     <%= address.street %>, <%= address.district %>, <%= address.province %>
                     <%= address.default ? ' (Mặc định)' : '' %>
                   </option>
@@ -59,17 +78,17 @@
           <div class="form-group">
             <label for="address">Địa chỉ</label>
             <input type="text" id="address" name="address" class="form-control" 
-              value="<%= user && user.defaultAddress ? user.defaultAddress.street : '' %>" required>
+              value="<%= defaultAddress ? defaultAddress.street : '' %>" required>
           </div>
           <div class="form-group">
             <label for="district">Quận/Huyện</label>
             <input type="text" id="district" name="district" class="form-control" 
-              value="<%= user && user.defaultAddress ? user.defaultAddress.district : '' %>" required>
+              value="<%= defaultAddress ? defaultAddress.district : '' %>" required>
           </div>
           <div class="form-group">
             <label for="province">Tỉnh/Thành phố</label>
             <input type="text" id="province" name="province" class="form-control" 
-              value="<%= user && user.defaultAddress ? user.defaultAddress.province : '' %>" required>
+              value="<%= defaultAddress ? defaultAddress.province : '' %>" required>
           </div>
           <div class="form-group">
             <label for="phone">Số điện thoại</label>
@@ -108,10 +127,11 @@
     // Xử lý chọn địa chỉ đã lưu
     const savedAddressSelect = document.getElementById('saved-address');
     if (savedAddressSelect) {
-      savedAddressSelect.addEventListener('change', function() {
-        if (this.value !== '') {
+      // Hàm để điền thông tin địa chỉ
+      const fillAddressFields = function(index) {
+        if (index !== '') {
           const addresses = <%- user && user.addresses ? JSON.stringify(user.addresses) : '[]' %>;
-          const selectedIndex = parseInt(this.value);
+          const selectedIndex = parseInt(index);
           
           if (addresses[selectedIndex]) {
             const address = addresses[selectedIndex];
@@ -120,6 +140,16 @@
             document.getElementById('province').value = address.province || '';
           }
         }
+      };
+      
+      // Điền địa chỉ mặc định khi trang được tải
+      if (savedAddressSelect.value !== '') {
+        fillAddressFields(savedAddressSelect.value);
+      }
+      
+      // Xử lý sự kiện thay đổi địa chỉ
+      savedAddressSelect.addEventListener('change', function() {
+        fillAddressFields(this.value);
       });
     }
 
