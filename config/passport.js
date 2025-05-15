@@ -113,10 +113,14 @@ module.exports = function(passport) {
   passport.serializeUser((user, done) => {
     done(null, user.id);
   });
-
   passport.deserializeUser(async (id, done) => {
     try {
-      const user = await User.findById(id);
+      const user = await User.findById(id);      
+      // If user is banned, they should not be authorized
+      if (user && user.isBanned) {
+        return done(null, false);
+      }
+      
       done(null, user);
     } catch (err) {
       done(err);

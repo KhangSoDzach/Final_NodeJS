@@ -10,3 +10,6 @@
         </div>
     </div>
 </div>
+<% if (typeof cart !== 'undefined' && cart && cart.items && cart.items.length > 0) { %>
+    <span class="cart-count"><%= cart.items.length %></span>
+<% } %>

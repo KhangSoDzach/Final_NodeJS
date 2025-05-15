@@ -104,6 +104,10 @@ require('./config/passport')(passport);
 // Flash messages
 app.use(flash());
 
+// Middleware to check if user is banned
+const bannedCheck = require('./middleware/bannedCheck');
+app.use(bannedCheck);
+
 // Flash and User Middleware - setting up global variables for templates
 app.use((req, res, next) => {
   // User authentication data

@@ -15,11 +15,20 @@ exports.getLogin = (req, res) => {
   }
 
   const returnTo = req.query.returnTo || '/';
+  const isBanned = req.query.banned === 'true';
+  let errorMsg = req.flash('error');
+  
+  // If the banned parameter is present, set a specific error message
+  if (isBanned && (!errorMsg || !errorMsg.length)) {
+    errorMsg = 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên để biết thêm chi tiết.';
+  }
   
   res.render('auth/login', {
     title: 'Đăng nhập',
-    error: req.flash('error'),
-    returnTo
+    error: errorMsg,
+    success: req.flash('success'),
+    returnTo,
+    isBanned
   });
 };
 
@@ -30,17 +39,19 @@ exports.postLogin = (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if (err) {
       return next(err);
-    }
-    
-    if (!user) {
-      req.flash('error', info.message || 'Email hoặc mật khẩu không đúng.');
-      return res.redirect(`/auth/login?returnTo=${returnTo}`);
-    }
-    
-    // Check if user is banned
+    }    if (!user) {
+      const errorMessage = info.message || 'Email hoặc mật khẩu không đúng.';
+      req.flash('error', errorMessage);
+      return res.render('auth/login', {
+        title: 'Đăng nhập',
+        error: errorMessage,
+        success: '',
+        returnTo
+      });
+    }    // Check if user is banned
     if (user.isBanned) {
-      req.flash('error', 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên để biết thêm chi tiết.');
-      return res.redirect(`/auth/login?returnTo=${returnTo}`);
+      // Không sử dụng flash message mà chỉ redirect với banned parameter
+      return res.redirect('/auth/login?banned=true');
     }
     
     // If user is valid and not banned, log them in
@@ -62,7 +73,8 @@ exports.getRegister = (req, res) => {
   
   res.render('auth/register', {
     title: 'Đăng ký',
-    error: req.flash('error')
+    error: req.flash('error'),
+    success: req.flash('success')
   });
 };
 
@@ -76,6 +88,7 @@ exports.postRegister = async (req, res) => {
     return res.render('auth/register', {
       title: 'Đăng ký',
       error: req.flash('error'),
+      success: req.flash('success'),
       name,
       email
     });
@@ -89,6 +102,7 @@ exports.postRegister = async (req, res) => {
       return res.render('auth/register', {
         title: 'Đăng ký',
         error: req.flash('error'),
+        success: req.flash('success'),
         name,
         email: ''
       });
@@ -159,10 +173,30 @@ exports.getGoogleCallback = (req, res, next) => {
   console.log('Google callback received, session ID:', req.sessionID);
   console.log('Callback URL:', req.originalUrl);
   
-  passport.authenticate('google', {
-    successRedirect: returnTo,
-    failureRedirect: '/auth/login',
-    failureFlash: true
+  passport.authenticate('google', (err, user, info) => {
+    if (err) {
+      return next(err);
+    }
+    
+    if (!user) {
+      req.flash('error', 'Đăng nhập bằng Google thất bại.');
+      return res.redirect('/auth/login');
+    }
+      // Check if user is banned
+    if (user.isBanned) {
+      req.flash('error', 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên để biết thêm chi tiết.');
+      return res.redirect('/auth/login?banned=true');
+    }
+    
+    // If user is valid and not banned, log them in
+    req.login(user, (err) => {
+      if (err) {
+        return next(err);
+      }
+      
+      req.flash('success', 'Đăng nhập thành công!');
+      return res.redirect(returnTo);
+    });
   })(req, res, next);
 };
 

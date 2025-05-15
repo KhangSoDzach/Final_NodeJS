@@ -7,16 +7,14 @@ const emailService = require('../utils/emailService');
 // Order Creation
 exports.createOrder = async (req, res) => {
   try {
-    const { paymentDetails } = req.body;
-
-    // Find the user's cart
+    const { paymentDetails } = req.body;    // Find the user's cart
     const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ success: false, message: 'Giỏ hàng trống.' });
     }
 
-    // Calculate total amount
-    const totalAmount = cart.items.reduce((total, item) => total + item.quantity * item.price, 0);    // Create order
+    // Calculate total amount (including discount if coupon applied)
+    const totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();    // Create order
     const order = new Order({
       user: req.user._id,
       items: cart.items,
@@ -25,6 +23,12 @@ exports.createOrder = async (req, res) => {
       status: 'pending',
       statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }]
     });
+
+    // Add coupon information if coupon was applied
+    if (cart.coupon && cart.coupon.code) {
+      order.couponCode = cart.coupon.code;
+      order.discount = cart.coupon.discount;
+    }
 
     await order.save();
     
@@ -138,32 +142,40 @@ exports.applyLoyaltyPoints = async (req, res) => {
 
 exports.postCheckout = async (req, res) => {
   try {
-    const { name, address, phone, paymentMethod } = req.body;
-
-    // Lấy giỏ hàng của người dùng
+    const { name, address, district, province, phone, paymentMethod } = req.body;    // Lấy giỏ hàng của người dùng
     const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
     if (!cart || cart.items.length === 0) {
       req.flash('error', 'Giỏ hàng của bạn đang trống.');
       return res.redirect('/cart');
     }
 
-    // Tính tổng tiền
-    const totalAmount = cart.items.reduce((total, item) => total + item.price * item.quantity, 0);
+    // Tính tổng tiền (có tính đến coupon nếu được áp dụng)
+    const totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
 
     // Tạo mã đơn hàng duy nhất
-    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-    // Tạo đơn hàng
+    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;    // Tạo đơn hàng
     const order = new Order({
       orderNumber, // Gán giá trị cho orderNumber
       user: req.user._id,
       items: cart.items,
       totalAmount,
       paymentDetails: { method: paymentMethod },
-      shippingAddress: { name, address, phone },
+      shippingAddress: { 
+        name, 
+        street: address, 
+        district, 
+        province, 
+        phone 
+      },
       status: 'pending',
       statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }]
     });
+
+    // Thêm thông tin giảm giá từ coupon (nếu có)
+    if (cart.coupon && cart.coupon.code) {
+      order.couponCode = cart.coupon.code;
+      order.discount = cart.coupon.discount;
+    }
 
     await order.save();
     
@@ -221,9 +233,20 @@ exports.getCheckout = async (req, res) => {
       return res.redirect('/cart');
     }
 
+    // Fetch complete user with addresses
+    const user = await User.findById(req.user._id);
+
+    // Find the default address for auto-selection
+    let defaultAddress = null;
+    if (user && user.addresses && user.addresses.length > 0) {
+      defaultAddress = user.addresses.find(addr => addr.default === true);
+    }
+
     res.render('orders/checkout', {
       title: 'Thanh toán',
-      cart
+      cart,
+      user,
+      defaultAddress
     });
   } catch (err) {
     console.error('Lỗi khi tải trang thanh toán:', err);

@@ -23,8 +23,38 @@ router.post('/checkout', isAuth, orderController.postCheckout);
 
 // Route hiển thị trang success
 router.get('/success/:orderId', isAuth, async (req, res) => {
-  const orderId = req.params.orderId;
-  res.render('orders/success', { title: 'Đặt hàng thành công', orderId });
+  try {
+    const orderId = req.params.orderId;
+    const order = await require('../models/order').findById(orderId);
+    
+    if (!order) {
+      req.flash('error', 'Không tìm thấy đơn hàng.');
+      return res.redirect('/orders/history');
+    }
+    
+    // Check if order belongs to the current user
+    if (order.user.toString() !== req.user._id.toString()) {
+      req.flash('error', 'Bạn không có quyền xem đơn hàng này.');
+      return res.redirect('/orders/history');
+    }
+    
+    // Pass coupon information to the view
+    const couponApplied = order.couponCode ? true : false;
+    const couponCode = order.couponCode || '';
+    const discountPercent = order.discount || 0;
+    
+    res.render('orders/success', { 
+      title: 'Đặt hàng thành công', 
+      orderId,
+      couponApplied,
+      couponCode,
+      discountPercent
+    });
+  } catch (err) {
+    console.error('Error loading order success page:', err);
+    req.flash('error', 'Đã xảy ra lỗi khi tải trang thành công.');
+    res.redirect('/orders/history');
+  }
 });
 
 
