@@ -344,6 +344,18 @@ strong, b {
   border-left: 4px solid #dc3545;
 }
 
+.banned-account-alert {
+  margin-bottom: 20px;
+  font-weight: bold;
+  padding: 15px;
+  border-radius: 5px;
+  background-color: #ffebee;
+  border: 1px solid #ffcdd2;
+  color: #c62828;
+  text-align: center;
+  font-size: 1.1em;
+}
+
 .alert-warning {
   color: #856404;
   background-color: #fff3cd;

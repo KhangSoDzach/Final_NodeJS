@@ -1,11 +1,7 @@
 <div class="auth-container">
     <h1>Đăng nhập</h1>
-    
-    <% if (error && error.length > 0) { %>
-        <div class="alert alert-danger">
-            <%= error %>
-        </div>
-    <% } %>
+
+
     
     <form action="/auth/login" method="POST">
         <div class="form-group">

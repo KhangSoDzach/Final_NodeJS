@@ -212,9 +212,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
-    function updateUserStatus(status) {
-        fetch(`/admin/user/${userId}/status`, {
+      function updateUserStatus(status) {
+        fetch(`/admin/users/${userId}/status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
