@@ -19,12 +19,11 @@
                     <button type="submit"><i class="fas fa-search"></i></button>
                 </form>
             </div>
-            
-            <div class="user-actions">
+              <div class="user-actions">
                 <a href="/cart" class="cart-icon">
                     <i class="fas fa-shopping-cart"></i>
-                    <% if (typeof cartCount !== 'undefined' && cartCount > 0) { %>
-                        <span class="cart-count"><%= cartCount %></span>
+                    <% if (typeof cart !== 'undefined' && cart && cart.items && cart.items.length > 0) { %>
+                        <span class="cart-count"><%= cart.items.length %></span>
                     <% } %>
                 </a>
                 

@@ -86,15 +86,12 @@
                                 <div class="address-item <%= address.default ? 'default' : '' %>">
                                     <% if (address.default) { %>
                                         <span class="default-badge">Mặc định</span>
-                                    <% } %>
-                                    <div class="address-details">
+                                    <% } %>                                    <div class="address-details">
                                         <p><strong>Địa chỉ <%= index + 1 %>:</strong> <%= address.street %></p>
-                                        <p><strong>Thành phố:</strong> <%= address.city %></p>
-                                        <% if (address.state) { %>
-                                            <p><strong>Tỉnh/Thành:</strong> <%= address.state %></p>
-                                        <% } %>
-                                        <% if (address.zipCode) { %>
-                                            <p><strong>Mã bưu điện:</strong> <%= address.zipCode %></p>
+                                        <p><strong>Quận/Huyện:</strong> <%= address.district %></p>
+                                        <p><strong>Tỉnh/Thành phố:</strong> <%= address.province %></p>
+                                        <% if (address.default) { %>
+                                            <p><strong>Mặc định:</strong> Có</p>
                                         <% } %>
                                     </div>
                                 </div>
