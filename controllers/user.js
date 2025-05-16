@@ -284,16 +284,28 @@ exports.cancelOrder = async (req, res) => {
     if (order.status === 'shipped' || order.status === 'delivered') {
       req.flash('error', 'Không thể hủy đơn hàng đã được giao.');
       return res.redirect('/user/orders');
-    }
-
-    // Cập nhật trạng thái đơn hàng
+    }    // Cập nhật trạng thái đơn hàng
     order.status = 'cancelled';
     order.statusHistory.push({
       status: 'cancelled',
       date: Date.now(),
       note: 'Đơn hàng đã được hủy bởi người dùng.',
     });
-
+    
+    // Nếu đơn hàng đã được xác nhận thanh toán và có sử dụng coupon, giảm số lượt đã dùng của coupon
+    if (order.paymentStatus === 'paid' && order.couponCode) {
+      try {
+        const Coupon = require('../models/coupon');
+        await Coupon.findOneAndUpdate(
+          { code: order.couponCode },
+          { $inc: { usedCount: -1 } }
+        );
+        console.log(`Decremented usedCount for coupon: ${order.couponCode} due to order cancellation by user`);
+      } catch (couponError) {
+        console.error('Error updating coupon usedCount on cancel:', couponError);
+      }
+    }
+    
     await order.save();
 
     req.flash('success', 'Đơn hàng đã được hủy thành công.');

@@ -1708,6 +1708,36 @@ section {
   margin-bottom: var(--spacing-md);
 }
 
+/* Coupon styling for checkout page */
+.mt-3 {
+  margin-top: 1rem;
+}
+
+#coupon-message {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.text-danger {
+  color: var(--danger-color);
+}
+
+.text-success {
+  color: var(--success-color);
+}
+
+.coupon-section .coupon-input {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.coupon-info {
+  margin-top: 0.5rem;
+  padding: var(--spacing-sm);
+  background-color: var(--lighter-grey);
+  border-radius: var(--border-radius-sm);
+}
+
 .payment-methods {
   margin-top: var(--spacing-md);
 }

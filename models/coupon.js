@@ -7,7 +7,13 @@ const couponSchema = new Schema({
     required: true,
     unique: true,
     uppercase: true,
-    trim: true
+    trim: true,
+    validate: {
+      validator: function(v) {
+        return v.length === 5;
+      },
+      message: props => 'Mã giảm giá phải có đúng 5 ký tự!'
+    }
   },
   description: {
     type: String,
@@ -30,7 +36,10 @@ const couponSchema = new Schema({
   },
   endDate: {
     type: Date,
-    required: true
+    default: function() {
+      // Default to 90 days from now if not provided
+      return new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+    }
   },
   maxUses: {
     type: Number,
