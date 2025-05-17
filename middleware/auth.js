@@ -6,6 +6,12 @@ module.exports.isAuth = (req, res, next) => {
   res.redirect('/auth/login');
 };
 
+// Middleware mới cho phép cả khách và người dùng đã đăng nhập
+exports.allowGuest = (req, res, next) => {
+  // Cho phép mọi người truy cập, đã đăng nhập hoặc chưa
+  return next();
+};
+
 exports.isAdmin = (req, res, next) => {
     console.log('IsAdmin middleware check:', {
         sessionId: req.session.id,

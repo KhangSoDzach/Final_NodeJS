@@ -1,0 +1,35 @@
+<%- include('../partials/header') %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-body">
+          <h1 class="h3 mb-4 text-center"><%= title %></h1>
+          
+          <% if (message) { %>
+            <div class="alert alert-info"><%= message %></div>
+          <% } %>
+          
+          <form action="/orders/track/<%= orderId %>" method="GET">
+            <div class="form-group">
+              <label for="email">Email đã dùng khi đặt hàng</label>
+              <input type="email" name="email" id="email" class="form-control" required>
+            </div>
+            
+            <div class="form-group mt-4">
+              <button type="submit" class="btn btn-primary btn-block">Xác nhận</button>
+            </div>
+          </form>
+          
+          <div class="mt-4 text-center">
+            <p>Bạn muốn tạo tài khoản để dễ dàng theo dõi đơn hàng?</p>
+            <a href="/auth/register" class="btn btn-outline-secondary">Đăng ký ngay</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
