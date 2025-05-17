@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const adminController = require('../controllers/admin');
-const couponController = require('../controllers/admin');
+const couponController = require('../controllers/coupon');
 const ordersController = require('../controllers/admin');
 const { isAuth, isAdmin } = require('../middleware/auth');
 const { productUpload } = require('../middleware/upload');

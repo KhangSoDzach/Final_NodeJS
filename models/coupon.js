@@ -29,21 +29,10 @@ const couponSchema = new Schema({
     type: Number,
     default: 0,
     min: 0 // Minimum order amount to apply the coupon
-  },
-  startDate: {
-    type: Date,
-    default: Date.now
-  },
-  endDate: {
-    type: Date,
-    default: function() {
-      // Default to 90 days from now if not provided
-      return new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
-    }
-  },
-  maxUses: {
+  },  maxUses: {
     type: Number,
-    default: null // Unlimited if null
+    default: 10,
+    max: 10
   },
   usedCount: {
     type: Number,
@@ -63,11 +52,8 @@ const couponSchema = new Schema({
 
 // Method to check if coupon is valid
 couponSchema.methods.isValid = function () {
-  const now = new Date();
-
   if (!this.active) return false;
-  if (now < this.startDate || now > this.endDate) return false;
-  if (this.maxUses !== null && this.usedCount >= this.maxUses) return false;
+  if (this.usedCount >= this.maxUses) return false;
 
   return true;
 };

@@ -689,11 +689,9 @@ exports.updateOrderStatus = async (req, res) => {
       status,
       date: Date.now(),
       note: note || `Trạng thái đơn hàng đã được cập nhật thành ${status}`
-    });
-
-    // Nếu trạng thái là "delivered", cập nhật điểm tích lũy cho người dùng
+    });    // Nếu trạng thái là "delivered", cập nhật điểm tích lũy cho người dùng
     if (status === 'delivered') {
-      const loyaltyPoints = Math.floor(order.totalAmount * 0.1); // Tính 10% giá trị đơn hàng
+      const loyaltyPoints = Math.floor(order.totalAmount * 0.0001); // Tính 0.01% giá trị đơn hàng (1/10000)
       const user = await User.findById(order.user);
       if (user) {
         user.loyaltyPoints += loyaltyPoints;

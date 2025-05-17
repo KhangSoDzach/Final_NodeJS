@@ -1,3 +1,4 @@
+<%- include('../partials/sidebar') %>
 <div class="admin-content">
   <div class="admin-header">
     <h1>Thêm mã giảm giá mới</h1>
@@ -20,17 +21,13 @@
       <div class="form-group">
         <label for="discount">Giảm giá (%)</label>
         <input type="number" id="discount" name="discount" class="form-control" min="0" max="100" placeholder="Nhập phần trăm giảm giá" required>
-      </div>
-
-      <div class="form-group">
+      </div>      <div class="form-group">
         <label for="minAmount">Số tiền tối thiểu (₫)</label>
         <input type="number" id="minAmount" name="minAmount" class="form-control" min="0" placeholder="Nhập số tiền tối thiểu" value="0">
-      </div>
-
-      <div class="form-group">
+      </div>      <div class="form-group">
         <label for="maxUses">Số lần sử dụng tối đa</label>
-        <input type="number" id="maxUses" name="maxUses" class="form-control" min="1" placeholder="Nhập số lần sử dụng tối đa" value="100" required>
-        <small class="form-text text-muted">Để trống hoặc nhập 0 nếu không giới hạn số lần sử dụng.</small>
+        <input type="number" id="maxUses" name="maxUses" class="form-control" min="1" max="10" placeholder="Nhập số lần sử dụng tối đa" value="10" required>
+        <small class="form-text text-muted">Số lần sử dụng tối đa từ 1 đến 10.</small>
       </div>
 
       <div class="form-group">
@@ -39,9 +36,7 @@
           <input type="checkbox" id="active" name="active" class="form-check-input" checked>
           <label class="form-check-label" for="active">Hoạt động</label>
         </div>
-      </div>
-
-      <div class="form-actions">
+      </div>      <div class="form-actions">
         <button type="submit" class="btn btn-primary">Thêm mã giảm giá</button>
         <a href="/admin/coupons" class="btn btn-secondary">Hủy</a>
       </div>
@@ -49,3 +44,241 @@
   </div>
 </div>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const maxUsesInput = document.getElementById('maxUses');
+    
+    maxUsesInput.addEventListener('input', function() {
+      const value = parseInt(this.value);
+      if (value > 10) {
+        this.value = 10;
+        alert('Số lần sử dụng tối đa không được vượt quá 10.');
+      } else if (value < 1 && this.value !== '') {
+        this.value = 1;
+        alert('Số lần sử dụng tối đa phải ít nhất là 1.');
+      }
+    });
+  });
+</script>
+<!-- <style>
+    :root {
+      --primary-color: #2196F3;
+      --primary-color-dark: #1769AA;
+      --success-color: #4CAF50;
+      --danger-color: #F44336;
+      --text-color-dark: #23272E;
+      --text-color-muted: #6B7280;
+      --border-color-light: #E0E0E0;
+      --border-radius-md: 8px;
+      --font-family-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-size-base: 1rem;
+      --font-size-sm: 0.875rem;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.75rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --transition-short: 0.2s;
+    }
+
+    body {
+      font-family: var(--font-family-sans);
+      color: var(--text-color-dark);
+      background-color: #f9fafb;
+      margin: 0;
+      padding: var(--spacing-lg);
+    }
+
+    .admin-content {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-xl);
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+    }
+
+    .admin-header h1 {
+      font-size: 1.75rem;
+      font-weight: var(--font-weight-semibold);
+      margin: 0;
+      color: var(--text-color-dark);
+    }
+
+    .admin-header > a.btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+      padding: 0.5em 1em;
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-base);
+      border-radius: var(--border-radius-md);
+      background-color: #6b7280;
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color var(--transition-short);
+      user-select: none;
+    }
+
+    .admin-header > a.btn-secondary:hover,
+    .admin-header > a.btn-secondary:focus {
+      background-color: #4b5563;
+      outline: none;
+    }
+
+    /* Card */
+    .admin-card {
+      background-color: white;
+      border-radius: var(--border-radius-md);
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+      padding: var(--spacing-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    /* Form */
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    label {
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-base);
+      color: var(--text-color-dark);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      padding: 0.5em 0.75em;
+      font-size: var(--font-size-base);
+      border: 1px solid var(--border-color-light);
+      border-radius: var(--border-radius-md);
+      transition: border-color var(--transition-short), box-shadow var(--transition-short);
+      color: var(--text-color-dark);
+      background-color: white;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.3);
+    }
+
+    textarea {
+      min-height: 80px;
+    }
+
+    /* Checkbox */
+    .form-check {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    input.form-check-input {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    label.form-check-label {
+      font-weight: var(--font-weight-medium);
+      font-size: var(--font-size-base);
+      color: var(--text-color-dark);
+      user-select: none;
+      cursor: pointer;
+    }
+
+    /* Form text */
+    .form-text {
+      font-size: var(--font-size-sm);
+      color: var(--text-color-muted);
+      user-select: none;
+    }
+
+    /* Form actions */
+    .form-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      margin-top: var(--spacing-md);
+    }
+
+    .form-actions button.btn-primary,
+    .form-actions a.btn-secondary {
+      padding: 0.5em 1.25em;
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-base);
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      user-select: none;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+      text-decoration: none;
+      transition: background-color var(--transition-short);
+    }
+
+    .form-actions button.btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .form-actions button.btn-primary:hover,
+    .form-actions button.btn-primary:focus {
+      background-color: var(--primary-color-dark);
+      outline: none;
+    }
+
+    .form-actions a.btn-secondary {
+      background-color: #6b7280;
+      color: white;
+    }
+
+    .form-actions a.btn-secondary:hover,
+    .form-actions a.btn-secondary:focus {
+      background-color: #4b5563;
+      outline: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .form-actions {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+      }
+
+      .form-actions button,
+      .form-actions a {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style> -->

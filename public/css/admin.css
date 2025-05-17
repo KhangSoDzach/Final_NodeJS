@@ -1,895 +1,1166 @@
-/* Global Variables & Base Styles */
-:root {
-  /* Colors */
-  --primary-color: #2196f3;
-  --primary-color-dark: #0066cc;
-  --success-color: #4caf50;
-  --danger-color: #f44336;
-  --warning-color: #ff9800;
-  --info-color: #3498db;
-  --confirm-color: #f1c40f;
-  --shipped-color: #9c27b0; /* Adjusted from original for solid badge */
-  --customer-role-color: #009688;
-
-  --sidebar-bg-start: #23272e;
-  --sidebar-bg-end: #2b2d42;
-  --sidebar-text-color: #fff;
-  --sidebar-link-color: #e0e6ed;
-  --sidebar-link-active-text: #fff;
-  --sidebar-border-color: #374151;
-  --sidebar-icon-color: #a3bffa;
-  --sidebar-header-text-shadow: 0 2px 8px rgba(0,0,0,0.08);
-
-  --content-bg: #f5f6fa;
-  --card-bg: #fff;
-  --table-header-bg: #f3f4f6;
-  --table-row-even-bg: #f7fafd;
-  --table-row-hover-bg: #f9fafb;
-  --product-table-row-hover-bg: #f0f6ff;
-
-  --text-color-dark: #23272e;
-  --text-color-light: var(--sidebar-link-color);
-  --text-color-muted: #888;
-  --text-color-placeholder: #aaa;
-
-  --border-color-light: #f0f0f0; /* Card header */
-  --border-color-medium: #e5e7eb; /* Table cells */
-  --border-color-dark: #e0e0e0; /* Inputs, pagination, default address */
-
-  --button-secondary-bg: #e0e0e0;
-  --button-secondary-text: var(--text-color-dark);
-
-  /* Shadows */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 2px 8px rgba(44, 62, 80, 0.06);
-  --shadow-lg: 2px 0 16px 0 rgba(44, 62, 80, 0.10);
-  --shadow-focus: 0 0 0 2px rgba(33, 150, 243, 0.1);
-  --shadow-nav-active: 0 2px 12px 0 rgba(33,150,243,0.08);
-  --shadow-mobile-toggle: 0 2px 10px rgba(0, 0, 0, 0.2);
-
-  /* Border Radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-pill: 12px;
-  --radius-circle: 50%;
-  --radius-sidebar-default: 18px;
-  --radius-sidebar-medium: 12px;
-  --radius-sidebar-small: 16px;
-
-  /* Spacing */
-  --space-xxs: 0.25rem; /* 4px */
-  --space-xs: 0.5rem;   /* 8px */
-  --space-sm: 0.75rem;  /* 12px */
-  --space-md: 1rem;     /* 16px */
-  --space-lg: 1.2rem;   /* ~19px - adjusted from original values */
-  --space-xl: 1.5rem;   /* 24px */
-  --space-xxl: 2rem;    /* 32px */
-  --space-xxxl: 2.2rem; /* ~35px */
-
-  /* Typography */
-  --font-family-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.85rem;
-  --font-size-smed: 0.9rem;
-  --font-size-base: 1rem;
-  --font-size-md: 1.08rem;
-  --font-size-lg: 1.2rem;
-  --font-size-xl: 1.3rem; /* admin-header h1 small mobile */
-  --font-size-xxl: 1.5rem; /* admin-header h1 mobile */
-  --font-size-xxxl: 1.7rem;
-  --font-size-display: 2rem;
-
-  --font-weight-light: 300;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  --font-weight-extrabold: 800;
-
-  --letter-spacing-sm: 0.02em;
-  --letter-spacing-lg: 2px;
-
-  /* Transitions */
-  --transition-short: 0.18s;
-  --transition-medium: 0.2s;
-  --transition-long: 0.3s;
-}
-
-body {
-  font-family: var(--font-family-sans);
-  margin: 0;
-  background-color: var(--content-bg); /* Fallback for admin-content */
-}
-
-/* Admin Dashboard Styles */
-.admin-layout {
-  display: grid;
-  grid-template-columns: 250px 1fr;
-  min-height: 100vh;
-}
-
-.admin-sidebar {
-  background: linear-gradient(180deg, var(--sidebar-bg-start) 60%, var(--sidebar-bg-end) 100%);
-  color: var(--sidebar-text-color);
-  min-height: 100vh;
-  width: 250px;
-  position: relative; /* Becomes fixed on mobile */
-  z-index: 10;
-  border-radius: 0 var(--radius-sidebar-default) var(--radius-sidebar-default) 0;
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  padding-bottom: var(--space-xxl);
-  transition: background var(--transition-long), width var(--transition-long), left var(--transition-long);
-}
-
-.admin-sidebar-header {
-  padding: var(--space-xxxl) 0 var(--space-lg) 0;
-  border-bottom: 1px solid var(--sidebar-border-color);
-  margin-bottom: var(--space-xxl);
-  text-align: center;
-}
-
-.admin-sidebar-header h2 {
-  font-size: var(--font-size-xxxl);
-  font-weight: var(--font-weight-extrabold);
-  margin: 0;
-  letter-spacing: var(--letter-spacing-lg);
-  color: var(--sidebar-text-color);
-  text-shadow: var(--sidebar-header-text-shadow);
-}
-
-.admin-nav {
-  list-style: none;
-  padding: 0 var(--space-xs);
-  margin: 0;
-  flex: 1;
-}
-
-.admin-nav-item {
-  margin-bottom: var(--space-xs);
-}
-
-.admin-nav-link {
-  display: flex;
-  align-items: center;
-  padding: 0.85rem var(--space-lg); /* 0.85rem ~13.6px */
-  color: var(--sidebar-link-color);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  font-weight: var(--font-weight-medium);
-  font-size: var(--font-size-md);
-  letter-spacing: var(--letter-spacing-sm);
-  gap: var(--space-md);
-  transition: background var(--transition-short), color var(--transition-short), box-shadow var(--transition-short);
-  position: relative;
-}
-
-.admin-nav-link.active,
-.admin-nav-link:hover {
-  background: linear-gradient(90deg, var(--primary-color) 60%, var(--primary-color-dark) 100%);
-  color: var(--sidebar-link-active-text);
-  box-shadow: var(--shadow-nav-active);
-}
-
-.admin-nav-link i {
-  font-size: 1.25rem; /* ~20px */
-  width: 24px;
-  text-align: center;
-  color: var(--sidebar-icon-color);
-  transition: color var(--transition-medium);
-}
-
-.admin-nav-link.active i,
-.admin-nav-link:hover i {
-  color: var(--sidebar-link-active-text);
-}
-
-.admin-nav-link:active { /* Click feedback */
-  background: var(--sidebar-bg-start);
-}
-
-/* Special styling for last two nav items (e.g., Settings, Logout) */
-.admin-nav-item:last-child,
-.admin-nav-item:nth-last-child(2) {
-  margin-top: var(--space-xl);
-  border-top: 1px solid var(--sidebar-border-color);
-  padding-top: var(--space-lg);
-}
-
-.admin-content {
-  padding: var(--space-xxl);
-  background: var(--content-bg);
-  min-height: 100vh; /* Ensure it takes full height even if content is short */
-}
-
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-xxl);
-}
-
-.admin-header h1 {
-  font-size: var(--font-size-display);
-  font-weight: var(--font-weight-bold);
-  margin: 0;
-  color: var(--text-color-dark);
-}
-
-.admin-header-actions {
-  display: flex;
-  gap: var(--space-lg);
-  align-items: center;
-}
-
-.admin-card {
-  background: var(--card-bg);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  padding: var(--space-xxl) var(--space-xl);
-  margin-bottom: var(--space-xxxl);
-}
-
-.card-header {
-  border-bottom: 1px solid var(--border-color-light);
-  margin-bottom: var(--space-lg);
-  padding-bottom: var(--space-sm);
-}
-
-.card-header h2, .card-header h3 {
-  margin: 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-color-dark);
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: var(--space-xl);
-  margin-bottom: var(--space-xxl);
-}
-
-.stat-card {
-  background-color: var(--card-bg);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  padding: var(--space-xl);
-  display: flex;
-  flex-direction: column;
-  border-left: 4px solid transparent; /* Default, overridden by specific types */
-}
-
-.stat-card .value {
-  font-size: var(--font-size-display);
-  font-weight: var(--font-weight-bold);
-  margin: var(--space-md) 0;
-  color: var(--text-color-dark);
-}
-
-.stat-card .label {
-  color: var(--text-color-muted);
-  font-size: var(--font-size-base);
-}
-
-.stat-card.primary { border-left-color: var(--primary-color); }
-.stat-card.success { border-left-color: var(--success-color); }
-.stat-card.warning { border-left-color: var(--warning-color); }
-.stat-card.danger  { border-left-color: var(--danger-color); }
-
-/* Data Table */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--card-bg);
-  font-size: var(--font-size-smed); /* Slightly smaller for tables */
-}
-
-.data-table th, .data-table td {
-  padding: var(--space-sm) var(--space-md);
-  border-bottom: 1px solid var(--border-color-medium);
-  text-align: left;
-  font-size: var(--font-size-base); /* Keep cells at base for readability */
-  vertical-align: middle;
-}
-
-.data-table th {
-  background: var(--table-header-bg);
-  font-weight: var(--font-weight-semibold);
-  white-space: nowrap;
-  color: var(--text-color-dark);
-}
-
-.data-table td {
-  white-space: nowrap; /* Can be overridden by specific column styles if needed */
-  color: var(--text-color-dark);
-}
-
-.data-table tr:nth-child(even) td { /* Apply to TD for better specificity if needed */
-  background: var(--table-row-even-bg);
-}
-
-.data-table tr:hover td { /* Apply to TD */
-  background: var(--table-row-hover-bg);
-}
-
-.data-table .actions {
-  display: flex;
-  gap: var(--space-xs);
-}
-
-/* Status & Role Badges */
-.status-badge, .role-badge {
-  display: inline-block;
-  padding: var(--space-xxs) var(--space-sm);
-  border-radius: var(--radius-pill);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  margin-right: var(--space-xxs);
-  margin-bottom: 2px; /* For inline-block alignment */
-  color: var(--sidebar-text-color); /* Default text color for badges */
-}
-
-/* Solid background badges take precedence */
-.status-badge.active    { background-color: var(--success-color); }
-.status-badge.banned    { background-color: var(--danger-color); }
-.status-badge.processing{ background-color: var(--info-color); }
-.status-badge.confirmed { background-color: var(--confirm-color); }
-.status-badge.shipped   { background-color: var(--shipped-color); }
-.status-badge.delivered { background-color: var(--success-color); } /* Can be different shade of green */
-.status-badge.cancelled { background-color: var(--danger-color); } /* Can be different shade of red or grey */
-
-.status-badge.small {
-  font-size: var(--font-size-xs);
-  padding: 0.15rem var(--space-xs);
-}
-
-.role-badge.admin    { background-color: var(--primary-color); }
-.role-badge.customer { background-color: var(--customer-role-color); }
-
-
-/* Forms */
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--space-xl);
-}
-
-.form-group {
-  margin-bottom: var(--space-lg);
-}
-
-label {
-  font-weight: var(--font-weight-medium);
-  color: var(--text-color-dark);
-  display: block; /* Ensure label takes its own line if needed */
-  margin-bottom: var(--space-xs);
-}
-
-.form-control,
-.form-select,
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-input[type="date"],
-input[type="search"],
-textarea,
-select {
-  width: 100%;
-  padding: var(--space-xs) var(--space-sm); /* 0.5em 0.75em equivalent */
-  border: 1px solid var(--border-color-dark);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-base);
-  background: var(--card-bg);
-  color: var(--text-color-dark);
-  /* margin-top: var(--space-xxs); Removed as label has margin-bottom */
-  box-sizing: border-box; /* Important for width: 100% */
-  transition: border-color var(--transition-short), box-shadow var(--transition-short);
-}
-
-.form-control::placeholder,
-input::placeholder,
-textarea::placeholder {
-  color: var(--text-color-placeholder);
-  opacity: 1;
-}
-
-.form-control:focus,
-.form-select:focus,
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: var(--shadow-focus);
-}
-
-/* Image Preview */
-.image-preview {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: var(--space-md);
-  margin-top: var(--space-md);
-}
-
-.image-preview-item {
-  position: relative;
-  height: 100px;
-  border: 1px solid var(--border-color-dark);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--content-bg); /* Light bg for contrast */
-}
-
-.image-preview-item img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.image-preview-item .remove-image {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 20px;
-  height: 20px;
-  background-color: rgba(255, 255, 255, 0.7);
-  border-radius: var(--radius-circle);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--danger-color);
-  transition: background-color var(--transition-short);
-}
-.image-preview-item .remove-image:hover {
-  background-color: rgba(255, 255, 255, 0.9);
-}
-
-
-/* Dynamic Forms (basic styling) */
-.dynamic-form-group { margin-bottom: var(--space-md); }
-.dynamic-fields {
-  border: 1px solid var(--border-color-dark);
-  border-radius: var(--radius-sm);
-  padding: var(--space-md);
-  margin-bottom: var(--space-md);
-}
-.dynamic-field-row {
-  display: flex;
-  gap: var(--space-md);
-  margin-bottom: var(--space-xs);
-}
-.dynamic-field-row .form-group { flex: 1; margin-bottom: 0; }
-.btn-add-field { margin-bottom: var(--space-md); }
-
-/* Variant Group */
-.variant-group {
-  border: 1px solid var(--border-color-dark);
-  border-radius: var(--radius-sm);
-  padding: var(--space-md);
-  margin-bottom: var(--space-md);
-}
-.variant-header {
-  margin-bottom: var(--space-md);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.variant-options-list { margin-left: var(--space-md); }
-
-
-/* Filters */
-.filter-group {
-  display: flex;
-  gap: var(--space-md);
-  margin-bottom: var(--space-lg);
-  flex-wrap: wrap;
-}
-.filter-group .form-group {
-  margin-bottom: 0;
-  min-width: 200px;
-}
-
-/* Pagination */
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-xs);
-  margin-top: var(--space-xl);
-  flex-wrap: wrap;
-}
-
-.page-link, .pagination-item { /* Consolidate base styles */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 36px;
-  height: 36px;
-  padding: 0 var(--space-sm);
-  border: 1px solid var(--border-color-dark);
-  border-radius: var(--radius-sm);
-  color: var(--text-color-dark);
-  background: var(--card-bg);
-  text-decoration: none;
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: background-color var(--transition-medium), color var(--transition-medium), border-color var(--transition-medium), transform var(--transition-medium);
-}
-
-.page-link.active, .pagination-item.active {
-  background-color: var(--primary-color);
-  color: var(--sidebar-text-color); /* white */
-  border-color: var(--primary-color);
-}
-
-.page-link:hover:not(.active), .pagination-item:hover:not(.active) {
-  background-color: var(--content-bg); /* light greyish blue */
-  color: var(--primary-color);
-  border-color: var(--primary-color);
-  /* transform: translateY(-2px); Optional hover effect */
-}
-
-
-/* Buttons */
-.btn, button { /* General button reset/base */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center; /* Center content in button */
-  gap: 0.3em;
-  border: 1px solid transparent; /* Base border for outline buttons */
-  border-radius: var(--radius-sm);
-  padding: 0.5em 1em; /* Using em for scalability with font-size */
-  font-weight: var(--font-weight-medium);
-  font-size: var(--font-size-base);
-  cursor: pointer;
-  text-decoration: none; /* Ensure links styled as buttons don't have underline */
-  transition: background-color var(--transition-medium), color var(--transition-medium), border-color var(--transition-medium), opacity var(--transition-medium);
-  line-height: 1.5; /* Ensure text is vertically centered if it wraps */
-}
-.btn:focus, button:focus {
-    outline: none; /* Remove default outline */
-    box-shadow: var(--shadow-focus); /* Custom focus style */
-}
-
-
-.btn-primary { background-color: var(--primary-color); color: var(--sidebar-text-color); }
-.btn-primary:hover { background-color: var(--primary-color-dark); }
-
-.btn-secondary { background-color: var(--button-secondary-bg); color: var(--button-secondary-text); }
-.btn-secondary:hover { background-color: darken(var(--button-secondary-bg), 5%); } /* Needs SASS or JS for darken, or hardcode a hover color */
-
-.btn-danger { background-color: var(--danger-color); color: var(--sidebar-text-color); }
-.btn-danger:hover { background-color: darken(var(--danger-color), 5%); }
-
-.btn-success { background-color: var(--success-color); color: var(--sidebar-text-color); }
-.btn-success:hover { background-color: darken(var(--success-color), 5%); }
-
-.btn-warning { background-color: var(--warning-color); color: var(--sidebar-text-color); }
-.btn-warning:hover { background-color: darken(var(--warning-color), 5%); }
-
-.btn-outline-primary { background-color: transparent; color: var(--primary-color); border-color: var(--primary-color); }
-.btn-outline-primary:hover { background-color: var(--primary-color); color: var(--sidebar-text-color); }
-
-.btn-outline-danger { background-color: transparent; color: var(--danger-color); border-color: var(--danger-color); }
-.btn-outline-danger:hover { background-color: var(--danger-color); color: var(--sidebar-text-color); }
-
-.btn-outline-success { background-color: transparent; color: var(--success-color); border-color: var(--success-color); }
-.btn-outline-success:hover { background-color: var(--success-color); color: var(--sidebar-text-color); }
-
-.btn-sm {
-  font-size: var(--font-size-smed);
-  padding: 0.3em 0.7em;
-}
-
-/* Modal Styles (Basic structure) */
-.modal-content { border-radius: var(--radius-md); }
-.modal-header { border-bottom: 1px solid var(--border-color-dark); padding: var(--space-md); }
-.modal-title { font-weight: var(--font-weight-semibold); font-size: var(--font-size-lg); }
-.modal-body { padding: var(--space-md); }
-.modal-footer { border-top: 1px solid var(--border-color-dark); padding: var(--space-md); display: flex; justify-content: flex-end; gap: var(--space-sm); }
-
-/* Address List */
-.address-list { display: grid; gap: var(--space-xl); }
-.address-item {
-  border: 1px solid var(--border-color-dark);
-  border-radius: var(--radius-sm);
-  padding: var(--space-xl);
-  background: var(--table-row-even-bg); /* f9f9f9 like color */
-  position: relative;
-}
-.address-item.default {
-  border-color: var(--success-color);
-  background: lighten(var(--success-color), 40%); /* Needs SASS/JS or hardcode */
-}
-.default-badge {
-  position: absolute;
-  top: var(--space-sm);
-  right: var(--space-sm);
-  background: var(--success-color);
-  color: var(--sidebar-text-color);
-  padding: 2px var(--space-xs);
-  font-size: var(--font-size-xs);
-  border-radius: var(--radius-pill);
-}
-.address-details p { margin: var(--space-xs) 0; }
-
-/* No Data Placeholder */
-.no-data {
-  color: var(--text-color-muted);
-  font-style: italic;
-  text-align: center;
-  padding: var(--space-xxl) 0;
-}
-
-/* Category Card */
-.category-card {
-  border: 1px solid var(--border-color-dark);
-  border-radius: var(--radius-md);
-  padding: var(--space-xl);
-  background: var(--card-bg);
-  box-shadow: var(--shadow-sm);
-  height: 100%; /* For consistent height in a grid */
-}
-.category-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-xl);
-  padding-bottom: var(--space-sm);
-  border-bottom: 1px solid var(--border-color-light);
-}
-.category-header h3 {
-  margin: 0;
-  font-size: var(--font-size-xxxl); /* 18px */
-  text-transform: capitalize;
-}
-.subcategory-list { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
-.subcategory-item {
-  display: inline-flex;
-  align-items: center;
-  background: var(--content-bg);
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-smed); /* 14px */
-}
-.subcategory-item .btn-link { /* Assuming .btn-link is a text-only button */
-  padding: 0;
-  margin-left: var(--space-xs);
-  font-size: var(--font-size-xs); /* 12px */
-  color: var(--text-color-muted);
-  background: none; border: none;
-}
-.subcategory-item .btn-link:hover { color: var(--primary-color); }
-
-/* Product Cell in Table */
-.product-cell { display: flex; align-items: center; gap: var(--space-sm); }
-.product-cell img {
-  width: 40px;
-  height: 40px;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color-dark);
-}
-
-/* Status History */
-.status-history { list-style: none; padding: 0; margin: 0; }
-.status-history-item {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
-}
-.status-history-time {
-  min-width: 120px;
-  color: var(--text-color-muted);
-  font-size: var(--font-size-smed);
-}
-.status-history-info { flex: 1; }
-.status-note {
-  color: darken(var(--text-color-muted), 10%);
-  font-size: var(--font-size-smed);
-  margin-top: 2px;
-}
-
-/* Utility Classes */
-.mt-2 { margin-top: var(--space-xs); } /* 0.5rem */
-.mt-3 { margin-top: var(--space-md); } /* 1rem */
-.mt-4 { margin-top: var(--space-xl); } /* 1.5rem */
-.text-right { text-align: right; }
-.text-center { text-align: center; }
-.text-muted { color: var(--text-color-muted) !important; } /* !important if overriding specific styles */
-.view-all { margin-top: var(--space-md); text-align: right; }
-.view-all a { color: var(--primary-color); text-decoration: underline; font-weight: var(--font-weight-medium); }
-
-
-/* Product Page Table Enhancements (can be merged with .data-table or kept separate if significantly different) */
-.product-table th, .product-table td { /* Example: if product table needs more padding */
-  padding: var(--space-md) var(--space-lg);
-}
-.product-table th { font-size: 1.05rem; } /* Slightly larger than default table th */
-.product-table td { font-size: var(--font-size-base); }
-.product-table tr { transition: background-color var(--transition-short); }
-.product-table tr:hover td { background-color: var(--product-table-row-hover-bg); }
-.product-table .btn { margin-right: var(--space-xs); }
-
-.table-responsive { /* For making tables scrollable on small screens */
-  display: block;
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-  margin-top: var(--space-xs);
-  margin-bottom: var(--space-xs);
-}
-
-
-/* ---- Responsive Design ---- */
-
-/* Medium Desktops / Large Tablets */
-@media (max-width: 1200px) {
-  .stats-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
-  .form-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  }
-  .admin-content { padding: var(--space-xl); }
-}
-
-/* Tablets */
-@media (max-width: 992px) {
-  .admin-layout {
-    grid-template-columns: 200px 1fr;
-  }
-  .admin-sidebar {
-    width: 200px;
-    border-radius: 0 var(--radius-sidebar-medium) var(--radius-sidebar-medium) 0;
-    padding-bottom: var(--space-md);
-  }
-  .admin-nav-link {
-    font-size: var(--font-size-smed); /* 0.9rem */
-    padding: var(--space-xs) var(--space-sm); /* 0.5rem 0.75rem */
-  }
-  .admin-sidebar-header {
-    padding: var(--space-lg) 0 var(--space-xs) 0;
-    margin-bottom: var(--space-lg);
-  }
-  .admin-sidebar-header h2 {
-    font-size: var(--font-size-xxxl); /* Maintain or slightly reduce */
-  }
-  .admin-content { padding: var(--space-sm); } /* 0.7rem */
-
-  .admin-header-actions {
-    flex-direction: column;
-    gap: var(--space-sm);
-    align-items: flex-end; /* Align to right */
-  }
-  .filter-group {
-    /* flex-direction: column;  Decide if stacking is better or keep wrap */
-    gap: var(--space-sm);
-  }
-}
-
-/* Small Tablets / Large Mobile */
-@media (max-width: 768px) {
-  .admin-layout {
-    grid-template-columns: 1fr; /* Sidebar is now fixed overlay */
-  }
-  .admin-sidebar {
-    position: fixed;
-    top: 0;
-    left: -220px; /* Hidden by default */
-    height: 100vh;
-    width: 220px;
-    z-index: 1000;
-    box-shadow: var(--shadow-lg); /* Keep shadow */
-    border-radius: 0 var(--radius-sidebar-small) var(--radius-sidebar-small) 0;
-    /* display: flex; is already set */
-  }
-  .admin-sidebar.show { /* This class will be toggled by JavaScript */
-    left: 0;
-  }
-
-  .mobile-toggle { /* Button to show/hide sidebar, needs HTML and JS */
-    display: flex; /* Initially hidden, JS can show it or use this */
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    background-color: var(--primary-color);
-    color: var(--sidebar-text-color);
-    border-radius: var(--radius-circle);
-    box-shadow: var(--shadow-mobile-toggle);
-    z-index: 999; /* Below sidebar but above content */
-    cursor: pointer;
-    border: none;
-  }
-  .mobile-toggle:focus { outline: none; }
-
-
-  .admin-content {
-    padding: var(--space-md); /* 1rem */
-  }
-  .stats-grid {
-    grid-template-columns: 1fr; /* Stack stat cards */
-  }
-  .admin-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-md);
-  }
-  .admin-header-actions {
-    width: 100%;
-    align-items: stretch; /* Make buttons full width if desired or keep flex-start */
-    flex-direction: row; /* Or column, depending on desired layout */
-  }
-  .admin-header-actions .btn {
-    flex-grow: 1; /* Example: make buttons take equal space if row */
-  }
-
-  .data-table, .product-table { /* Use .table-responsive class on a wrapper div instead */
-     /* display: block;
-     overflow-x: auto; */
-  }
-  .data-table th, .data-table td,
-  .product-table th, .product-table td {
-    padding: var(--space-xs) var(--space-xs); /* 0.5rem */
-    font-size: var(--font-size-smed); /* 0.95rem */
-  }
-  .filter-group {
-    flex-direction: column;
-  }
-  .filter-group .form-group {
-    width: 100%;
-  }
-}
-
-/* Small Mobile */
-@media (max-width: 576px) {
-  .admin-card {
-    padding: var(--space-md); /* 1rem */
-  }
-  .admin-content {
-    padding: var(--space-sm);
-  }
-  .pagination-item, .page-link {
-    min-width: 30px;
-    height: 30px;
-    font-size: var(--font-size-smed);
-    padding: 0 var(--space-xs);
-  }
-  .admin-header h1 {
-    font-size: var(--font-size-xl); /* 1.3rem */
-  }
-  .form-grid {
-    grid-template-columns: 1fr; /* Stack form elements */
-  }
-  .form-group {
-    margin-bottom: var(--space-sm);
-  }
-  .dynamic-field-row {
-    flex-direction: column;
-    gap: var(--space-xs);
-  }
-  .product-table th, .product-table td,
-  .data-table th, .data-table td {
-    padding: 0.6rem var(--space-xs); /* Maintain or adjust padding */
-  }
-  .admin-sidebar-header h2 {
-    font-size: var(--font-size-xxl);
-  }
-  .admin-nav-link {
-    font-size: var(--font-size-smed);
-    padding: var(--space-xs) var(--space-sm);
-  }
-  
-}
+        /*
+         * CSS HỢP NHẤT CHO GIAO DIỆN QUẢN TRỊ
+         * Phiên bản này gộp các biến và quy tắc từ nhiều tệp CSS được cung cấp.
+         * Mục tiêu là tạo ra một stylesheet duy nhất, dễ bảo trì và nhất quán.
+         */
+
+        /* ============================================= */
+        /* BIẾN CSS TOÀN CỤC (CSS VARIABLES)           */
+        /* ============================================= */
+        :root {
+            /* Màu sắc chính */
+            --primary-color: #2196F3;
+            --primary-color-dark: #1769AA; /* Ưu tiên giá trị này vì xuất hiện nhiều hơn */
+            --success-color: #4CAF50;
+            --danger-color: #F44336;
+            --warning-color: #FFC107;   /* Ưu tiên giá trị này từ các file sau */
+            --info-color: #3498DB;
+            --confirm-color: #f1c40f;   /* Từ file 1 */
+            --shipped-color: #9C27B0;
+            --customer-role-color: #009688; /* Từ file 1 */
+
+            /* Màu sắc Sidebar (Từ file 1 & 5) */
+            --sidebar-bg-start: #23272e;
+            --sidebar-bg-end: #2b2d42;
+            --sidebar-text-color: #fff;
+            --sidebar-link-color: #e0e6ed;
+            --sidebar-link-active-text: #fff;
+            --sidebar-border-color: #374151;
+            --sidebar-icon-color: #a3bffa;
+            --sidebar-header-text-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+            /* Nền nội dung & Card */
+            --content-bg: #f9fafb;       /* Ưu tiên giá trị này từ các file sau */
+            --card-bg: #fff;
+            --table-header-bg: #E0E0E0; /* Sử dụng --border-color-light làm nền header bảng cho nhất quán */
+            --table-row-even-bg: #f9fafb; /* Nhất quán với nền body chung */
+            --table-row-hover-bg: #f7fafd;
+            --product-table-row-hover-bg: #f0f6ff; /* Từ file 1 */
+
+            /* Màu chữ */
+            --text-color-dark: #23272E;
+            --text-color-light: var(--sidebar-link-color); /* Từ file 1 */
+            --text-color-muted: #6B7280;  /* Ưu tiên giá trị này */
+            --text-color-placeholder: #aaa; /* Từ file 1 */
+
+            /* Màu viền */
+            --border-color-light: #E0E0E0; /* Ưu tiên giá trị này */
+            --border-color-medium: #e5e7eb; /* Từ file 1 */
+            --border-color-dark: #e0e0e0;   /* Từ file 1, giống light ở các file sau */
+
+            /* Màu nút */
+            --button-secondary-bg: #e0e0e0; /* Từ file 1 */
+            --button-secondary-text: var(--text-color-dark); /* Từ file 1 */
+
+            /* Đổ bóng */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05); /* Từ file 1 */
+            --shadow-md: 0 1px 6px rgba(0, 0, 0, 0.1); /* Phổ biến cho admin-card ở các file sau */
+            --shadow-lg: 2px 0 16px 0 rgba(44, 62, 80, 0.1); /* Từ file 1 */
+            --shadow-focus: 0 0 0 3px rgba(33, 150, 243, 0.3); /* Đổ bóng focus phổ biến */
+            --shadow-nav-active: 0 2px 12px 0 rgba(33, 150, 243, 0.08); /* Từ file 1 */
+            --shadow-mobile-toggle: 0 2px 10px rgba(0, 0, 0, 0.2); /* Từ file 1 */
+
+            /* Bo góc */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-pill: 12px;
+            --radius-circle: 50%;
+            --radius-sidebar-default: 18px;
+            --radius-sidebar-medium: 12px;
+            --radius-sidebar-small: 16px;
+
+            /* Khoảng cách (Ưu tiên tiền tố 'spacing-' và giá trị từ các file sau nếu có sự nhất quán) */
+            --spacing-xxs: 0.25rem; /* Từ --space-xxs của file 1 */
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 0.75rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;   /* File 1 có --space-lg: 1.2rem, chọn 1.5rem cho nhất quán */
+            --spacing-xl: 2rem;     /* File 1 có --space-xl: 1.5rem, chọn 2rem */
+            --spacing-xxl: 2.2rem;  /* Từ --space-xxxl của file 1 */
+
+            /* Font chữ */
+            --font-family-sans: system-ui, -apple-system, BlinkMacSystemFont,
+                "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+            /* Cỡ chữ */
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;  /* Phổ biến ở các file sau. File 1: 0.85rem */
+            --font-size-smed: 0.9rem;  /* Từ file 1 */
+            --font-size-base: 1rem;
+            --font-size-md: 1.08rem;   /* Từ file 1 & 5 */
+            --font-size-lg: 1.2rem;    /* Từ file 1 */
+            --font-size-xl: 1.3rem;    /* Từ file 1 */
+            --font-size-xxl: 1.5rem;   /* Từ file 1 */
+            --font-size-xxxl: 1.7rem;  /* Từ file 1 */
+            --font-size-display: 2rem; /* Từ file 1 */
+
+            /* Độ đậm chữ */
+            --font-weight-light: 300;
+            --font-weight-normal: 400;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 600;
+            --font-weight-bold: 700;
+            --font-weight-extrabold: 800;
+
+            /* Giãn cách chữ */
+            --letter-spacing-sm: 0.02em;
+            --letter-spacing-lg: 2px;
+
+            /* Chuyển đổi */
+            --transition-short: 0.2s;  /* Phổ biến ở các file sau. File 1: 0.18s */
+            --transition-medium: 0.2s;
+            --transition-long: 0.3s;
+        }
+
+        /* ============================================= */
+        /* RESET VÀ KIỂU CƠ BẢN                       */
+        /* ============================================= */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--font-family-sans);
+            background-color: var(--content-bg); /* Sử dụng biến đã hợp nhất */
+            color: var(--text-color-dark);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            /* padding: var(--spacing-lg); Bỏ padding ở body, sẽ áp dụng cho container cụ thể nếu cần */
+        }
+
+        /* ============================================= */
+        /* BỐ CỤC CHÍNH (LAYOUT)                       */
+        /* ============================================= */
+        .admin-layout { /* Từ File 1, bố cục chính với sidebar */
+            display: flex;
+            min-height: 100vh;
+            /* gap và padding có thể cần điều chỉnh tùy theo thiết kế cuối cùng, sử dụng biến spacing */
+            /* gap: var(--spacing-xl); */ /* Khoảng cách giữa sidebar và content */
+            /* padding: var(--spacing-xl); */ /* Padding cho toàn bộ layout */
+            /* background-color: var(--content-bg); */ /* Đã có ở body */
+        }
+
+        /* Sidebar (Từ File 5, giữ nguyên phần lớn vì khá đặc thù) */
+        .admin-sidebar {
+            background: linear-gradient(
+                180deg,
+                var(--sidebar-bg-start) 60%,
+                var(--sidebar-bg-end) 100%
+            );
+            color: var(--sidebar-text-color);
+            width: 250px; /* Có thể điều chỉnh */
+            /* min-height: 100vh; */ /* admin-layout đã xử lý min-height */
+            display: flex;
+            flex-direction: column;
+            padding-bottom: var(--spacing-xl); /* Sử dụng biến spacing */
+            border-radius: 0 var(--radius-sidebar-default) var(--radius-sidebar-default) 0;
+            box-shadow: var(--shadow-lg); /* Sử dụng biến shadow */
+            position: fixed; /* Hoặc sticky tùy theo yêu cầu */
+            top: 0;
+            left: 0;
+            height: 100vh; /* Đảm bảo sidebar chiếm toàn bộ chiều cao */
+            z-index: 1000;
+            overflow-y: auto;
+            transition: left 0.3s ease; /* Cho responsive */
+        }
+
+        .admin-sidebar-header {
+            padding: calc(var(--spacing-xl) + var(--spacing-md)) var(--spacing-md) var(--spacing-lg); /* Điều chỉnh padding */
+            border-bottom: 1px solid var(--sidebar-border-color);
+            text-align: center;
+        }
+
+        .admin-sidebar-header h2 {
+            margin: 0;
+            font-family: var(--font-family-sans);
+            font-size: 1.7rem; /* Giữ nguyên hoặc dùng biến */
+            font-weight: var(--font-weight-bold);
+            letter-spacing: var(--letter-spacing-lg);
+            color: var(--sidebar-text-color);
+            text-shadow: var(--sidebar-header-text-shadow);
+            user-select: none;
+        }
+
+        nav.admin-sidebar-nav { /* Đổi tên class để rõ ràng hơn */
+            flex-grow: 1;
+            padding: 0 var(--spacing-xs); /* Sử dụng biến spacing */
+        }
+
+        ul.admin-nav {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        li.admin-nav-item {
+            margin-bottom: var(--spacing-xs);
+        }
+
+        a.admin-nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-sm) var(--spacing-lg); /* Điều chỉnh padding */
+            font-family: var(--font-family-sans);
+            font-size: var(--font-size-md);
+            font-weight: var(--font-weight-medium);
+            color: var(--sidebar-link-color);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            transition:
+                background-color var(--transition-short),
+                color var(--transition-short),
+                box-shadow var(--transition-short);
+            user-select: none;
+        }
+
+        a.admin-nav-link i {
+            font-size: 1.25rem;
+            width: 24px;
+            text-align: center;
+            color: var(--sidebar-icon-color);
+            transition: color var(--transition-medium);
+            flex-shrink: 0;
+        }
+
+        a.admin-nav-link.active,
+        a.admin-nav-link:hover,
+        a.admin-nav-link:focus {
+            background: linear-gradient(
+                90deg,
+                var(--primary-color) 60%,
+                var(--primary-color-dark) 100%
+            );
+            color: var(--sidebar-link-active-text);
+            box-shadow: var(--shadow-nav-active);
+            outline: none;
+        }
+
+        a.admin-nav-link.active i,
+        a.admin-nav-link:hover i,
+        a.admin-nav-link:focus i {
+            color: var(--sidebar-link-active-text);
+        }
+
+        a.admin-nav-link:active { /* Trạng thái khi click */
+            background: var(--sidebar-bg-start); /* Hoặc một màu tối hơn chút */
+        }
+
+        li.admin-nav-item:nth-last-child(-n + 2) { /* Style cho 2 item cuối nếu cần */
+            margin-top: var(--spacing-lg);
+            border-top: 1px solid var(--sidebar-border-color);
+            padding-top: var(--spacing-md);
+        }
+
+        .admin-sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .admin-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .admin-sidebar::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+
+        /* Vùng nội dung chính */
+        .admin-main-content { /* Thay thế cho .admin-content từ file 1 khi có sidebar */
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xl); /* Khoảng cách giữa header và các card */
+            padding: var(--spacing-xl); /* Padding cho vùng nội dung */
+            margin-left: 250px; /* Bằng chiều rộng sidebar */
+            overflow-x: auto; /* Cho phép cuộn ngang nếu nội dung quá rộng */
+            transition: margin-left 0.3s ease; /* Cho responsive */
+        }
+
+        .page-container { /* Wrapper cho nội dung trang, giới hạn chiều rộng và căn giữa */
+            max-width: 1100px; /* Hoặc giá trị khác tùy trang */
+            margin: 0 auto;
+            width: 100%;
+        }
+
+
+        /* ============================================= */
+        /* HEADER CHUNG CỦA TRANG QUẢN TRỊ             */
+        /* ============================================= */
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl); /* Thống nhất margin bottom */
+        }
+
+        .admin-header h1 {
+            font-size: 1.75rem; /* Thống nhất từ các file sau, file 1 có var(--font-size-display) = 2rem */
+            font-weight: var(--font-weight-bold); /* File 1 dùng bold, các file sau dùng semibold */
+            margin: 0;
+            color: var(--text-color-dark);
+        }
+
+        .admin-header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm); /* Thống nhất từ các file sau, file 1 có var(--space-md) */
+            flex-wrap: wrap;
+        }
+
+        /* ============================================= */
+        /* CARD CHUNG                                  */
+        /* ============================================= */
+        .admin-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md); /* Sử dụng biến đã hợp nhất */
+            padding: var(--spacing-lg);  /* Thống nhất từ các file sau, file 1 có var(--space-xl) */
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);      /* Thống nhất từ các file sau, file 1 có var(--space-lg) */
+        }
+
+        .card-header {
+            border-bottom: 1px solid var(--border-color-light);
+            padding-bottom: var(--spacing-sm); /* Thống nhất từ các file sau, file 1 có var(--space-sm) */
+            /* margin-bottom: var(--spacing-md); */ /* Có thể thêm nếu cần khoảng cách với content */
+        }
+
+        .card-header h2,
+        .card-header h3 { /* gộp h2 và h3 */
+            margin: 0;
+            font-size: 1.5rem; /* Thống nhất từ các file sau, file 1 có var(--font-size-lg) = 1.2rem */
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-color-dark);
+        }
+
+        /* ============================================= */
+        /* BẢNG DỮ LIỆU (TABLES)                       */
+        /* ============================================= */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--font-size-base);
+            color: var(--text-color-dark);
+            min-width: 700px; /* Giá trị chung, có thể điều chỉnh theo media query */
+        }
+
+        table.data-table thead tr {
+            background-color: var(--table-header-bg); /* Sử dụng biến đã hợp nhất */
+        }
+
+        table.data-table th,
+        table.data-table td {
+            padding: var(--spacing-sm) var(--spacing-md); /* Thống nhất padding, file 1 có 0.75rem 1rem */
+            border-bottom: 1px solid var(--border-color-light); /* File 1 dùng --border-color-medium */
+            white-space: nowrap;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        table.data-table th {
+            font-weight: var(--font-weight-semibold); /* Thống nhất */
+        }
+
+        table.data-table tbody tr:nth-child(even) {
+            background-color: var(--table-row-even-bg); /* Sử dụng biến đã hợp nhất */
+        }
+
+        table.data-table tbody tr:hover {
+            background-color: var(--table-row-hover-bg);
+            transition: background-color var(--transition-short); /* File 1 dùng medium */
+        }
+
+        /* ============================================= */
+        /* NÚT BẤM (BUTTONS)                           */
+        /* ============================================= */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5em; /* Thống nhất, file 1 có 0.3em */
+            border-radius: var(--radius-md); /* File 1 dùng --radius-sm */
+            padding: 0.5em 1em; /* Phổ biến, file 1 có 0.3em 0.6em */
+            font-size: var(--font-size-base); /* Phổ biến, file 1 có --font-size-sm */
+            font-weight: var(--font-weight-semibold);
+            cursor: pointer;
+            border: 1px solid transparent; /* Giữ lại từ file 1 cho base button */
+            transition: background-color var(--transition-short), color var(--transition-short), border-color var(--transition-short);
+            user-select: none;
+            text-decoration: none;
+            color: var(--text-color-dark); /* Màu chữ mặc định cho nút secondary-like */
+            background-color: var(--button-secondary-bg); /* Nền mặc định cho nút secondary-like */
+            border-color: var(--button-secondary-bg); /* Viền mặc định */
+        }
+        .btn i { /* Style cho icon trong button */
+            font-size: 1rem; /* Hoặc 1.1em để tỷ lệ với font chữ nút */
+        }
+
+        .btn-sm {
+            font-size: var(--font-size-sm); /* File 1 có xs, các file sau có 0.8rem */
+            padding: 0.25em 0.5em; /* Phổ biến, file 1 có 0.2em 0.5em */
+            /* border-radius: var(--border-radius-md); đã có ở .btn, trừ khi muốn khác */
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background-color: var(--primary-color-dark);
+            border-color: var(--primary-color-dark);
+            outline: none;
+        }
+
+        .btn-secondary { /* Định nghĩa rõ ràng cho btn-secondary nếu cần */
+            background-color: #6b7280; /* Màu từ các file sau */
+            color: white;
+            border-color: #6b7280;
+        }
+        .btn-secondary:hover,
+        .btn-secondary:focus {
+            background-color: #4b5563;
+            border-color: #4b5563;
+            outline: none;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+            border-color: var(--danger-color);
+        }
+        .btn-danger:hover,
+        .btn-danger:focus {
+            background-color: #b32b27; /* Màu hover nhất quán */
+            border-color: #b32b27;
+            outline: none;
+        }
+
+        .btn-warning { /* Thêm từ file product list */
+            background-color: var(--warning-color);
+            color: #333; /* Đảm bảo contrast */
+            border-color: var(--warning-color);
+        }
+        .btn-warning:hover,
+        .btn-warning:focus {
+            background-color: #b45309; /* Darken warning */
+            border-color: #b45309;
+            color: white;
+            outline: none;
+        }
+
+
+        .btn-outline-primary {
+            background-color: transparent;
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-outline-primary:hover,
+        .btn-outline-primary:focus {
+            background-color: var(--primary-color);
+            color: white;
+            outline: none;
+        }
+
+        .btn-outline-danger {
+            background-color: transparent;
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        .btn-outline-danger:hover,
+        .btn-outline-danger:focus {
+            background-color: var(--danger-color);
+            color: white;
+            outline: none;
+        }
+
+        /* Nút áp dụng trong date filter (File 1) */
+        #apply-custom-range { /* Giữ lại ID nếu JS đang dùng */
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.4em 1em;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-semibold);
+            transition: background-color var(--transition-medium);
+        }
+        #apply-custom-range:hover {
+            background-color: var(--primary-color-dark);
+        }
+
+
+        /* ============================================= */
+        /* HUY HIỆU TRẠNG THÁI (STATUS BADGES)         */
+        /* ============================================= */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.6em; /* File 1: 0.2em 0.6em, File 4&6: 4px 12px, File 7: 0.25rem 0.5rem. Chọn một giá trị trung bình */
+            border-radius: var(--radius-pill); /* File 1: pill, File 4&6: 9999px, File 7: 0.25rem. Pill là lựa chọn tốt */
+            font-size: var(--font-size-xs); /* File 1: xs, File 4&6&7: 0.85rem. Chọn xs cho nhỏ gọn */
+            font-weight: var(--font-weight-semibold);
+            color: white;
+            user-select: none;
+            white-space: nowrap;
+            transition: background-color 0.3s ease; /* Thêm transition từ File 7 */
+        }
+        /* Trạng thái cụ thể */
+        .status-badge.processing { /* File 1: info-color, File 4&6: warning-color + text #333 */
+            background-color: var(--warning-color);
+            color: #333;
+        }
+        .status-badge.confirmed { /* File 1: confirm-color + text #222, File 4&6: primary-color */
+            background-color: var(--primary-color);
+            color: white; /* Đảm bảo text trắng trên nền primary */
+        }
+        .status-badge.shipped {
+            background-color: var(--shipped-color);
+        }
+        .status-badge.delivered {
+            background-color: var(--success-color);
+        }
+        .status-badge.cancelled {
+            background-color: var(--danger-color);
+        }
+        /* Thêm từ File 7 */
+        .status-badge.active { /* Dùng cho user/coupon status */
+            background-color: var(--success-color);
+        }
+        .status-badge.banned { /* Dùng cho user/coupon status */
+            background-color: var(--danger-color);
+        }
+
+
+        /* ============================================= */
+        /* BIỂU MẪU (FORMS)                             */
+        /* ============================================= */
+        form { /* Style chung cho form nếu cần */
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem; /* Khoảng cách giữa label và input */
+        }
+        label, .form-label { /* .form-label từ một số file */
+            font-weight: var(--font-weight-semibold);
+            font-size: var(--font-size-base);
+            color: var(--text-color-dark);
+            margin-bottom: 0.3rem; /* Thêm từ file order detail */
+            user-select: none; /* Thêm từ file coupon form */
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"], /* Thêm từ date-filter */
+        input[type="file"], /* Thêm từ product form */
+        textarea,
+        select,
+        .form-control { /* Class chung cho input */
+            width: 100%; /* Để các input chiếm toàn bộ chiều rộng của container cha */
+            padding: 0.5em 0.75em; /* Thống nhất padding */
+            font-size: var(--font-size-base);
+            border: 1px solid var(--border-color-light); /* File 1 dùng --border-color-dark */
+            border-radius: var(--radius-md); /* File 1 dùng --radius-sm */
+            transition: border-color var(--transition-short), box-shadow var(--transition-short);
+            color: var(--text-color-dark);
+            background-color: white; /* Đảm bảo nền trắng */
+            box-sizing: border-box; /* Đã có ở * nhưng thêm ở đây cho rõ ràng */
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px; /* File product form: 100px, coupon form: 80px. Chọn 100px */
+        }
+        input[type="text"]::placeholder,
+        textarea::placeholder {
+            color: var(--text-color-placeholder); /* File 1 có --text-color-placeholder, các file sau dùng --text-color-muted */
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="file"]:focus,
+        textarea:focus,
+        select:focus,
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-focus); /* Sử dụng biến shadow focus đã hợp nhất */
+        }
+
+        /* Checkbox */
+        .form-check { /* Wrapper cho checkbox từ coupon form */
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        input[type="checkbox"],
+        input.form-check-input { /* class từ coupon form */
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            /* Không nên style quá nhiều cho checkbox gốc, có thể dùng custom checkbox nếu muốn đẹp hơn */
+        }
+        label.form-check-label { /* label cho checkbox từ coupon form */
+            font-weight: var(--font-weight-medium); /* Nhẹ hơn label thường */
+            font-size: var(--font-size-base);
+            color: var(--text-color-dark);
+            user-select: none;
+            cursor: pointer;
+            margin-bottom: 0; /* Reset margin bottom */
+        }
+
+        /* Form text (File coupon form) */
+        .form-text {
+            font-size: var(--font-size-sm);
+            color: var(--text-color-muted);
+            user-select: none;
+        }
+
+        /* Form actions (File coupon form) */
+        .form-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+            justify-content: flex-start; /* Mặc định */
+            margin-top: var(--spacing-md);
+        }
+        .form-actions .btn { /* Style chung cho nút trong form-actions */
+             padding: 0.5em 1.25em; /* Padding lớn hơn một chút */
+        }
+
+
+        /* Date filter (File 1) */
+        .date-filter {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        /* Input, select trong date-filter đã được style chung ở trên */
+
+        /* Filter group (File product list & order list) */
+        form.filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            width: 100%;
+            max-width: 600px; /* Giới hạn chiều rộng của form filter */
+            /* align-items: flex-end; */ /* Nếu muốn nút thẳng hàng với đáy input */
+        }
+        form.filter-group .form-group { /* Cho input/select trong filter group */
+            flex: 1 1 150px; /* Cho phép co giãn, min-width 150px */
+            min-width: 120px; /* Đảm bảo không quá nhỏ */
+            margin-bottom: 0; /* Reset margin nếu có từ .form-group chung */
+        }
+        form.filter-group input.form-control, /* Đã được style chung */
+        form.filter-group select {}
+        form.filter-group button.btn-primary { /* Nút tìm kiếm/lọc */
+            flex: 0 0 auto; /* Không co giãn, kích thước tự động */
+            /* padding và style khác đã có ở .btn và .btn-primary */
+        }
+
+
+        /* ============================================= */
+        /* THÀNH PHẦN GIAO DIỆN CỤ THỂ                 */
+        /* ============================================= */
+
+        /* Stats Grid (File 1) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: var(--spacing-xl);
+        }
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm); /* Shadow nhẹ hơn admin-card */
+            padding: var(--spacing-xl);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            border-left: 6px solid transparent;
+            transition: box-shadow var(--transition-medium);
+        }
+        .stat-card:hover {
+            box-shadow: var(--shadow-md); /* Shadow mạnh hơn khi hover */
+        }
+        .stat-card .label {
+            font-size: var(--font-size-sm);
+            color: var(--text-color-muted);
+            font-weight: var(--font-weight-semibold);
+            text-transform: uppercase;
+            letter-spacing: var(--letter-spacing-sm);
+        }
+        .stat-card .value {
+            font-size: var(--font-size-xxxl);
+            font-weight: var(--font-weight-extrabold);
+            color: var(--text-color-dark);
+        }
+        .stat-card .change {
+            font-size: var(--font-size-sm);
+            color: var(--text-color-muted);
+        }
+        .stat-card.primary { border-left-color: var(--primary-color); }
+        .stat-card.success { border-left-color: var(--success-color); }
+        .stat-card.warning { border-left-color: var(--warning-color); }
+        .stat-card.danger { border-left-color: var(--danger-color); }
+
+        /* Actions column in table (File 1, Order list) */
+        .actions {
+            display: flex;
+            gap: var(--spacing-xs);
+            justify-content: center; /* File 1: center, File order list: có thể là start */
+        }
+
+        /* Product cell in table (File 1, Order Detail) */
+        .product-cell {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        .product-cell img {
+            width: 40px; /* File 1: 40px, File Order Detail: 50px. Chọn 40px hoặc 50px */
+            height: 40px;
+            object-fit: cover;
+            border-radius: var(--radius-sm); /* File Order Detail: --radius-md */
+            border: 1px solid var(--border-color-light); /* File 1: --border-color-dark */
+        }
+
+        /* View all link (File 1) */
+        .view-all {
+            margin-top: var(--spacing-md);
+            text-align: right;
+        }
+        .view-all a {
+            color: var(--primary-color);
+            font-weight: var(--font-weight-semibold);
+            text-decoration: underline;
+            cursor: pointer;
+            transition: color var(--transition-medium);
+        }
+        .view-all a:hover,
+        .view-all a:focus {
+            color: var(--primary-color-dark);
+            outline: none;
+        }
+
+        /* Pagination (File Order List) */
+        .pagination {
+            display: flex;
+            justify-content: center; /* Mặc định */
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-lg);
+            flex-wrap: wrap;
+        }
+        .pagination-item {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 36px;
+            padding: 0 var(--spacing-sm);
+            border: 1px solid var(--border-color-light);
+            border-radius: var(--radius-md);
+            color: var(--text-color-dark);
+            background: white;
+            text-decoration: none;
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+            transition: background-color var(--transition-short), color var(--transition-short), border-color var(--transition-short);
+            user-select: none;
+        }
+        .pagination-item.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            cursor: default;
+        }
+        .pagination-item:hover:not(.active),
+        .pagination-item:focus:not(.active) {
+            background-color: #e6f0ff; /* Màu hover nhẹ nhàng */
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        /* Variant list (Product Form) */
+        #variant-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm); /* File product form: 0.5rem */
+            margin-bottom: var(--spacing-md);
+        }
+        .variant-row {
+            display: flex;
+            gap: var(--spacing-sm); /* File product form: 0.5rem */
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .variant-row input[type="text"],
+        .variant-row input[type="number"] {
+            flex: 1 1 20%; /* Cho phép co giãn, chiếm khoảng 20% */
+            min-width: 120px; /* Không quá nhỏ */
+            /* Style chung cho input đã được áp dụng */
+        }
+        .variant-row button.remove-variant { /* Nút xóa variant */
+            flex: 0 0 auto; /* Không co giãn */
+            background-color: var(--danger-color);
+            border: none;
+            color: white;
+            padding: 0.3em 0.6em;
+            font-size: var(--font-size-sm); /* File product form: 0.8rem */
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: background-color var(--transition-short);
+        }
+        .variant-row button.remove-variant:hover,
+        .variant-row button.remove-variant:focus {
+            background-color: #b32b27; /* Darken danger */
+            outline: none;
+        }
+        #add-variant-btn { /* Nút thêm variant */
+            align-self: flex-start; /* Canh lề trái */
+            /* Kế thừa từ .btn-outline-primary nếu có class đó, hoặc style riêng */
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.4em 0.8em;
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-semibold);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: background-color var(--transition-short), color var(--transition-short);
+        }
+        #add-variant-btn:hover,
+        #add-variant-btn:focus {
+            background-color: var(--primary-color);
+            color: white;
+            outline: none;
+        }
+
+        /* Image preview (Product Form) */
+        #image-preview-container {
+            display: flex;
+            gap: var(--spacing-sm); /* File product form: 10px */
+            margin-top: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+        #image-preview-container img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: var(--border-radius-md);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1); /* Shadow nhẹ */
+            user-select: none;
+        }
+
+        /* Order Info Grid & Sections (Order Detail) */
+        .row { /* Layout grid chung */
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xl); /* Khoảng cách giữa các cột */
+        }
+        .col-lg-8 { flex: 1 1 65%; min-width: 320px; }
+        .col-lg-4 { flex: 1 1 30%; min-width: 280px; }
+
+        .order-info-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-lg);
+        }
+        .order-info-section {
+            flex: 1 1 300px; /* Co giãn, tối thiểu 300px */
+            min-width: 280px; /* Không quá hẹp */
+        }
+        .order-info-section h3 {
+            font-size: 1.25rem; /* Cỡ chữ nhỏ hơn card-header h2/h3 */
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-color-dark);
+        }
+        .order-info-section p,
+        .payment-details p { /* Gộp style cho p */
+            margin: 0.3rem 0;
+            font-size: var(--font-size-base);
+            color: var(--text-color-dark);
+        }
+        .order-items h3 { /* Tiêu đề cho danh sách sản phẩm trong đơn hàng */
+            font-size: 1.5rem; /* Giống card-header h2/h3 */
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--spacing-md);
+            color: var(--text-color-dark);
+        }
+        /* Table footer (Order Detail) */
+        tfoot tr.total-row td {
+            font-weight: var(--font-weight-semibold);
+            font-size: 1.1rem; /* Lớn hơn một chút */
+            border-top: 2px solid var(--border-color-light); /* Viền đậm hơn */
+        }
+        tfoot tr td.text-right { text-align: right; }
+
+        /* Alert (Order Detail) */
+        .alert {
+            padding: var(--spacing-sm);
+            background-color: var(--success-color); /* Mặc định là success */
+            color: white;
+            border-radius: var(--radius-md);
+            font-weight: var(--font-weight-semibold);
+            margin-bottom: var(--spacing-md);
+            user-select: none;
+        }
+        .alert.alert-danger { background-color: var(--danger-color); }
+        .alert.alert-warning { background-color: var(--warning-color); color: #333; }
+        .alert.alert-info { background-color: var(--info-color); }
+
+
+        /* Status History (Order Detail) */
+        .status-history {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px; /* Giới hạn chiều cao, cho phép cuộn */
+            overflow-y: auto;
+        }
+        .status-history-item {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            align-items: flex-start;
+        }
+        .status-history-time {
+            min-width: 140px; /* Đủ rộng cho ngày giờ */
+            font-size: var(--font-size-sm);
+            color: var(--text-color-muted);
+            flex-shrink: 0; /* Không co lại */
+        }
+        .status-history-info { flex: 1; }
+        .status-note {
+            font-size: var(--font-size-sm);
+            color: #555; /* Màu chữ tối hơn muted một chút */
+            margin-top: 2px;
+            white-space: pre-wrap; /* Giữ nguyên xuống dòng */
+        }
+
+        /* Status Update Form (Order Detail) */
+        .status-update-form { margin-top: var(--spacing-md); }
+        .form-row { /* Dùng cho các input trên cùng một hàng */
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+            align-items: flex-end; /* Canh đáy các input và button */
+        }
+        .form-row .form-group { /* form-group trong form-row */
+            flex: 1 1 200px; /* Co giãn, tối thiểu 200px */
+            margin-bottom: 0; /* Reset margin nếu có */
+        }
+        #update-status-btn { /* Nút cập nhật trạng thái */
+            /* Kế thừa từ .btn và .btn-primary */
+            padding: 0.5em 1.5em; /* Padding lớn hơn */
+        }
+
+        /* Badges khác từ Coupon List */
+        .remaining-uses-badge,
+        .used-count-badge,
+        .unlimited-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem; /* Vuông hơn status-badge */
+            font-size: 0.85rem;
+            font-weight: var(--font-weight-medium); /* Nhẹ hơn status-badge */
+            user-select: none;
+            white-space: nowrap;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .remaining-uses-badge { background-color: #e6f7ff; color: #0077cc; }
+        .remaining-uses-badge.low-count { background-color: #fff2e6; color: #ff6b00; font-weight: var(--font-weight-semibold); }
+        .remaining-uses-badge.low-count:hover { background-color: #ffddb8; color: #cc5500; }
+        .unlimited-badge { background-color: #f0f0f0; color: #666; }
+        .used-count-badge { background-color: #e8f5e9; color: #43a047; }
+
+
+        /* ============================================= */
+        /* RESPONSIVE DESIGN                           */
+        /* ============================================= */
+
+        /* Màn hình lớn hơn (Desktop nhỏ / Tablet ngang) */
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Thu nhỏ stat card */
+            }
+            table.data-table {
+                min-width: 600px; /* Giảm min-width của bảng */
+            }
+            .admin-main-content {
+                padding: var(--spacing-lg); /* Giảm padding trên màn hình nhỏ hơn */
+            }
+        }
+
+        /* Màn hình Tablet và nhỏ hơn */
+        @media (max-width: 768px) {
+            .admin-layout {
+                /* flex-direction: column; Bỏ nếu sidebar trượt ra */
+                /* padding: var(--spacing-lg); */ /* File 1 có, nhưng nếu sidebar fixed thì không cần */
+            }
+            .admin-sidebar { /* Sidebar trượt từ bên trái */
+                left: -250px; /* Ẩn sidebar ban đầu (bằng width) */
+                border-radius: 0 var(--radius-sidebar-medium) var(--radius-sidebar-medium) 0; /* Giảm bo góc */
+            }
+            .admin-sidebar.show { /* Class để hiện sidebar */
+                left: 0;
+            }
+            .admin-main-content {
+                margin-left: 0; /* Nội dung chiếm toàn bộ khi sidebar ẩn */
+                padding: var(--spacing-md); /* Giảm padding hơn nữa */
+            }
+            .admin-main-content.sidebar-shown { /* Khi sidebar hiện */
+                margin-left: 250px; /* Đẩy nội dung sang phải */
+            }
+
+
+            .admin-header {
+                flex-direction: column;
+                align-items: flex-start; /* Canh trái các mục header */
+                gap: var(--spacing-md);
+            }
+            .admin-header-actions {
+                width: 100%; /* Chiếm toàn bộ chiều rộng */
+                justify-content: flex-start; /* Canh trái các action */
+                gap: var(--spacing-sm);
+            }
+            /* Nút "Thêm sản phẩm" hoặc tương tự trong header */
+            .admin-header > a.btn-primary,
+            .admin-header > a.btn-secondary {
+                width: 100%;
+                justify-content: center;
+                margin-top: var(--spacing-sm); /* Thêm khoảng cách nếu cần */
+            }
+
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr; /* 2 cột trên tablet */
+                gap: var(--spacing-lg);
+            }
+            table.data-table {
+                min-width: 100%; /* Bảng chiếm toàn bộ chiều rộng */
+                font-size: var(--font-size-sm); /* Giảm cỡ chữ bảng */
+            }
+            table.data-table th,
+            table.data-table td {
+                padding: var(--spacing-xs) var(--spacing-sm); /* Giảm padding cell */
+                white-space: normal; /* Cho phép chữ xuống dòng */
+            }
+            .actions {
+                justify-content: flex-start; /* Canh trái các nút action trong bảng */
+            }
+
+            form.filter-group {
+                max-width: 100%; /* Form filter chiếm toàn bộ chiều rộng */
+            }
+            .date-filter { /* Từ File 1 */
+                flex-wrap: wrap;
+                gap: var(--spacing-xs);
+            }
+
+            /* Layout cột cho order detail */
+            .row { flex-direction: column; }
+            .col-lg-8, .col-lg-4 { flex: 1 1 100%; min-width: auto; }
+            .order-info-grid { flex-direction: column; }
+            .form-row { flex-direction: column; align-items: stretch; }
+            .form-row .form-group { flex: 1 1 100%; }
+            #update-status-btn { width: 100%; }
+
+
+            .pagination {
+                justify-content: flex-start; /* Canh trái pagination */
+            }
+
+            /* Form product variants */
+            .variant-row {
+                flex-direction: column;
+                align-items: stretch; /* Input và button chiếm toàn bộ chiều rộng */
+            }
+            .variant-row input[type="text"],
+            .variant-row input[type="number"],
+            .variant-row button.remove-variant {
+                flex: 1 1 100%;
+                min-width: auto;
+            }
+        }
+
+        /* Màn hình Mobile */
+        @media (max-width: 480px) {
+            .admin-sidebar {
+                width: 220px; /* Giảm chiều rộng sidebar trên mobile */
+                left: -220px;
+            }
+            .admin-sidebar.show { left: 0; }
+            .admin-main-content.sidebar-shown { margin-left: 220px; }
+
+
+            .stats-grid {
+                grid-template-columns: 1fr; /* 1 cột trên mobile */
+            }
+            .date-filter { /* Từ File 1 */
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .date-filter select,
+            .date-filter input[type="date"],
+            #apply-custom-range {
+                width: 100%; /* Input trong date filter chiếm toàn bộ chiều rộng */
+            }
+
+            .form-actions { /* Từ coupon form */
+                flex-direction: column;
+                gap: var(--spacing-xs);
+            }
+            .form-actions button,
+            .form-actions a {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Thêm class để toggle sidebar trên mobile */
+        .sidebar-toggle-btn {
+            display: none; /* Ẩn trên desktop */
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001; /* Cao hơn sidebar một chút để không bị che */
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-mobile-toggle);
+        }
+        @media (max-width: 768px) {
+            .sidebar-toggle-btn {
+                display: block;
+            }
+            .admin-main-content.sidebar-shown .sidebar-toggle-btn {
+                 left: calc(250px + 15px); /* Điều chỉnh vị trí nút khi sidebar hiện (250px là width sidebar) */
+            }
+             @media (max-width: 480px) {
+                .admin-main-content.sidebar-shown .sidebar-toggle-btn {
+                    left: calc(220px + 15px); /* Điều chỉnh vị trí nút khi sidebar hiện (220px là width sidebar mobile) */
+                }
+            }
+        }
+        
+

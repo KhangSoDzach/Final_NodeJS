@@ -2,9 +2,97 @@
 <div class="container">
   <h1>Đặt hàng thành công!</h1>
   <p>Cảm ơn bạn đã đặt hàng. Mã đơn hàng của bạn là <strong><%= orderId %></strong>.</p>
-  <p>Bạn có thể theo dõi trạng thái đơn hàng <a href="/orders/track/<%= orderId %>">tại đây</a>.</p>
-  <% if (couponApplied) { %>
+  <p>Bạn có thể theo dõi trạng thái đơn hàng <a href="/orders/track/<%= orderId %>">tại đây</a>.</p>  <% if (couponApplied) { %>
   <p>Đơn hàng của bạn đã được giảm giá <strong><%= discountPercent %>%</strong> với mã <strong><%= couponCode %></strong>.</p>
   <% } %>
+  
+  <% if (order.loyaltyPointsUsed > 0) { %>
+  <p>Bạn đã sử dụng <strong><%= order.loyaltyPointsUsed %></strong> điểm tích lũy để giảm <strong><%= (order.loyaltyPointsUsed * 1000).toLocaleString('vi-VN') %> VND</strong>.</p>
+  <% } %>
+  
+  <% if (order.loyaltyPointsEarned > 0) { %>
+  <p>Bạn đã nhận được <strong><%= order.loyaltyPointsEarned %></strong> điểm tích lũy từ đơn hàng này.</p>
+  <% } %>
+  
+  <p>Tổng số điểm tích lũy hiện tại của bạn: <strong><%= currentLoyaltyPoints %></strong> điểm.</p>
+  
   <a href="/orders/history" class="btn btn-primary">Xem lịch sử đơn hàng</a>
 </div>
+<style>
+    
+    h1 {
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
+      margin-bottom: var(--spacing-md);
+      color: var(--primary-color);
+    }
+
+    p {
+      font-size: var(--font-size-base);
+      margin-bottom: var(--spacing-md);
+      line-height: 1.5;
+      color: var(--text-color-dark);
+    }
+
+    p strong {
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-color-dark);
+    }
+
+    p a {
+      color: var(--primary-color);
+      text-decoration: none;
+      transition: color var(--transition-short);
+    }
+
+    p a:hover,
+    p a:focus {
+      color: var(--primary-color-dark);
+      outline: none;
+      text-decoration: underline;
+    }
+
+    a.btn {
+      display: inline-block;
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.75em 2em;
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-semibold);
+      border-radius: var(--border-radius-md);
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color var(--transition-short);
+      user-select: none;
+      margin-top: var(--spacing-lg);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    a.btn:hover,
+    a.btn:focus {
+      background-color: var(--primary-color-dark);
+      outline: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .container {
+        padding: var(--spacing-lg);
+        max-width: 100%;
+      }
+
+      h1 {
+        font-size: 1.1rem;
+      }
+
+      p {
+        font-size: 0.9rem;
+      }
+
+      a.btn {
+        width: 100%;
+        padding: 0.75em 0;
+      }
+    }
+  </style>

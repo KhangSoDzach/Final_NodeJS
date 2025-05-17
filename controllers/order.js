@@ -22,12 +22,23 @@ exports.createOrder = async (req, res) => {
       paymentDetails,
       status: 'pending',
       statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }]
-    });
-
-    // Add coupon information if coupon was applied
+    });    // Add coupon information if coupon was applied
     if (cart.coupon && cart.coupon.code) {
       order.couponCode = cart.coupon.code;
       order.discount = cart.coupon.discount;
+      
+      // Tăng số lần sử dụng của coupon
+      try {
+        const Coupon = require('../models/coupon');
+        await Coupon.findOneAndUpdate(
+          { code: cart.coupon.code },
+          { $inc: { usedCount: 1 } }
+        );
+        console.log(`Coupon ${cart.coupon.code} usage count increased.`);
+      } catch (couponError) {
+        console.error('Error updating coupon usedCount:', couponError);
+        // Continue processing the order even if we can't update the coupon count
+      }
     }
 
     await order.save();
@@ -120,10 +131,8 @@ exports.applyLoyaltyPoints = async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order || order.user.toString() !== req.user._id.toString()) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng.' });
-    }
-
-    // Calculate loyalty points
-    const loyaltyPoints = Math.floor(order.totalAmount * 0.1);
+    }    // Calculate loyalty points
+    const loyaltyPoints = Math.floor(order.totalAmount * 0.0001);
 
     // Update user's loyalty points
     req.user.loyaltyPoints += loyaltyPoints;
@@ -142,15 +151,38 @@ exports.applyLoyaltyPoints = async (req, res) => {
 
 exports.postCheckout = async (req, res) => {
   try {
-    const { name, address, district, province, phone, paymentMethod } = req.body;    // Lấy giỏ hàng của người dùng
+    const { name, address, district, province, phone, paymentMethod, loyaltyPointsToUse } = req.body;    // Lấy giỏ hàng của người dùng
     const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
     if (!cart || cart.items.length === 0) {
       req.flash('error', 'Giỏ hàng của bạn đang trống.');
       return res.redirect('/cart');
-    }
-
-    // Tính tổng tiền (có tính đến coupon nếu được áp dụng)
-    const totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
+    }    // Tính tổng tiền (có tính đến coupon nếu được áp dụng)
+    let totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
+    
+    // Tự động sử dụng điểm tích lũy tối đa
+    let loyaltyPointsUsed = 0;
+    if (req.user.loyaltyPoints > 0) {
+      // Tính số điểm tích lũy tối đa có thể sử dụng cho đơn hàng
+      const maxPointsForOrder = Math.floor(totalAmount / 1000);
+      
+      // Sử dụng số điểm nhỏ nhất giữa điểm hiện có và điểm tối đa cho đơn hàng
+      loyaltyPointsUsed = Math.min(req.user.loyaltyPoints, maxPointsForOrder);
+      
+      if (loyaltyPointsUsed > 0) {
+        // Trừ giảm giá từ điểm tích lũy vào tổng tiền
+        const loyaltyDiscount = loyaltyPointsUsed * 1000;
+        totalAmount = Math.max(0, totalAmount - loyaltyDiscount);
+        
+        // Trừ điểm đã sử dụng khỏi tài khoản của người dùng
+        req.user.loyaltyPoints -= loyaltyPointsUsed;
+        await req.user.save();
+      }
+    }// Tính điểm tích lũy kiếm được từ đơn hàng này (0.01% giá trị đơn hàng)
+    const loyaltyPointsEarned = Math.floor(totalAmount * 0.0001);
+    
+    // Cộng điểm mới vào tài khoản người dùng
+    req.user.loyaltyPoints += loyaltyPointsEarned;
+    await req.user.save();
 
     // Tạo mã đơn hàng duy nhất
     const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;    // Tạo đơn hàng
@@ -168,13 +200,26 @@ exports.postCheckout = async (req, res) => {
         phone 
       },
       status: 'pending',
-      statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }]
-    });
-
-    // Thêm thông tin giảm giá từ coupon (nếu có)
+      statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }],
+      loyaltyPointsUsed: loyaltyPointsUsed,
+      loyaltyPointsEarned: loyaltyPointsEarned
+    });    // Thêm thông tin giảm giá từ coupon (nếu có)
     if (cart.coupon && cart.coupon.code) {
       order.couponCode = cart.coupon.code;
       order.discount = cart.coupon.discount;
+      
+      // Tăng số lần sử dụng của coupon
+      try {
+        const Coupon = require('../models/coupon');
+        await Coupon.findOneAndUpdate(
+          { code: cart.coupon.code },
+          { $inc: { usedCount: 1 } }
+        );
+        console.log(`Coupon ${cart.coupon.code} usage count increased.`);
+      } catch (couponError) {
+        console.error('Error updating coupon usedCount:', couponError);
+        // Vẫn tiếp tục xử lý đơn hàng ngay cả khi không thể cập nhật số lượng coupon
+      }
     }
 
     await order.save();
@@ -225,8 +270,7 @@ exports.postCheckout = async (req, res) => {
   }
 };
 
-exports.getCheckout = async (req, res) => {
-  try {
+exports.getCheckout = async (req, res) => {  try {
     const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
     if (!cart || cart.items.length === 0) {
       req.flash('error', 'Giỏ hàng của bạn đang trống.');
@@ -242,11 +286,17 @@ exports.getCheckout = async (req, res) => {
       defaultAddress = user.addresses.find(addr => addr.default === true);
     }
 
-    res.render('orders/checkout', {
-      title: 'Thanh toán',
+    // Tính toán số điểm tích lũy tối đa có thể sử dụng cho đơn hàng này
+    const totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
+    const maxPointsApplicable = Math.min(user.loyaltyPoints, Math.floor(totalAmount / 1000));
+
+    res.render('orders/checkout', {      title: 'Thanh toán',
       cart,
       user,
-      defaultAddress
+      defaultAddress,
+      loyaltyPoints: user.loyaltyPoints,
+      maxPointsApplicable: maxPointsApplicable,
+      loyaltyPointsValue: maxPointsApplicable * 1000
     });
   } catch (err) {
     console.error('Lỗi khi tải trang thanh toán:', err);

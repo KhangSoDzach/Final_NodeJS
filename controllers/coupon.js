@@ -4,7 +4,7 @@ const Coupon = require('../models/coupon');
 exports.getCoupons = async (req, res) => {
   try {
     const coupons = await Coupon.find().sort({ createdAt: -1 });
-    res.render('admin/coupons/index', { title: 'Quản lý Coupon', coupons });
+    res.render('admin/coupons/index', { title: 'Quản lý Coupon', coupons, path: '/admin/coupons' });
   } catch (err) {
     console.error(err);
     req.flash('error', 'Đã xảy ra lỗi khi tải danh sách coupon.');
@@ -13,12 +13,16 @@ exports.getCoupons = async (req, res) => {
 };
 
 // Thêm coupon mới
-exports.postAddCoupon = async (req, res) => {
-  try {
+exports.postAddCoupon = async (req, res) => {  try {
     const { code, description, discount, minAmount, maxUses, active } = req.body;
 
     // Debug log to see what data is being received
     console.log('Received coupon data:', req.body);
+
+    if (!code) {
+      req.flash('error', 'Mã giảm giá không được để trống.');
+      return res.redirect('/admin/coupons/add');
+    }
 
     const existingCoupon = await Coupon.findOne({ code: code.toUpperCase() });
     if (existingCoupon) {
@@ -31,25 +35,21 @@ exports.postAddCoupon = async (req, res) => {
       req.flash('error', 'Mã giảm giá phải có đúng 5 ký tự.');
       return res.redirect('/admin/coupons/add');
     }
-    
-    // Parse maxUses appropriately - null means unlimited
-    let parsedMaxUses = null;
-    if (maxUses && maxUses !== '0') {
+      // Parse maxUses appropriately with max limit of 10
+    let parsedMaxUses = 10; // Default to max 10 uses
+    if (maxUses) {
       parsedMaxUses = parseInt(maxUses);
-      if (isNaN(parsedMaxUses) || parsedMaxUses < 1) {
-        req.flash('error', 'Số lần sử dụng tối đa không hợp lệ.');
+      if (isNaN(parsedMaxUses) || parsedMaxUses < 1 || parsedMaxUses > 10) {
+        req.flash('error', 'Số lần sử dụng tối đa phải từ 1 đến 10.');
         return res.redirect('/admin/coupons/add');
       }
     }
-    
-    // Create coupon with proper date handling
+      // Create coupon with usage limit
     const coupon = new Coupon({
       code: code.toUpperCase(),
       description,
       discount: parseFloat(discount),
       minAmount: parseFloat(minAmount) || 0,
-      startDate: new Date(), // Set to current date
-      endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // Default to 90 days from now
       maxUses: parsedMaxUses,
       active: active === 'on' || active === true
     });
@@ -76,4 +76,12 @@ exports.deleteCoupon = async (req, res) => {
     req.flash('error', 'Đã xảy ra lỗi khi xóa coupon.');
     res.redirect('/admin/coupons');
   }
+};
+
+// Hiển thị form thêm coupon
+exports.getAddCoupon = (req, res) => {
+  res.render('admin/coupons/add', {
+    title: 'Thêm mã giảm giá mới',
+    path: '/admin/coupons'
+  });
 };
