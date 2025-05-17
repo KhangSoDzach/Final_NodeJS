@@ -130,26 +130,18 @@ exports.trackOrder = async (req, res) => {
       return res.redirect(req.user ? '/orders/history' : '/');
     }
     
-    // Check permissions:
-    // 1. For logged in users, they must own the order
-    // 2. For guests, the order ID must be in their session OR they must provide the email used for the order
-    const isAuthorized = 
-      (req.user && order.user && order.user.toString() === req.user._id.toString()) || 
-      (!req.user && req.session.guestOrderIds && req.session.guestOrderIds.includes(orderId)) ||
-      (!req.user && req.query.email && order.guestEmail === req.query.email);
-    
-    if (!isAuthorized) {
-      // If guest is trying to access but hasn't verified email, show email verification form
-      if (!req.user && order.guestEmail) {
-        return res.render('orders/verify-guest', {
-          title: 'Xác nhận thông tin đơn hàng',
-          orderId,
-          message: 'Vui lòng nhập email bạn đã sử dụng khi đặt hàng để xem thông tin đơn hàng.'
-        });
+    // For logged-in users, verify ownership
+    if (req.user) {
+      if (order.user && order.user.toString() !== req.user._id.toString()) {
+        req.flash('error', 'Bạn không có quyền truy cập đơn hàng này.');
+        return res.redirect('/orders/history');
       }
-      
-      req.flash('error', 'Bạn không có quyền truy cập đơn hàng này.');
-      return res.redirect(req.user ? '/orders/history' : '/');
+    } else {
+      // For guests, just check the session
+      if (!req.session.guestOrderIds || !req.session.guestOrderIds.includes(orderId)) {
+        req.flash('error', 'Bạn không có quyền truy cập đơn hàng này.');
+        return res.redirect('/');
+      }
     }
     
     res.render('orders/track', { 
@@ -423,48 +415,3 @@ exports.getCheckout = async (req, res) => {
   }
 };
 
-// Guest Order Tracking Form
-exports.getGuestTrackForm = (req, res) => {
-  res.render('orders/guest-track-form', {
-    title: 'Theo dõi đơn hàng',
-    error: req.flash('error')
-  });
-};
-
-// Guest Order Tracking Process
-exports.postGuestTrack = async (req, res) => {
-  try {
-    const { orderNumber, email } = req.body;
-    
-    if (!orderNumber || !email) {
-      req.flash('error', 'Vui lòng cung cấp đầy đủ thông tin.');
-      return res.redirect('/orders/guest-track');
-    }
-    
-    // Find order by order number and guest email
-    const order = await Order.findOne({
-      orderNumber: orderNumber,
-      guestEmail: email
-    });
-    
-    if (!order) {
-      req.flash('error', 'Không tìm thấy thông tin đơn hàng với thông tin đã cung cấp.');
-      return res.redirect('/orders/guest-track');
-    }
-    
-    // Add this order to the guest's session for future tracking
-    if (!req.session.guestOrderIds) {
-      req.session.guestOrderIds = [];
-    }
-    if (!req.session.guestOrderIds.includes(order._id.toString())) {
-      req.session.guestOrderIds.push(order._id.toString());
-    }
-    
-    // Redirect to the tracking page
-    return res.redirect(`/orders/track/${order._id}`);
-  } catch (err) {
-    console.error('Error in guest order tracking:', err);
-    req.flash('error', 'Đã xảy ra lỗi khi theo dõi đơn hàng.');
-    return res.redirect('/orders/guest-track');
-  }
-};

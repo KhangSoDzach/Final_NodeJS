@@ -9,10 +9,6 @@ router.post('/create', allowGuest, orderController.createOrder);
 // Order Tracking
 router.get('/track/:orderId', allowGuest, orderController.trackOrder);
 
-// Guest Order Tracking
-router.get('/guest-track', orderController.getGuestTrackForm);
-router.post('/guest-track', orderController.postGuestTrack);
-
 // Order History
 router.get('/history', isAuth, orderController.getOrderHistory);
 

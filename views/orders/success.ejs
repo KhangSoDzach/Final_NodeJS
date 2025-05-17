@@ -1,38 +1,94 @@
 
-<div class="container">
-  <h1>Đặt hàng thành công!</h1>
-  <p>Cảm ơn bạn đã đặt hàng. Mã đơn hàng của bạn là <strong><%= order.orderNumber || orderId %></strong>.</p>
-  <p>Bạn có thể theo dõi trạng thái đơn hàng <a href="/orders/track/<%= orderId %>">tại đây</a>.</p>
-  
-  <% if (couponApplied) { %>
-  <p>Đơn hàng của bạn đã được giảm giá <strong><%= discountPercent %>%</strong> với mã <strong><%= couponCode %></strong>.</p>
-  <% } %>
-  
-  <% if (!isGuest) { %>
-    <% if (order.loyaltyPointsUsed > 0) { %>
-    <p>Bạn đã sử dụng <strong><%= order.loyaltyPointsUsed %></strong> điểm tích lũy để giảm <strong><%= (order.loyaltyPointsUsed * 1000).toLocaleString('vi-VN') %> VND</strong>.</p>
-    <% } %>
-    
-    <% if (order.loyaltyPointsEarned > 0) { %>
-    <p>Bạn đã nhận được <strong><%= order.loyaltyPointsEarned %></strong> điểm tích lũy từ đơn hàng này.</p>
-    <% } %>
-    
-    <p>Tổng số điểm tích lũy hiện tại của bạn: <strong><%= currentLoyaltyPoints %></strong> điểm.</p>
-    
-    <a href="/orders/history" class="btn btn-primary">Xem lịch sử đơn hàng</a>
-  <% } else { %>
-    <p>Một email xác nhận đơn hàng đã được gửi đến địa chỉ email của bạn.</p>
-    <% if (order.guestEmail) { %>
-      <p>Email: <strong><%= order.guestEmail %></strong></p>
-    <% } %>
-    
-    <div class="guest-cta mt-4">
-      <p>Tạo tài khoản để theo dõi đơn hàng dễ dàng hơn và nhận điểm tích lũy cho lần mua sắm tiếp theo!</p>
-      <a href="/auth/register" class="btn btn-primary">Đăng ký tài khoản</a>
-      <a href="/" class="btn btn-outline-secondary ml-2">Tiếp tục mua sắm</a>
+
+
+<div class="container py-5">
+  <div class="order-success-container">
+    <div class="card shadow">
+      <div class="card-header bg-success text-white text-center">
+        <h1 class="h3 mb-0">Đặt hàng thành công!</h1>
+      </div>
+      <div class="card-body">
+        <div class="text-center mb-4">
+          <div class="success-icon mb-3">
+            <i class="fas fa-check-circle fa-5x text-success"></i>
+          </div>
+          <p class="lead">Cảm ơn bạn đã đặt hàng. Mã đơn hàng của bạn là <strong><%= order.orderNumber || orderId %></strong>.</p>
+          <p>Một email xác nhận đã được gửi đến địa chỉ email của bạn.</p>
+        </div>
+        
+        <div class="order-summary mb-4">
+          <h3 class="h5 mb-3">Thông tin đơn hàng</h3>
+          <table class="table">
+            <tr>
+              <th>Tổng giá trị:</th>
+              <td><%= order.totalAmount.toLocaleString('vi-VN') %> VND</td>
+            </tr>
+            <% if (couponApplied) { %>
+            <tr>
+              <th>Mã giảm giá:</th>
+              <td><%= couponCode %> (<%= discountPercent %>%)</td>
+            </tr>
+            <% } %>
+            <tr>
+              <th>Phương thức thanh toán:</th>
+              <td>
+                <%= order.paymentDetails.method === 'cod' ? 'Thanh toán khi nhận hàng' : 
+                   order.paymentDetails.method === 'bank_transfer' ? 'Chuyển khoản ngân hàng' : 
+                   order.paymentDetails.method === 'credit_card' ? 'Thẻ tín dụng' : 
+                   order.paymentDetails.method %>
+              </td>
+            </tr>
+          </table>
+        </div>
+        
+        <% if (!isGuest) { %>
+          <div class="loyalty-points-info mb-4">
+            <% if (order.loyaltyPointsUsed > 0 || order.loyaltyPointsEarned > 0) { %>
+              <h3 class="h5 mb-3">Điểm tích lũy</h3>
+              <% if (order.loyaltyPointsUsed > 0) { %>
+                <p>Đã sử dụng: <strong>-<%= order.loyaltyPointsUsed %></strong> điểm</p>
+              <% } %>
+              
+              <% if (order.loyaltyPointsEarned > 0) { %>
+                <p>Đã nhận: <strong>+<%= order.loyaltyPointsEarned %></strong> điểm</p>
+              <% } %>
+              
+              <p>Tổng điểm hiện tại: <strong><%= currentLoyaltyPoints %></strong> điểm</p>
+            <% } %>
+          </div>
+          
+          <div class="text-center mt-4">
+            <a href="/orders/history" class="btn btn-primary">Xem lịch sử đơn hàng</a>
+            <a href="/" class="btn btn-outline-secondary ml-2">Tiếp tục mua sắm</a>
+          </div>
+        <% } else { %>
+          <div class="guest-cta mt-4 text-center">
+            <p>Tạo tài khoản để nhận điểm tích lũy cho lần mua sắm tiếp theo!</p>
+            <div class="mt-3">
+              <a href="/auth/register" class="btn btn-primary">Đăng ký tài khoản</a>
+              <a href="/" class="btn btn-outline-secondary ml-2">Tiếp tục mua sắm</a>
+            </div>
+          </div>
+        <% } %>
+      </div>
     </div>
-  <% } %>
+  </div>
 </div>
+
+<style>
+  .success-icon {
+    color: #28a745;
+  }
+  .order-success-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .loyalty-points-info {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+  }
+</style>
 <style>
     
     h1 {

@@ -201,11 +201,15 @@
                         <% } %>
                         <div class="mt-3">
                             <a href="/admin/users/<%= order.user._id %>" class="btn btn-sm btn-outline-primary">Xem thông tin chi tiết</a>
+                        </div>                    <% } else { %>
+                        <div class="guest-customer">
+                            <p><span class="badge bg-secondary">Đơn hàng được đặt bởi khách vãng lai</span></p>
+                            <p><strong>Người đặt:</strong> <%= order.shippingAddress.name %></p>
+                            <% if (order.guestEmail) { %>
+                                <p><strong>Email:</strong> <%= order.guestEmail %></p>
+                            <% } %>
+                            <p><strong>Điện thoại:</strong> <%= order.shippingAddress.phone %></p>
                         </div>
-                    <% } else { %>
-                        <p>Đơn hàng được đặt bởi khách không đăng nhập</p>
-                        <p><strong>Người đặt:</strong> <%= order.shippingAddress.name %></p>
-                        <p><strong>Điện thoại:</strong> <%= order.shippingAddress.phone %></p>
                     <% } %>
                 </div>
             </div>
