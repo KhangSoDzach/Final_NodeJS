@@ -6,31 +6,31 @@
     <nav>
         <ul class="admin-nav">
             <li class="admin-nav-item">
-                <a href="/admin" class="admin-nav-link <%= path === '/dashboard' || path === '/admin' ? 'active' : '' %>">
+                <a href="/admin" class="admin-nav-link <%= typeof path !== 'undefined' && (path === '/dashboard' || path === '/admin') ? 'active' : '' %>">
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </a>
             </li>
             
             <li class="admin-nav-item">
-                <a href="/admin/products" class="admin-nav-link <%= path && path.includes('/admin/products') ? 'active' : '' %>">
+                <a href="/admin/products" class="admin-nav-link <%= typeof path !== 'undefined' && path.includes('/admin/products') ? 'active' : '' %>">
                     <i class="fas fa-laptop"></i> Sản phẩm
                 </a>
             </li>
             
             <li class="admin-nav-item">
-                <a href="/admin/orders" class="admin-nav-link <%= path && path.includes('/admin/orders') ? 'active' : '' %>">
+                <a href="/admin/orders" class="admin-nav-link <%= typeof path !== 'undefined' && path.includes('/admin/orders') ? 'active' : '' %>">
                     <i class="fas fa-shopping-cart"></i> Đơn hàng
                 </a>
             </li>
             
             <li class="admin-nav-item">
-                <a href="/admin/users" class="admin-nav-link <%= path && path.includes('/admin/users') ? 'active' : '' %>">
+                <a href="/admin/users" class="admin-nav-link <%= typeof path !== 'undefined' && path.includes('/admin/users') ? 'active' : '' %>">
                     <i class="fas fa-users"></i> Người dùng
                 </a>
             </li>
             
             <li class="admin-nav-item">
-                <a href="/admin/coupons" class="admin-nav-link <%= path && path.includes('/admin/coupons') ? 'active' : '' %>">
+                <a href="/admin/coupons" class="admin-nav-link <%= typeof path !== 'undefined' && path.includes('/admin/coupons') ? 'active' : '' %>">
                     <i class="fas fa-ticket-alt"></i> Mã giảm giá
                 </a>
             </li>

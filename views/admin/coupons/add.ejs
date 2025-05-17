@@ -20,17 +20,13 @@
       <div class="form-group">
         <label for="discount">Giảm giá (%)</label>
         <input type="number" id="discount" name="discount" class="form-control" min="0" max="100" placeholder="Nhập phần trăm giảm giá" required>
-      </div>
-
-      <div class="form-group">
+      </div>      <div class="form-group">
         <label for="minAmount">Số tiền tối thiểu (₫)</label>
         <input type="number" id="minAmount" name="minAmount" class="form-control" min="0" placeholder="Nhập số tiền tối thiểu" value="0">
-      </div>
-
-      <div class="form-group">
+      </div>      <div class="form-group">
         <label for="maxUses">Số lần sử dụng tối đa</label>
-        <input type="number" id="maxUses" name="maxUses" class="form-control" min="1" placeholder="Nhập số lần sử dụng tối đa" value="100" required>
-        <small class="form-text text-muted">Để trống hoặc nhập 0 nếu không giới hạn số lần sử dụng.</small>
+        <input type="number" id="maxUses" name="maxUses" class="form-control" min="1" max="10" placeholder="Nhập số lần sử dụng tối đa" value="10" required>
+        <small class="form-text text-muted">Số lần sử dụng tối đa từ 1 đến 10.</small>
       </div>
 
       <div class="form-group">
@@ -39,13 +35,28 @@
           <input type="checkbox" id="active" name="active" class="form-check-input" checked>
           <label class="form-check-label" for="active">Hoạt động</label>
         </div>
-      </div>
-
-      <div class="form-actions">
+      </div>      <div class="form-actions">
         <button type="submit" class="btn btn-primary">Thêm mã giảm giá</button>
         <a href="/admin/coupons" class="btn btn-secondary">Hủy</a>
       </div>
     </form>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const maxUsesInput = document.getElementById('maxUses');
+    
+    maxUsesInput.addEventListener('input', function() {
+      const value = parseInt(this.value);
+      if (value > 10) {
+        this.value = 10;
+        alert('Số lần sử dụng tối đa không được vượt quá 10.');
+      } else if (value < 1 && this.value !== '') {
+        this.value = 1;
+        alert('Số lần sử dụng tối đa phải ít nhất là 1.');
+      }
+    });
+  });
+</script>
 

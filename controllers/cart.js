@@ -251,20 +251,17 @@ exports.applyCoupon = async (req, res) => {
         message: 'Vui lòng nhập mã giảm giá.'
       });
     }
-    
-    // Tìm coupon trong database
+      // Tìm coupon trong database
     const coupon = await Coupon.findOne({ 
       code: couponCode.toUpperCase().trim(), 
-      active: true,
-      startDate: { $lte: new Date() },
-      endDate: { $gte: new Date() }
+      active: true
     });
     
     // Kiểm tra coupon có tồn tại không
     if (!coupon) {
       return res.status(404).json({
         success: false,
-        message: 'Mã giảm giá không hợp lệ hoặc đã hết hạn.'
+        message: 'Mã giảm giá không hợp lệ.'
       });
     }
     
