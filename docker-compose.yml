@@ -1,7 +1,6 @@
 version: '3.8'
 
-services:
-  # Nginx Load Balancer
+services:  # Nginx Load Balancer
   nginx:
     image: nginx:alpine
     ports:
@@ -10,13 +9,14 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ./uploads:/usr/share/nginx/html/uploads
     depends_on:
-      - app
+      - app1
+      - app2
+      - app3
     networks:
       - app-network
     restart: always
-
-  # Main Application - Horizontally scalable with multiple replicas
-  app:
+  # Application Server 1 - Port 3000
+  app1:
     build:
       context: .
       dockerfile: Dockerfile
@@ -25,9 +25,6 @@ services:
       - PORT=3000
       - MONGODB_URI=mongodb://mongo:27017/sourcecomputer
       - SESSION_SECRET=your_session_secret
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      # Google OAuth Environment Variables
       - GOOGLE_CLIENT_ID=16788479489-8sehea2kcf4bq6j2bf6c5vak4p0tuhnt.apps.googleusercontent.com
       - GOOGLE_CLIENT_SECRET=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
       - GOOGLE_CALLBACK_URL=http://localhost/auth/google/callback
@@ -37,15 +34,62 @@ services:
     volumes:
       - ./:/usr/src/app
       - /usr/src/app/node_modules
-    deploy:
-      replicas: 2  # Run 2 instances of the app for horizontal scaling
-      restart_policy:
-        condition: on-failure
+    restart: always
     networks:
       - app-network
     depends_on:
       - mongo
-      - redis
+      
+  # Application Server 2 - Port 3001
+  app2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongo:27017/sourcecomputer
+      - SESSION_SECRET=your_session_secret
+      - GOOGLE_CLIENT_ID=16788479489-8sehea2kcf4bq6j2bf6c5vak4p0tuhnt.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=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
+      - GOOGLE_CALLBACK_URL=http://localhost/auth/google/callback
+      # Email configuration
+      - EMAIL_USER=lexa61313@gmail.com
+      - EMAIL_PASSWORD=dnhl ieid rmoz bewa
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: always
+    networks:
+      - app-network
+    depends_on:
+      - mongo
+
+  # Application Server 3 - Port 3002
+  app3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - MONGODB_URI=mongodb://mongo:27017/sourcecomputer
+      - SESSION_SECRET=your_session_secret
+      - GOOGLE_CLIENT_ID=16788479489-8sehea2kcf4bq6j2bf6c5vak4p0tuhnt.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=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
+      - GOOGLE_CALLBACK_URL=http://localhost/auth/google/callback
+      # Email configuration
+      - EMAIL_USER=lexa61313@gmail.com
+      - EMAIL_PASSWORD=dnhl ieid rmoz bewa
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: always
+    networks:
+      - app-network
+    depends_on:
+      - mongo
+
 
   # Database Service
   mongo:
@@ -61,16 +105,7 @@ services:
     networks:
       - app-network
 
-  # Redis for session store and caching
-  redis:
-    image: redis:7.0-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - app-network
-    restart: always
+
 
 networks:
   app-network:
@@ -78,4 +113,4 @@ networks:
 
 volumes:
   mongo-data:
-  redis-data:
+
