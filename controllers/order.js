@@ -7,22 +7,39 @@ const emailService = require('../utils/emailService');
 // Order Creation
 exports.createOrder = async (req, res) => {
   try {
-    const { paymentDetails } = req.body;    // Find the user's cart
-    const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+    const { paymentDetails, email } = req.body;
+    
+    // Find cart based on user or session ID
+    let cart;
+    if (req.user) {
+      cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+    } else if (req.session.cartId) {
+      cart = await Cart.findOne({ sessionId: req.session.cartId }).populate('items.product');
+    }
+    
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ success: false, message: 'Giỏ hàng trống.' });
     }
 
     // Calculate total amount (including discount if coupon applied)
     const totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();    // Create order
-    const order = new Order({
-      user: req.user._id,
+    const orderData = {
+      orderNumber: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       items: cart.items,
       totalAmount,
       paymentDetails,
       status: 'pending',
       statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }]
-    });    // Add coupon information if coupon was applied
+    };
+    
+    // Add user reference if logged in, otherwise add email for guest
+    if (req.user) {
+      orderData.user = req.user._id;
+    } else if (email) {
+      orderData.guestEmail = email;
+    }
+    
+    const order = new Order(orderData);// Add coupon information if coupon was applied
     if (cart.coupon && cart.coupon.code) {
       order.couponCode = cart.coupon.code;
       order.discount = cart.coupon.discount;
@@ -64,20 +81,31 @@ exports.createOrder = async (req, res) => {
     
     // Clear the user's cart
     cart.items = [];
-    await cart.save();
-
-    // Send confirmation email using the email service
+    await cart.save();    // Send confirmation email using the email service
     try {
       const populatedOrder = await Order.findById(order._id).populate({
         path: 'items.product',
         select: 'name images slug'
       });
       
-      await emailService.sendOrderConfirmationEmail(req.user.email, populatedOrder);
-      console.log(`Order confirmation email sent to ${req.user.email}`);
+      const recipientEmail = req.user ? req.user.email : email;
+      if (recipientEmail) {
+        await emailService.sendOrderConfirmationEmail(recipientEmail, populatedOrder);
+        console.log(`Order confirmation email sent to ${recipientEmail}`);
+      }
     } catch (emailError) {
       console.error('Error sending order confirmation email:', emailError);
       // Continue execution even if email fails
+    }
+    
+    // If guest checkout, store the order ID in session for security verification
+    if (!req.user) {
+      // Initialize the array if it doesn't exist
+      if (!req.session.guestOrderIds) {
+        req.session.guestOrderIds = [];
+      }
+      // Add the current order ID to the session
+      req.session.guestOrderIds.push(order._id.toString());
     }
 
     // Show success screen
@@ -96,13 +124,35 @@ exports.trackOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
     const order = await Order.findById(orderId).populate('items.product');
-    if (!order || order.user.toString() !== req.user._id.toString()) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng.' });
+    
+    if (!order) {
+      req.flash('error', 'Không tìm thấy đơn hàng.');
+      return res.redirect(req.user ? '/orders/history' : '/');
     }
-    res.render('orders/track', { title: `Theo dõi đơn hàng #${order._id}`, order });
+    
+    // For logged-in users, verify ownership
+    if (req.user) {
+      if (order.user && order.user.toString() !== req.user._id.toString()) {
+        req.flash('error', 'Bạn không có quyền truy cập đơn hàng này.');
+        return res.redirect('/orders/history');
+      }
+    } else {
+      // For guests, just check the session
+      if (!req.session.guestOrderIds || !req.session.guestOrderIds.includes(orderId)) {
+        req.flash('error', 'Bạn không có quyền truy cập đơn hàng này.');
+        return res.redirect('/');
+      }
+    }
+    
+    res.render('orders/track', { 
+      title: `Theo dõi đơn hàng #${order.orderNumber || order._id}`, 
+      order,
+      isGuest: !req.user
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi theo dõi đơn hàng.' });
+    req.flash('error', 'Đã xảy ra lỗi khi theo dõi đơn hàng.');
+    res.redirect(req.user ? '/orders/history' : '/');
   }
 };
 
@@ -151,44 +201,68 @@ exports.applyLoyaltyPoints = async (req, res) => {
 
 exports.postCheckout = async (req, res) => {
   try {
-    const { name, address, district, province, phone, paymentMethod, loyaltyPointsToUse } = req.body;    // Lấy giỏ hàng của người dùng
-    const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+    const { name, email, address, district, province, phone, paymentMethod, loyaltyPointsToUse } = req.body;
+    
+    // Find cart based on user or session ID
+    let cart;
+    if (req.user) {
+      cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+    } else if (req.session.cartId) {
+      cart = await Cart.findOne({ sessionId: req.session.cartId }).populate('items.product');
+    }
+
     if (!cart || cart.items.length === 0) {
       req.flash('error', 'Giỏ hàng của bạn đang trống.');
       return res.redirect('/cart');
-    }    // Tính tổng tiền (có tính đến coupon nếu được áp dụng)
+    }
+    
+    // Tính tổng tiền (có tính đến coupon nếu được áp dụng)
     let totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
     
-    // Tự động sử dụng điểm tích lũy tối đa
+    // Khởi tạo biến điểm tích lũy
     let loyaltyPointsUsed = 0;
-    if (req.user.loyaltyPoints > 0) {
-      // Tính số điểm tích lũy tối đa có thể sử dụng cho đơn hàng
-      const maxPointsForOrder = Math.floor(totalAmount / 1000);
+    let loyaltyPointsEarned = 0;
+
+    // Nếu người dùng đã đăng nhập, xử lý điểm tích lũy
+    if (req.user) {
+      const user = await User.findById(req.user._id);
       
-      // Sử dụng số điểm nhỏ nhất giữa điểm hiện có và điểm tối đa cho đơn hàng
-      loyaltyPointsUsed = Math.min(req.user.loyaltyPoints, maxPointsForOrder);
-      
-      if (loyaltyPointsUsed > 0) {
-        // Trừ giảm giá từ điểm tích lũy vào tổng tiền
-        const loyaltyDiscount = loyaltyPointsUsed * 1000;
-        totalAmount = Math.max(0, totalAmount - loyaltyDiscount);
+      if (user.loyaltyPoints > 0 && loyaltyPointsToUse) {
+        // Tính số điểm tích lũy tối đa có thể sử dụng cho đơn hàng
+        const maxPointsForOrder = Math.floor(totalAmount / 1000);
         
-        // Trừ điểm đã sử dụng khỏi tài khoản của người dùng
-        req.user.loyaltyPoints -= loyaltyPointsUsed;
-        await req.user.save();
+        // Sử dụng số điểm nhỏ nhất giữa điểm hiện có, điểm tối đa cho đơn hàng và điểm người dùng muốn dùng
+        loyaltyPointsUsed = Math.min(
+          user.loyaltyPoints,
+          maxPointsForOrder,
+          parseInt(loyaltyPointsToUse) || 0
+        );
+        
+        if (loyaltyPointsUsed > 0) {
+          // Trừ giảm giá từ điểm tích lũy vào tổng tiền
+          const loyaltyDiscount = loyaltyPointsUsed * 1000;
+          totalAmount = Math.max(0, totalAmount - loyaltyDiscount);
+          
+          // Trừ điểm đã sử dụng khỏi tài khoản của người dùng
+          user.loyaltyPoints -= loyaltyPointsUsed;
+          await user.save();
+        }
       }
-    }// Tính điểm tích lũy kiếm được từ đơn hàng này (0.01% giá trị đơn hàng)
-    const loyaltyPointsEarned = Math.floor(totalAmount * 0.0001);
-    
-    // Cộng điểm mới vào tài khoản người dùng
-    req.user.loyaltyPoints += loyaltyPointsEarned;
-    await req.user.save();
+
+      // Tính điểm tích lũy kiếm được từ đơn hàng này (0.01% giá trị đơn hàng)
+      loyaltyPointsEarned = Math.floor(totalAmount * 0.0001);
+      
+      // Cộng điểm mới vào tài khoản người dùng
+      user.loyaltyPoints += loyaltyPointsEarned;
+      await user.save();
+    }
 
     // Tạo mã đơn hàng duy nhất
-    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;    // Tạo đơn hàng
-    const order = new Order({
-      orderNumber, // Gán giá trị cho orderNumber
-      user: req.user._id,
+    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    
+    // Tạo đơn hàng với thông tin phù hợp cho cả khách và người dùng đã đăng nhập
+    const orderData = {
+      orderNumber,
       items: cart.items,
       totalAmount,
       paymentDetails: { method: paymentMethod },
@@ -203,7 +277,18 @@ exports.postCheckout = async (req, res) => {
       statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }],
       loyaltyPointsUsed: loyaltyPointsUsed,
       loyaltyPointsEarned: loyaltyPointsEarned
-    });    // Thêm thông tin giảm giá từ coupon (nếu có)
+    };
+
+    // Thêm thông tin người dùng nếu đã đăng nhập, hoặc email khách nếu là khách
+    if (req.user) {
+      orderData.user = req.user._id;
+    } else if (email) {
+      orderData.guestEmail = email;
+    }
+
+    const order = new Order(orderData);
+
+    // Thêm thông tin giảm giá từ coupon (nếu có)
     if (cart.coupon && cart.coupon.code) {
       order.couponCode = cart.coupon.code;
       order.discount = cart.coupon.discount;
@@ -218,7 +303,6 @@ exports.postCheckout = async (req, res) => {
         console.log(`Coupon ${cart.coupon.code} usage count increased.`);
       } catch (couponError) {
         console.error('Error updating coupon usedCount:', couponError);
-        // Vẫn tiếp tục xử lý đơn hàng ngay cả khi không thể cập nhật số lượng coupon
       }
     }
 
@@ -239,7 +323,6 @@ exports.postCheckout = async (req, res) => {
           product.updateStock(item.quantity);
         }
         await product.save();
-        console.log(`Đã cập nhật tồn kho và số lượng đã bán cho sản phẩm ${product.name}`);
       }
     }
 
@@ -254,48 +337,76 @@ exports.postCheckout = async (req, res) => {
         select: 'name images slug'
       });
       
-      await emailService.sendOrderConfirmationEmail(req.user.email, populatedOrder);
-      console.log(`Order confirmation email sent to ${req.user.email}`);
+      const recipientEmail = req.user ? req.user.email : email;
+      if (recipientEmail) {
+        await emailService.sendOrderConfirmationEmail(recipientEmail, populatedOrder);
+        console.log(`Order confirmation email sent to ${recipientEmail}`);
+      }
     } catch (emailError) {
       console.error('Error sending order confirmation email:', emailError);
-      // Continue execution even if email fails
+    }    // If guest checkout, store the order ID in session for security verification
+    if (!req.user) {
+      // Initialize the array if it doesn't exist
+      if (!req.session.guestOrderIds) {
+        req.session.guestOrderIds = [];
+      }
+      // Add the current order ID to the session
+      req.session.guestOrderIds.push(order._id.toString());
     }
-
-    // Chuyển hướng đến trang success
-    res.redirect(`/orders/success/${order._id}`);
+    
+    // Chuyển hướng đến trang success với thông tin đơn hàng
+    return res.redirect(`/orders/success/${order._id}`);
   } catch (err) {
     console.error('Lỗi khi xử lý thanh toán:', err);
     req.flash('error', 'Đã xảy ra lỗi khi xử lý thanh toán.');
-    res.redirect('/orders/checkout');
+    return res.redirect('/orders/checkout');
   }
 };
 
-exports.getCheckout = async (req, res) => {  try {
-    const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+exports.getCheckout = async (req, res) => {
+  try {
+    // Find cart based on user or session ID
+    let cart;
+    if (req.user) {
+      cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+    } else if (req.session.cartId) {
+      cart = await Cart.findOne({ sessionId: req.session.cartId }).populate('items.product');
+    }
+
     if (!cart || cart.items.length === 0) {
       req.flash('error', 'Giỏ hàng của bạn đang trống.');
       return res.redirect('/cart');
     }
 
-    // Fetch complete user with addresses
-    const user = await User.findById(req.user._id);
-
-    // Find the default address for auto-selection
+    // Variables for user data
+    let user = null;
     let defaultAddress = null;
-    if (user && user.addresses && user.addresses.length > 0) {
-      defaultAddress = user.addresses.find(addr => addr.default === true);
+    let loyaltyPoints = 0;
+    let maxPointsApplicable = 0;
+
+    // If user is logged in, fetch their data
+    if (req.user) {
+      user = await User.findById(req.user._id);
+
+      // Find the default address for auto-selection
+      if (user && user.addresses && user.addresses.length > 0) {
+        defaultAddress = user.addresses.find(addr => addr.default === true);
+      }
+
+      // Calculate loyalty points
+      loyaltyPoints = user.loyaltyPoints;
+      const totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
+      maxPointsApplicable = Math.min(loyaltyPoints, Math.floor(totalAmount / 1000));
     }
 
-    // Tính toán số điểm tích lũy tối đa có thể sử dụng cho đơn hàng này
-    const totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
-    const maxPointsApplicable = Math.min(user.loyaltyPoints, Math.floor(totalAmount / 1000));
-
-    res.render('orders/checkout', {      title: 'Thanh toán',
+    // Render checkout page with appropriate data
+    res.render('orders/checkout', {
+      title: 'Thanh toán',
       cart,
       user,
       defaultAddress,
-      loyaltyPoints: user.loyaltyPoints,
-      maxPointsApplicable: maxPointsApplicable,
+      loyaltyPoints,
+      maxPointsApplicable,
       loyaltyPointsValue: maxPointsApplicable * 1000
     });
   } catch (err) {
@@ -303,3 +414,4 @@ exports.getCheckout = async (req, res) => {  try {
     res.status(500).send('Đã xảy ra lỗi khi tải trang thanh toán.');
   }
 };
+

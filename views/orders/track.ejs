@@ -1,15 +1,122 @@
 
-<div class="container">
-  <h1>Theo dõi đơn hàng</h1>
-  <p><strong>Mã đơn hàng:</strong> <%= order._id %></p>
-  <p><strong>Trạng thái hiện tại:</strong> <%= order.status %></p>
-  <h2>Lịch sử trạng thái</h2>
-  <ul>
-    <% order.statusHistory.forEach(status => { %>
-      <li>
-        <strong><%= status.status %></strong> - <%= new Date(status.date).toLocaleString() %>
-        <% if (status.note) { %> (<%= status.note %>) <% } %>
-      </li>
-    <% }) %>
-  </ul>
+<%- include('../partials/header') %>
+
+<div class="container py-5">
+  <div class="order-tracking-container">
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+      <h1 class="h3">Theo dõi đơn hàng</h1>
+      <% if (!isGuest) { %>
+        <a href="/orders/history" class="btn btn-outline-secondary">Lịch sử đơn hàng</a>
+      <% } else { %>
+        <a href="/" class="btn btn-outline-secondary">Trở về trang chủ</a>
+      <% } %>
+    </div>
+    
+    <div class="card shadow mb-4">
+      <div class="card-header bg-primary text-white">
+        <h2 class="h5 mb-0">Thông tin đơn hàng #<%= order.orderNumber || order._id %></h2>
+      </div>
+      <div class="card-body">
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <p><strong>Ngày đặt hàng:</strong> <%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></p>
+            <p><strong>Trạng thái hiện tại:</strong> 
+              <span class="badge <%= order.status === 'delivered' ? 'bg-success' : 
+                                    order.status === 'cancelled' ? 'bg-danger' : 
+                                    'bg-primary' %>">
+                <%= order.status === 'pending' ? 'Chờ xác nhận' :
+                   order.status === 'confirmed' ? 'Đã xác nhận' :
+                   order.status === 'shipping' ? 'Đang giao hàng' :
+                   order.status === 'delivered' ? 'Đã giao hàng' :
+                   order.status === 'cancelled' ? 'Đã hủy' : order.status %>
+              </span>
+            </p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Tổng giá trị:</strong> <%= order.totalAmount.toLocaleString('vi-VN') %> VND</p>
+            <p><strong>Phương thức thanh toán:</strong> <%= order.paymentDetails?.method || 'Không có thông tin' %></p>
+          </div>
+        </div>
+        
+        <h3 class="h5 mb-3">Lịch sử trạng thái</h3>
+        <div class="status-timeline mb-5">
+          <% order.statusHistory.forEach((status, index) => { %>
+            <div class="status-item <%= index === 0 ? 'first' : '' %> <%= index === order.statusHistory.length - 1 ? 'last active' : '' %>">
+              <div class="status-marker"></div>
+              <div class="status-content">
+                <div class="status-title">
+                  <%= status.status === 'pending' ? 'Chờ xác nhận' :
+                     status.status === 'confirmed' ? 'Đã xác nhận' :
+                     status.status === 'shipping' ? 'Đang giao hàng' :
+                     status.status === 'delivered' ? 'Đã giao hàng' :
+                     status.status === 'cancelled' ? 'Đã hủy' : status.status %>
+                </div>
+                <div class="status-date"><%= new Date(status.date).toLocaleString('vi-VN') %></div>
+                <% if (status.note) { %><div class="status-note"><%= status.note %></div><% } %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+        
+        <% if (isGuest) { %>
+          <div class="mt-5 text-center">
+            <p>Tạo tài khoản để theo dõi đơn hàng dễ dàng hơn và nhận điểm tích lũy cho lần mua sắm tiếp theo!</p>
+            <a href="/auth/register" class="btn btn-primary">Đăng ký ngay</a>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
 </div>
+
+<style>
+  .status-timeline {
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 20px;
+  }
+  .status-timeline:before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    background: #e0e0e0;
+  }
+  .status-item {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .status-marker {
+    position: absolute;
+    left: -30px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #e0e0e0;
+  }
+  .status-item.active .status-marker {
+    background: #007bff;
+    border-color: #007bff;
+  }
+  .status-content {
+    padding-bottom: 15px;
+  }
+  .status-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  .status-date {
+    color: #6c757d;
+    font-size: 0.9em;
+    margin-bottom: 5px;
+  }
+  .status-note {
+    font-style: italic;
+    color: #6c757d;
+  }
+</style>
+
+<%- include('../partials/footer') %>
