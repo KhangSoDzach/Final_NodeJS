@@ -96,7 +96,17 @@
               value="<%= user ? user.phone : '' %>" required>
           </div>
       </div>
-
+      <!-- Thêm mã giảm giá thứ hai -->
+      <div class="form-group mt-4">
+            <label for="additional-coupon-code"><strong>Thêm mã giảm giá</strong></label>
+            <div class="input-group">
+              <input type="text" id="additional-coupon-code" class="form-control" placeholder="Nhập thêm mã giảm giá khác">
+              <div class="input-group-append">
+                <button type="button" id="apply-additional-coupon" class="btn btn-primary">Áp dụng</button>
+              </div>
+            </div>
+            <div id="additional-coupon-message" class="mt-2"></div>
+      </div>
       <!-- Phương thức thanh toán -->
       <div class="checkout-section">
         <h2>Phương thức thanh toán</h2>
@@ -174,6 +184,99 @@
         document.getElementById('place-order-btn').innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
       });
     }
+        // Xử lý áp dụng mã giảm giá
+    const applyCouponBtn = document.getElementById('apply-coupon');
+    if (applyCouponBtn) {
+      applyCouponBtn.addEventListener('click', function() {
+        const couponCode = document.getElementById('coupon-code').value.trim();
+        const couponMessage = document.getElementById('coupon-message');
+
+        if (!couponCode) {
+          if (couponMessage) couponMessage.innerHTML = '<p class="text-danger">Vui lòng nhập mã giảm giá</p>';
+          return;
+        }
+
+        fetch('/cart/apply-coupon', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ couponCode })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            if (couponMessage) couponMessage.innerHTML = `<p class="text-success">${data.message}</p>`;
+            location.reload();
+          } else {
+            if (couponMessage) couponMessage.innerHTML = `<p class="text-danger">${data.message}</p>`;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          if (couponMessage) couponMessage.innerHTML = '<p class="text-danger">Đã xảy ra lỗi khi áp dụng mã giảm giá</p>';
+        });
+      });
+    }
+
+    // Xử lý xóa mã giảm giá
+    const removeCouponBtn = document.getElementById('remove-coupon');
+    if (removeCouponBtn) {
+      removeCouponBtn.addEventListener('click', function() {
+        fetch('/cart/remove-coupon', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert(data.message || 'Đã xảy ra lỗi khi xóa mã giảm giá');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Đã xảy ra lỗi khi xóa mã giảm giá');
+        });
+      });
+    }
+
+    // Xử lý áp dụng mã giảm giá thứ hai
+    const applyAdditionalCouponBtn = document.getElementById('apply-additional-coupon');
+    if (applyAdditionalCouponBtn) {
+      applyAdditionalCouponBtn.addEventListener('click', function() {
+        const couponCode = document.getElementById('additional-coupon-code').value.trim();
+        const couponMessage = document.getElementById('additional-coupon-message');
+
+        if (!couponCode) {
+          if (couponMessage) couponMessage.innerHTML = '<p class="text-danger">Vui lòng nhập mã giảm giá</p>';
+          return;
+        }
+
+        fetch('/cart/apply-coupon', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ couponCode })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            if (couponMessage) couponMessage.innerHTML = `<p class="text-success">${data.message}</p>`;
+            location.reload();
+          } else {
+            if (couponMessage) couponMessage.innerHTML = `<p class="text-danger">${data.message}</p>`;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          if (couponMessage) couponMessage.innerHTML = '<p class="text-danger">Đã xảy ra lỗi khi áp dụng mã giảm giá</p>';
+        });
+      });
+    }
   });
 </script>
-<!-- <%- include('../partials/footer') %> -->

@@ -1,4 +1,3 @@
-
 <div class="admin-content">
   <div class="admin-header">
     <h1>Thêm mã giảm giá mới</h1>
@@ -8,8 +7,9 @@
   <div class="admin-card">
     <form action="/admin/coupons/add" method="POST">
       <div class="form-group">
-        <label for="code">Mã giảm giá</label>
-        <input type="text" id="code" name="code" class="form-control" placeholder="Nhập mã giảm giá" required>
+        <label for="code">Mã giảm giá (đúng 5 ký tự)</label>
+        <input type="text" id="code" name="code" class="form-control" placeholder="Nhập mã giảm giá (5 ký tự)" required minlength="5" maxlength="5" pattern=".{5,5}">
+        <small class="form-text text-muted">Mã giảm giá phải có đúng 5 ký tự.</small>
       </div>
 
       <div class="form-group">
@@ -24,30 +24,27 @@
 
       <div class="form-group">
         <label for="minAmount">Số tiền tối thiểu (₫)</label>
-        <input type="number" id="minAmount" name="minAmount" class="form-control" min="0" placeholder="Nhập số tiền tối thiểu">
-      </div>
-
-      <div class="form-group">
-        <label for="startDate">Ngày bắt đầu</label>
-        <input type="date" id="startDate" name="startDate" class="form-control" required>
-      </div>
-
-      <div class="form-group">
-        <label for="endDate">Ngày kết thúc</label>
-        <input type="date" id="endDate" name="endDate" class="form-control" required>
+        <input type="number" id="minAmount" name="minAmount" class="form-control" min="0" placeholder="Nhập số tiền tối thiểu" value="0">
       </div>
 
       <div class="form-group">
         <label for="maxUses">Số lần sử dụng tối đa</label>
-        <input type="number" id="maxUses" name="maxUses" class="form-control" min="0" placeholder="Không giới hạn nếu để trống">
+        <input type="number" id="maxUses" name="maxUses" class="form-control" min="1" placeholder="Nhập số lần sử dụng tối đa" value="100" required>
+        <small class="form-text text-muted">Để trống hoặc nhập 0 nếu không giới hạn số lần sử dụng.</small>
       </div>
 
       <div class="form-group">
-        <label for="active">Kích hoạt</label>
-        <input type="checkbox" id="active" name="active" checked>
+        <label for="active">Trạng thái</label>
+        <div class="form-check">
+          <input type="checkbox" id="active" name="active" class="form-check-input" checked>
+          <label class="form-check-label" for="active">Hoạt động</label>
+        </div>
       </div>
 
-      <button type="submit" class="btn btn-primary">Thêm mã giảm giá</button>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Thêm mã giảm giá</button>
+        <a href="/admin/coupons" class="btn btn-secondary">Hủy</a>
+      </div>
     </form>
   </div>
 </div>

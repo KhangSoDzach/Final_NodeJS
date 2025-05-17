@@ -11,26 +11,36 @@
 
   <% if (coupons.length > 0) { %>
     <div class="table-responsive" style="overflow-x:auto;">
-      <table class="data-table coupon-table">
-        <thead>
-          <tr>
+      <table class="data-table coupon-table">        <thead>          <tr>
             <th>Mã</th>
             <th>Mô tả</th>
             <th>Giảm giá</th>
-            <th>Ngày bắt đầu</th>
-            <th>Ngày kết thúc</th>
+            <!-- <th>Ngày bắt đầu</th>
+            <th>Ngày kết thúc</th> -->
+            <th>Đã sử dụng</th>
+            <th>Số lượt còn lại</th>
             <th>Trạng thái</th>
             <th>Hành động</th>
           </tr>
         </thead>
         <tbody>
-          <% coupons.forEach(coupon => { %>
-            <tr>
-              <td><%= coupon.code %></td>
+          <% coupons.forEach(coupon => { %><tr><td><%= coupon.code %></td>
               <td><%= coupon.description %></td>
               <td><%= coupon.discount %>%</td>
-              <td><%= new Date(coupon.startDate).toLocaleDateString('vi-VN') %></td>
-              <td><%= new Date(coupon.endDate).toLocaleDateString('vi-VN') %></td>
+              <td>
+                <span class="used-count-badge">
+                  <%= coupon.usedCount || 0 %>
+                </span>
+              </td>
+              <td>
+                <% if (coupon.maxUses === null) { %>
+                  <span class="unlimited-badge">Không giới hạn</span>
+                <% } else { %>
+                  <span class="remaining-uses-badge <%= (coupon.maxUses - coupon.usedCount) <= 5 ? 'low-count' : '' %>">
+                    <%= coupon.maxUses - coupon.usedCount %> / <%= coupon.maxUses %>
+                  </span>
+                <% } %>
+              </td>
               <td>
                 <span class="status-badge <%= coupon.active ? 'active' : 'banned' %>">
                   <%= coupon.active ? 'Hoạt động' : 'Không hoạt động' %>
@@ -67,5 +77,40 @@
 .table-responsive {
     width: 100%;
     overflow-x: auto;
+}
+
+.remaining-uses-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    background-color: #e6f7ff;
+    color: #0077cc;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.remaining-uses-badge.low-count {
+    background-color: #fff2e6;
+    color: #ff6b00;
+}
+
+.unlimited-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    background-color: #f0f0f0;
+    color: #666;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.used-count-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    background-color: #e8f5e9;
+    color: #43a047;
+    font-size: 0.85rem;
+    font-weight: 500;
 }
 </style>
