@@ -100,6 +100,114 @@ if (db.products.countDocuments() === 0) {
       createdAt: new Date(),
       updatedAt: new Date()
     },
+    {
+      name: 'MacBook Pro 16 (M2 Pro)',
+      slug: 'macbook-pro-16-m2-pro',
+      description: `The MacBook Pro 16 with M2 Pro chip delivers exceptional performance and stunning visuals on its Retina XDR display. 
+      Perfect for professional video editing, software development, and creative work with up to 22 hours of battery life.`,
+      price: 65990000,
+      discountPrice: 62990000,
+      category: 'laptop',
+      subcategory: 'premium',
+      brand: 'Apple',
+      stock: 12,
+      images: ['1746800068906.png', '1746800068907.png', '1746800068908.png'],
+      specifications: [
+        { name: 'Processor', value: 'Apple M2 Pro (12-core)' },
+        { name: 'RAM', value: '32GB Unified Memory' },
+        { name: 'Storage', value: '1TB SSD' },
+        { name: 'Display', value: '16.2-inch Liquid Retina XDR' },
+        { name: 'Graphics', value: '19-core GPU' },
+        { name: 'Battery', value: '100Whr' }
+      ],
+      variants: [
+        {
+          name: 'Storage',
+          options: [
+            { value: '1TB', additionalPrice: 0, stock: 8 },
+            { value: '2TB', additionalPrice: 8000000, stock: 4 }
+          ]
+        },
+        {
+          name: 'RAM',
+          options: [
+            { value: '32GB', additionalPrice: 0, stock: 6 },
+            { value: '64GB', additionalPrice: 8000000, stock: 6 }
+          ]
+        }
+      ],
+      featured: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      name: 'ASUS ROG Zephyrus G15',
+      slug: 'asus-rog-zephyrus-g15',
+      description: `The ASUS ROG Zephyrus G15 is an ultra-slim gaming laptop with AMD Ryzen 9 processor and 
+      NVIDIA RTX graphics. With its 165Hz QHD display and advanced cooling system, it delivers exceptional 
+      gaming performance in a portable design.`,
+      price: 38990000,
+      discountPrice: 36990000,
+      category: 'laptop',
+      subcategory: 'gaming',
+      brand: 'ASUS',
+      stock: 18,
+      images: ['1746803586118.png', '1746803586119.png', '1746803586120.png'],
+      specifications: [
+        { name: 'Processor', value: 'AMD Ryzen 9 5900HS' },
+        { name: 'RAM', value: '16GB DDR4' },
+        { name: 'Storage', value: '1TB NVMe SSD' },
+        { name: 'Display', value: '15.6-inch QHD (165Hz)' },
+        { name: 'Graphics', value: 'NVIDIA GeForce RTX 3080' },
+        { name: 'Battery', value: '90Whr' }
+      ],
+      variants: [
+        {
+          name: 'Graphics',
+          options: [
+            { value: 'RTX 3070', additionalPrice: -4000000, stock: 10 },
+            { value: 'RTX 3080', additionalPrice: 0, stock: 8 }
+          ]
+        }
+      ],
+      featured: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      name: 'MSI Stealth 15M',
+      slug: 'msi-stealth-15m',
+      description: `The MSI Stealth 15M is a sleek and powerful gaming laptop that combines performance 
+      with portability. Featuring the latest Intel Core i7 processor and NVIDIA RTX graphics in a thin, 
+      lightweight design.`,
+      price: 34990000,
+      discountPrice: 32990000,
+      category: 'laptop',
+      subcategory: 'gaming',
+      brand: 'MSI',
+      stock: 15,
+      images: ['1746803586122.png', '1746803586123.png'],
+      specifications: [
+        { name: 'Processor', value: 'Intel Core i7-11375H' },
+        { name: 'RAM', value: '16GB DDR4' },
+        { name: 'Storage', value: '512GB NVMe SSD' },
+        { name: 'Display', value: '15.6-inch FHD (144Hz)' },
+        { name: 'Graphics', value: 'NVIDIA GeForce RTX 3060' },
+        { name: 'Battery', value: '52Whr' }
+      ],
+      variants: [
+        {
+          name: 'Storage',
+          options: [
+            { value: '512GB', additionalPrice: 0, stock: 8 },
+            { value: '1TB', additionalPrice: 2500000, stock: 7 }
+          ]
+        }
+      ],
+      featured: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
     
     // Desktop PCs
     {
@@ -348,37 +456,56 @@ if (db.coupons.countDocuments() === 0) {
   
   const demoCoupons = [
     {
-      code: 'NEW10',
-      description: 'Giảm 10% cho khách hàng mới',
+      code: "NEWCM",
+      description: "Giảm giá 10% cho khách hàng mới",
       discount: 10,
       minAmount: 1000000,
-      startDate: new Date(),
-      endDate: new Date(new Date().setMonth(new Date().getMonth() + 3)),
-      maxUses: 100,
+      maxUses: 10,
+      usedCount: 0,
       active: true,
       createdAt: new Date(),
       updatedAt: new Date()
     },
     {
-      code: 'CPU20',
-      description: 'Giảm 20% cho các sản phẩm CPU',
-      discount: 20,
+      code: "SUPER",
+      description: "Giảm giá 15% cho đơn hàng trên 5 triệu",
+      discount: 15,
       minAmount: 5000000,
-      startDate: new Date(),
-      endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
-      maxUses: 50,
+      maxUses: 10,
+      usedCount: 0,
       active: true,
       createdAt: new Date(),
       updatedAt: new Date()
     },
     {
-      code: 'DEAL5',
-      description: 'Giảm 5% cho mọi đơn hàng',
+      code: "FLASH",
+      description: "Giảm giá 20% cho flash sale",
+      discount: 20,
+      minAmount: 3000000,
+      maxUses: 5,
+      usedCount: 0,
+      active: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      code: "BIGPC",
+      description: "Giảm giá 5% cho PC gaming",
       discount: 5,
+      minAmount: 15000000,
+      maxUses: 10,
+      usedCount: 0,
+      active: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      code: "ACCES",
+      description: "Giảm giá 25% cho phụ kiện",
+      discount: 25,
       minAmount: 500000,
-      startDate: new Date(),
-      endDate: new Date(new Date().setDate(new Date().getDate() + 10)),
-      maxUses: 200,
+      maxUses: 8,
+      usedCount: 0,
       active: true,
       createdAt: new Date(),
       updatedAt: new Date()
