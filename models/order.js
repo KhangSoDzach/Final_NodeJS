@@ -39,11 +39,14 @@ const orderSchema = new Schema({
     type: String,
     unique: true,
     required: true
-  },
-  user: {
+  },  user: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false // Making user optional for guest checkout
+  },
+  guestEmail: {
+    type: String,
+    required: false // Email for guest users
   },
   items: [orderItemSchema],
   totalAmount: {

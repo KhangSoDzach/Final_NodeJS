@@ -597,13 +597,20 @@ exports.getOrders = async (req, res) => {
     if (req.query.status) {
       filter.status = req.query.status;
     }
-    
-    if (req.query.search) {
+      if (req.query.search) {
       filter.$or = [
         { orderNumber: { $regex: req.query.search, $options: 'i' } },
         { 'shippingAddress.name': { $regex: req.query.search, $options: 'i' } },
-        { 'shippingAddress.phone': { $regex: req.query.search, $options: 'i' } }
+        { 'shippingAddress.phone': { $regex: req.query.search, $options: 'i' } },
+        { 'guestEmail': { $regex: req.query.search, $options: 'i' } }
       ];
+    }
+    
+    // Filter by customer type (registered or guest)
+    if (req.query.customerType === 'registered') {
+      filter.user = { $ne: null };
+    } else if (req.query.customerType === 'guest') {
+      filter.user = null;
     }
     
     // Get orders
