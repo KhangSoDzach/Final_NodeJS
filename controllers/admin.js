@@ -671,6 +671,7 @@ exports.getOrderDetail = async (req, res) => {
   }
 };
 
+// Sửa hàm updateOrderStatus để cập nhật điểm tích lũy khi đơn hàng được giao
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -682,6 +683,7 @@ exports.updateOrderStatus = async (req, res) => {
     }
     
     // Update status
+    const previousStatus = order.status;
     order.status = status;
     
     // Add to status history
@@ -689,13 +691,22 @@ exports.updateOrderStatus = async (req, res) => {
       status,
       date: Date.now(),
       note: note || `Trạng thái đơn hàng đã được cập nhật thành ${status}`
-    });    // Nếu trạng thái là "delivered", cập nhật điểm tích lũy cho người dùng
-    if (status === 'delivered') {
-      const loyaltyPoints = Math.floor(order.totalAmount * 0.0001); // Tính 0.01% giá trị đơn hàng (1/10000)
+    });
+    
+    // Nếu trạng thái được cập nhật thành "delivered" (đã giao hàng) và trạng thái trước đó KHÔNG phải là delivered
+    if (status === 'delivered' && previousStatus !== 'delivered') {
+      // Lấy thông tin điểm tích lũy từ đơn hàng
+      const loyaltyPointsEarned = order.loyaltyPointsEarned || Math.floor(order.totalAmount * 0.0001);
+      
+      // Cập nhật điểm tích lũy cho người dùng
       const user = await User.findById(order.user);
-      if (user) {
-        user.loyaltyPoints += loyaltyPoints;
+      if (user && !order.loyaltyPointsApplied) {
+        user.loyaltyPoints += loyaltyPointsEarned;
         await user.save();
+        
+        // Đánh dấu đã cộng điểm tích lũy
+        order.loyaltyPointsApplied = true;
+        console.log(`Added ${loyaltyPointsEarned} loyalty points to user ${user._id} for order ${order._id}`);
       }
     }
     
@@ -745,15 +756,30 @@ exports.postUpdateOrder = async (req, res) => {
     if (!order) {
       req.flash('error', 'Không tìm thấy đơn hàng.');
       return res.redirect('/admin/orders');
-    }
-
-    // Cập nhật trạng thái và ghi chú
+    }    // Cập nhật trạng thái và ghi chú
+    const previousStatus = order.status;
     order.status = status;
     order.statusHistory.push({
       status,
       date: Date.now(),
       note: note || `Trạng thái đơn hàng đã được cập nhật thành ${status}`
     });
+    
+    // Nếu trạng thái được cập nhật thành "delivered" (đã giao hàng) và trạng thái trước đó KHÔNG phải là delivered
+    if (status === 'delivered' && previousStatus !== 'delivered') {
+      // Lấy thông tin điểm tích lũy từ đơn hàng
+      const loyaltyPointsEarned = order.loyaltyPointsEarned || Math.floor(order.totalAmount * 0.0001);
+        // Cập nhật điểm tích lũy cho người dùng
+      const user = await User.findById(order.user);
+      if (user && !order.loyaltyPointsApplied) {
+        user.loyaltyPoints += loyaltyPointsEarned;
+        await user.save();
+        
+        // Đánh dấu đã cộng điểm tích lũy
+        order.loyaltyPointsApplied = true;
+        console.log(`Added ${loyaltyPointsEarned} loyalty points to user ${user._id} for order ${order._id}`);
+      }
+    }
 
     await order.save();
 

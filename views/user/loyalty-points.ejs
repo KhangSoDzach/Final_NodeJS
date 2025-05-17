@@ -64,11 +64,12 @@
                                     <td><a href="/orders/<%= record._id %>">#<%= record.orderNumber %></a></td>
                                     <td class="points-earned"><%= record.loyaltyPointsEarned > 0 ? '+' + record.loyaltyPointsEarned : '-' %></td>
                                     <td class="points-used"><%= record.loyaltyPointsUsed > 0 ? '-' + record.loyaltyPointsUsed : '-' %></td>
-                                    <td>
-                                        <% if (record.loyaltyPointsEarned > 0 && record.loyaltyPointsUsed > 0) { %>
+                                    <td>                                        <% if (record.loyaltyPointsEarned > 0 && record.loyaltyPointsUsed > 0) { %>
                                             Nhận và sử dụng điểm
-                                        <% } else if (record.loyaltyPointsEarned > 0) { %>
-                                            Nhận điểm từ đơn hàng
+                                        <% } else if (record.loyaltyPointsEarned > 0 && record.loyaltyPointsApplied) { %>
+                                            Nhận điểm từ đơn hàng đã giao thành công
+                                        <% } else if (record.loyaltyPointsEarned > 0 && !record.loyaltyPointsApplied) { %>
+                                            Sẽ nhận điểm khi đơn hàng được giao
                                         <% } else if (record.loyaltyPointsUsed > 0) { %>
                                             Sử dụng điểm cho đơn hàng
                                         <% } %>

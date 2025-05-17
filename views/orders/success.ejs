@@ -1,17 +1,14 @@
-
 <div class="container">
   <h1>Đặt hàng thành công!</h1>
   <p>Cảm ơn bạn đã đặt hàng. Mã đơn hàng của bạn là <strong><%= orderId %></strong>.</p>
   <p>Bạn có thể theo dõi trạng thái đơn hàng <a href="/orders/track/<%= orderId %>">tại đây</a>.</p>  <% if (couponApplied) { %>
   <p>Đơn hàng của bạn đã được giảm giá <strong><%= discountPercent %>%</strong> với mã <strong><%= couponCode %></strong>.</p>
   <% } %>
-  
-  <% if (order.loyaltyPointsUsed > 0) { %>
+    <% if (order.loyaltyPointsUsed > 0) { %>
   <p>Bạn đã sử dụng <strong><%= order.loyaltyPointsUsed %></strong> điểm tích lũy để giảm <strong><%= (order.loyaltyPointsUsed * 1000).toLocaleString('vi-VN') %> VND</strong>.</p>
   <% } %>
-  
-  <% if (order.loyaltyPointsEarned > 0) { %>
-  <p>Bạn đã nhận được <strong><%= order.loyaltyPointsEarned %></strong> điểm tích lũy từ đơn hàng này.</p>
+    <% if (order.loyaltyPointsEarned > 0) { %>
+  <p class="loyalty-points-pending">Bạn sẽ nhận được <strong><%= order.loyaltyPointsEarned %></strong> điểm tích lũy khi đơn hàng được admin xác nhận là đã giao thành công.</p>
   <% } %>
   
   <p>Tổng số điểm tích lũy hiện tại của bạn: <strong><%= currentLoyaltyPoints %></strong> điểm.</p>
@@ -50,6 +47,19 @@
       color: var(--primary-color-dark);
       outline: none;
       text-decoration: underline;
+    }
+
+    /* Thêm CSS để làm nổi bật thông báo điểm tích lũy đang chờ xác nhận */
+    .loyalty-points-pending {
+      background-color: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 10px 15px;
+      border-radius: 4px;
+      color: #92400e !important;
+    }
+
+    .loyalty-points-pending strong {
+      color: #92400e !important;
     }
 
     a.btn {

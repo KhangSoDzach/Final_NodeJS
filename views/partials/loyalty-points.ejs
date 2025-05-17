@@ -1,4 +1,8 @@
 <div class="loyalty-points-earned">
   <i class="fas fa-star"></i>
-  <p>Bạn đã nhận được <strong><%= order.loyaltyPointsEarned %></strong> điểm tích lũy từ đơn hàng này!</p>
+  <% if (order.status === 'delivered' && order.loyaltyPointsApplied) { %>
+    <p>Bạn đã nhận được <strong><%= order.loyaltyPointsEarned %></strong> điểm tích lũy từ đơn hàng này!</p>
+  <% } else { %>
+    <p>Bạn sẽ nhận được <strong><%= order.loyaltyPointsEarned %></strong> điểm tích lũy khi đơn hàng được xác nhận giao thành công.</p>
+  <% } %>
 </div>

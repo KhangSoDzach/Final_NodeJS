@@ -78,10 +78,13 @@ const orderSchema = new Schema({
   loyaltyPointsUsed: {
     type: Number,
     default: 0
-  },
-  loyaltyPointsEarned: {
+  },  loyaltyPointsEarned: {
     type: Number,
     default: 0
+  },
+  loyaltyPointsApplied: {
+    type: Boolean,
+    default: false
   },
   note: {
     type: String
