@@ -96,7 +96,7 @@ const orderSchema = new Schema({
 
 // Method to calculate loyalty points
 orderSchema.methods.calculateLoyaltyPoints = function () {
-  return Math.floor(this.totalAmount * 0.1); // Tích lũy 10% giá trị đơn hàng
+  return Math.floor(this.totalAmount * 0.0001); // Tích lũy 0.01% giá trị đơn hàng (1/10000)
 };
 
 module.exports = mongoose.model('Order', orderSchema);

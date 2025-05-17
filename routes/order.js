@@ -37,18 +37,23 @@ router.get('/success/:orderId', isAuth, async (req, res) => {
       req.flash('error', 'Bạn không có quyền xem đơn hàng này.');
       return res.redirect('/orders/history');
     }
-    
-    // Pass coupon information to the view
+      // Pass coupon information to the view
     const couponApplied = order.couponCode ? true : false;
     const couponCode = order.couponCode || '';
     const discountPercent = order.discount || 0;
+    
+    // Get current user's loyalty points
+    const user = await require('../models/user').findById(req.user._id);
+    const currentLoyaltyPoints = user ? user.loyaltyPoints : 0;
     
     res.render('orders/success', { 
       title: 'Đặt hàng thành công', 
       orderId,
       couponApplied,
       couponCode,
-      discountPercent
+      discountPercent,
+      order,
+      currentLoyaltyPoints
     });
   } catch (err) {
     console.error('Error loading order success page:', err);

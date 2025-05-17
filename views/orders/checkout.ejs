@@ -1,4 +1,3 @@
-
 <div class="container checkout-page">
   <h1>Thanh toán</h1>
   <div class="checkout-grid">
@@ -22,8 +21,7 @@
                   <td><%= item.quantity %></td>
                   <td><%= (item.price * item.quantity).toLocaleString('vi-VN') %> VND</td>
                 </tr>              <% }) %>
-            </tbody>
-            <tfoot>
+            </tbody>            <tfoot>
               <tr>
                 <td colspan="2"><strong>Tạm tính:</strong></td>
                 <td><%= cart.calculateTotal().toLocaleString('vi-VN') %> VND</td>
@@ -33,18 +31,42 @@
                 <td colspan="2"><strong>Giảm giá (<%= cart.coupon.code %> - <%= cart.coupon.discount %>%):</strong></td>
                 <td>-<%= (cart.calculateTotal() - cart.calculateTotalWithDiscount()).toLocaleString('vi-VN') %> VND</td>
               </tr>
-              <tr>
-                <td colspan="2"><strong>Tổng cộng:</strong></td>
-                <td><strong><%= cart.calculateTotalWithDiscount().toLocaleString('vi-VN') %> VND</strong></td>
-              </tr>
-              <% } else { %>
-              <tr>
-                <td colspan="2"><strong>Tổng cộng:</strong></td>
-                <td><strong><%= cart.calculateTotal().toLocaleString('vi-VN') %> VND</strong></td>
+              <% } %>
+              <% if (maxPointsApplicable > 0) { %>
+              <tr class="discount-row">
+                <td colspan="2"><strong>Giảm giá từ điểm tích lũy (<%= maxPointsApplicable %> điểm):</strong></td>
+                <td>-<%= loyaltyPointsValue.toLocaleString('vi-VN') %> VND</td>
               </tr>
               <% } %>
+              <tr>
+                <td colspan="2"><strong>Tổng cộng:</strong></td>
+                <% if (cart.coupon && maxPointsApplicable > 0) { %>
+                  <td><strong><%= (cart.calculateTotalWithDiscount() - loyaltyPointsValue).toLocaleString('vi-VN') %> VND</strong></td>
+                <% } else if (cart.coupon) { %>
+                  <td><strong><%= cart.calculateTotalWithDiscount().toLocaleString('vi-VN') %> VND</strong></td>
+                <% } else if (maxPointsApplicable > 0) { %>
+                  <td><strong><%= (cart.calculateTotal() - loyaltyPointsValue).toLocaleString('vi-VN') %> VND</strong></td>
+                <% } else { %>
+                  <td><strong><%= cart.calculateTotal().toLocaleString('vi-VN') %> VND</strong></td>
+                <% } %>
+              </tr>
             </tfoot>
-          </table>
+          </table>          <!-- Hiển thị thông tin điểm tích lũy -->
+          <% if (user && user.loyaltyPoints > 0) { %>
+            <div class="loyalty-points-section mt-3">
+              <h3>Điểm tích lũy</h3>
+              <p>Bạn hiện có <strong><%= user.loyaltyPoints %></strong> điểm tích lũy (tương đương <%= (user.loyaltyPoints * 1000).toLocaleString('vi-VN') %> VND)</p>
+              
+              <% if (maxPointsApplicable > 0) { %>
+                <p class="text-success">Hệ thống tự động sử dụng <strong><%= maxPointsApplicable %></strong> điểm cho đơn hàng này, 
+                giảm <strong><%= loyaltyPointsValue.toLocaleString('vi-VN') %> VND</strong></p>
+                <!-- Thêm trường ẩn để gửi giá trị điểm sử dụng -->
+                <input type="hidden" name="loyaltyPointsToUse" value="<%= maxPointsApplicable %>">
+              <% } else { %>
+                <p>Bạn không đủ điểm để sử dụng cho đơn hàng này hoặc giá trị đơn hàng quá nhỏ.</p>
+              <% } %>
+            </div>
+          <% } %>
         <% } else { %>
           <p>Giỏ hàng của bạn đang trống.</p>
         <% } %>
@@ -161,7 +183,7 @@
       savedAddressSelect.addEventListener('change', function() {
         fillAddressFields(this.value);
       });
-    }
+    }    // Điểm tích lũy được áp dụng tự động
 
     // Xử lý form submit
     const checkoutForm = document.getElementById('checkout-form');
@@ -277,6 +299,6 @@
           if (couponMessage) couponMessage.innerHTML = '<p class="text-danger">Đã xảy ra lỗi khi áp dụng mã giảm giá</p>';
         });
       });
-    }
+    }    // Điểm tích lũy được hiển thị trực tiếp trong bảng thanh toán
   });
 </script>

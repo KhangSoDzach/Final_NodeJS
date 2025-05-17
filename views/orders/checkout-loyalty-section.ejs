@@ -1,0 +1,21 @@
+<!-- Thêm section dùng điểm tích lũy -->
+<% if (user && user.loyaltyPoints > 0) { %>
+  <div class="loyalty-points-section mt-3">
+    <h3>Điểm tích lũy</h3>
+    <p>Bạn hiện có <strong><%= user.loyaltyPoints %></strong> điểm tích lũy (tương đương <%= (user.loyaltyPoints * 1000).toLocaleString('vi-VN') %> VND)</p>
+    
+    <div class="form-group">
+      <div class="custom-control custom-checkbox">
+        <input type="checkbox" class="custom-control-input" id="use-loyalty-points" name="useLoyaltyPoints">
+        <label class="custom-control-label" for="use-loyalty-points">Sử dụng điểm tích lũy cho đơn hàng này</label>
+      </div>
+    </div>
+    
+    <div id="loyalty-points-amount" class="form-group" style="display: none;">
+      <label for="loyalty-points-to-use">Số điểm muốn sử dụng (Tối đa: <%= user.loyaltyPoints %> điểm)</label>
+      <input type="number" class="form-control" id="loyalty-points-to-use" name="loyaltyPointsToUse" min="1" max="<%= user.loyaltyPoints %>" value="<%= user.loyaltyPoints %>">
+      <small class="text-muted">1 điểm = 1,000 VND</small>
+      <div id="loyalty-discount-preview" class="mt-2"></div>
+    </div>
+  </div>
+<% } %>
