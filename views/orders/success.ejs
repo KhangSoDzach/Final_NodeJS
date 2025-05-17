@@ -1,6 +1,7 @@
 
 
 
+
 <div class="container py-5">
   <div class="order-success-container">
     <div class="card shadow">
@@ -121,6 +122,19 @@
       color: var(--primary-color-dark);
       outline: none;
       text-decoration: underline;
+    }
+
+    /* Thêm CSS để làm nổi bật thông báo điểm tích lũy đang chờ xác nhận */
+    .loyalty-points-pending {
+      background-color: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 10px 15px;
+      border-radius: 4px;
+      color: #92400e !important;
+    }
+
+    .loyalty-points-pending strong {
+      color: #92400e !important;
     }
 
     a.btn {

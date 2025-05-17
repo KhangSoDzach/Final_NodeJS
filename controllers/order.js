@@ -181,18 +181,38 @@ exports.applyLoyaltyPoints = async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order || order.user.toString() !== req.user._id.toString()) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng.' });
-    }    // Calculate loyalty points
-    const loyaltyPoints = Math.floor(order.totalAmount * 0.0001);
-
-    // Update user's loyalty points
-    req.user.loyaltyPoints += loyaltyPoints;
-    await req.user.save();
-
-    res.status(200).json({
-      success: true,
-      message: `Bạn đã nhận được ${loyaltyPoints} điểm tích lũy.`,
-      currentPoints: req.user.loyaltyPoints
-    });
+    }
+    
+    // Kiểm tra xem đơn hàng đã được giao chưa
+    if (order.status !== 'delivered') {
+      return res.status(400).json({ success: false, message: 'Điểm tích lũy chỉ áp dụng khi đơn hàng đã được giao.' });
+    }
+      // Kiểm tra xem điểm tích lũy đã được cộng chưa
+    if (!order.loyaltyPointsApplied) {
+      // Lấy số điểm tích lũy đã được tính khi tạo đơn hàng
+      const loyaltyPoints = order.loyaltyPointsEarned || Math.floor(order.totalAmount * 0.0001);
+      
+      // Cộng điểm tích lũy vào tài khoản người dùng
+      req.user.loyaltyPoints += loyaltyPoints;
+      await req.user.save();
+      
+      // Đánh dấu rằng điểm đã được cộng
+      order.loyaltyPointsApplied = true;
+      await order.save();
+      
+      console.log(`Added ${loyaltyPoints} loyalty points to user ${req.user._id} for order ${order._id}`);
+      
+      res.status(200).json({
+        success: true,
+        message: `Bạn đã nhận được ${loyaltyPoints} điểm tích lũy.`,
+        currentPoints: req.user.loyaltyPoints
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Điểm tích lũy đã được áp dụng cho đơn hàng này.'
+      });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi áp dụng điểm tích lũy.' });
@@ -238,24 +258,17 @@ exports.postCheckout = async (req, res) => {
           parseInt(loyaltyPointsToUse) || 0
         );
         
-        if (loyaltyPointsUsed > 0) {
-          // Trừ giảm giá từ điểm tích lũy vào tổng tiền
-          const loyaltyDiscount = loyaltyPointsUsed * 1000;
-          totalAmount = Math.max(0, totalAmount - loyaltyDiscount);
-          
-          // Trừ điểm đã sử dụng khỏi tài khoản của người dùng
-          user.loyaltyPoints -= loyaltyPointsUsed;
-          await user.save();
-        }
-      }
 
-      // Tính điểm tích lũy kiếm được từ đơn hàng này (0.01% giá trị đơn hàng)
-      loyaltyPointsEarned = Math.floor(totalAmount * 0.0001);
-      
-      // Cộng điểm mới vào tài khoản người dùng
-      user.loyaltyPoints += loyaltyPointsEarned;
-      await user.save();
-    }
+        // Trừ điểm đã sử dụng khỏi tài khoản của người dùng
+        req.user.loyaltyPoints -= loyaltyPointsUsed;
+        await req.user.save();
+      }    }
+      // Tính điểm tích lũy sẽ nhận được khi đơn hàng được giao (0.01% giá trị đơn hàng)
+    const loyaltyPointsEarned = Math.floor(totalAmount * 0.0001);
+    
+    // Lưu thông tin điểm tích lũy vào đơn hàng
+    // Điểm tích lũy sẽ được thêm vào tài khoản người dùng khi admin xác nhận đơn hàng đã được giao
+
 
     // Tạo mã đơn hàng duy nhất
     const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
