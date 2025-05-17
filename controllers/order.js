@@ -22,12 +22,23 @@ exports.createOrder = async (req, res) => {
       paymentDetails,
       status: 'pending',
       statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }]
-    });
-
-    // Add coupon information if coupon was applied
+    });    // Add coupon information if coupon was applied
     if (cart.coupon && cart.coupon.code) {
       order.couponCode = cart.coupon.code;
       order.discount = cart.coupon.discount;
+      
+      // Tăng số lần sử dụng của coupon
+      try {
+        const Coupon = require('../models/coupon');
+        await Coupon.findOneAndUpdate(
+          { code: cart.coupon.code },
+          { $inc: { usedCount: 1 } }
+        );
+        console.log(`Coupon ${cart.coupon.code} usage count increased.`);
+      } catch (couponError) {
+        console.error('Error updating coupon usedCount:', couponError);
+        // Continue processing the order even if we can't update the coupon count
+      }
     }
 
     await order.save();
@@ -169,12 +180,23 @@ exports.postCheckout = async (req, res) => {
       },
       status: 'pending',
       statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }]
-    });
-
-    // Thêm thông tin giảm giá từ coupon (nếu có)
+    });    // Thêm thông tin giảm giá từ coupon (nếu có)
     if (cart.coupon && cart.coupon.code) {
       order.couponCode = cart.coupon.code;
       order.discount = cart.coupon.discount;
+      
+      // Tăng số lần sử dụng của coupon
+      try {
+        const Coupon = require('../models/coupon');
+        await Coupon.findOneAndUpdate(
+          { code: cart.coupon.code },
+          { $inc: { usedCount: 1 } }
+        );
+        console.log(`Coupon ${cart.coupon.code} usage count increased.`);
+      } catch (couponError) {
+        console.error('Error updating coupon usedCount:', couponError);
+        // Vẫn tiếp tục xử lý đơn hàng ngay cả khi không thể cập nhật số lượng coupon
+      }
     }
 
     await order.save();
