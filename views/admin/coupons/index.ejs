@@ -1,7 +1,5 @@
 
-
 <%- include('../partials/sidebar') %>
-
 
 <div class="admin-content">
   <div class="admin-header">
@@ -61,56 +59,219 @@
   <% } %>
 </div>
 
-<style>
-.coupon-table th, .coupon-table td {
-    border-bottom: 1px solid #e0e0e0;
-    padding: 0.75rem 1rem;
-    background: #fff;
-}
-.coupon-table th {
-    background: #f3f4f6;
-    font-weight: 600;
-}
-.coupon-table tr:hover {
-    background: #f7fafd;
-}
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-}
+<!-- <style>
+    :root {
+      --primary-color: #2196F3;
+      --primary-color-dark: #1769AA;
+      --success-color: #4CAF50;
+      --danger-color: #F44336;
+      --warning-color: #FFC107;
+      --text-color-dark: #23272E;
+      --text-color-muted: #6B7280;
+      --border-color-light: #E0E0E0;
+      --border-radius-md: 8px;
+      --font-family-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-size-base: 1rem;
+      --font-size-sm: 0.875rem;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.75rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --transition-short: 0.2s;
+    }
 
-.remaining-uses-badge {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    background-color: #e6f7ff;
-    color: #0077cc;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
+    body {
+      font-family: var(--font-family-sans);
+      color: var(--text-color-dark);
+      background-color: #f9fafb;
+      margin: 0;
+      padding: var(--spacing-lg);
+    }
 
-.remaining-uses-badge.low-count {
-    background-color: #fff2e6;
-    color: #ff6b00;
-}
+    .admin-content {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
 
-.unlimited-badge {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    background-color: #f0f0f0;
-    color: #666;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
+    /* Header */
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-xl);
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+    }
 
-.used-count-badge {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    background-color: #e8f5e9;
-    color: #43a047;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-</style>
+    .admin-header h1 {
+      font-size: 1.75rem;
+      font-weight: var(--font-weight-semibold);
+      margin: 0;
+      color: var(--text-color-dark);
+    }
+
+    .admin-header > a.btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+      padding: 0.5em 1.25em;
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-base);
+      border-radius: var(--border-radius-md);
+      background-color: var(--primary-color);
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color var(--transition-short);
+      user-select: none;
+    }
+
+    .admin-header > a.btn-primary:hover,
+    .admin-header > a.btn-primary:focus {
+      background-color: var(--primary-color-dark);
+      outline: none;
+    }
+
+    /* Table */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--font-size-base);
+      color: var(--text-color-dark);
+      min-width: 700px;
+    }
+
+    table.data-table thead tr {
+      background-color: var(--border-color-light);
+    }
+
+    table.data-table th,
+    table.data-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color-light);
+      text-align: left;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    table.data-table th {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    table.data-table tbody tr:nth-child(even) {
+      background-color: #f9fafb;
+    }
+
+    table.data-table tbody tr:hover {
+      background-color: #f7fafd;
+      transition: background-color var(--transition-short);
+    }
+
+    /* Badges */
+    .remaining-uses-badge,
+    .used-count-badge,
+    .unlimited-badge,
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .remaining-uses-badge {
+      background-color: #e6f7ff;
+      color: #0077cc;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .remaining-uses-badge.low-count {
+      background-color: #fff2e6;
+      color: #ff6b00;
+      font-weight: 600;
+    }
+
+    .remaining-uses-badge.low-count:hover {
+      background-color: #ffddb8;
+      color: #cc5500;
+    }
+
+    .unlimited-badge {
+      background-color: #f0f0f0;
+      color: #666;
+    }
+
+    .used-count-badge {
+      background-color: #e8f5e9;
+      color: #43a047;
+    }
+
+    .status-badge {
+      color: white;
+      cursor: default;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+
+    .status-badge.active {
+      background-color: var(--success-color);
+    }
+
+    .status-badge.banned {
+      background-color: var(--danger-color);
+    }
+
+    /* Buttons */
+    form button.btn-danger {
+      background-color: var(--danger-color);
+      color: white;
+      border: none;
+      padding: 0.4em 0.8em;
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      transition: background-color var(--transition-short);
+      user-select: none;
+    }
+
+    form button.btn-danger:hover,
+    form button.btn-danger:focus {
+      background-color: #b32b27;
+      outline: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .admin-header > a.btn-primary {
+        width: 100%;
+        justify-content: center;
+      }
+
+      table.data-table {
+        min-width: 100%;
+        font-size: 0.9rem;
+      }
+
+      table.data-table th,
+      table.data-table td {
+        padding: 0.5rem 0.75rem;
+        white-space: normal;
+      }
+    }
+  </style> -->
