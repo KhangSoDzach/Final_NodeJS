@@ -1,5 +1,3 @@
-# Final_NodeJS
-Final project of Nodejs 
 # Project Evaluation Guide
 
 ## Project Overview
