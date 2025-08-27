@@ -1,5 +1,3 @@
-# Final_NodeJS
-Final project of Nodejs 
 # Project Evaluation Guide
 
 ## Project Overview
@@ -24,4 +22,3 @@ Final project of Nodejs
 - `/public`: Static assets
 
 Thank you for evaluating this project!
-ALIBABA

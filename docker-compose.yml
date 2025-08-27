@@ -15,7 +15,7 @@ services:  # Nginx Load Balancer
     networks:
       - app-network
     restart: always
-  # Application Server 1 - Port 3000
+
   app1:
     build:
       context: .
@@ -28,7 +28,7 @@ services:  # Nginx Load Balancer
       - GOOGLE_CLIENT_ID=16788479489-8sehea2kcf4bq6j2bf6c5vak4p0tuhnt.apps.googleusercontent.com
       - GOOGLE_CLIENT_SECRET=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
       - GOOGLE_CALLBACK_URL=http://localhost/auth/google/callback
-      # Email configuration
+  
       - EMAIL_USER=lexa61313@gmail.com
       - EMAIL_PASSWORD=dnhl ieid rmoz bewa
     volumes:
