@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .filters {
+      background: #f8fafc;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filters input, .filters select {
+      padding: 0.5rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .summary-card {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .summary-card h4 { margin: 0; font-size: 1.5rem; }
+    .summary-card p { margin: 0.5rem 0 0; color: #64748b; font-size: 0.85rem; }
+    .summary-card.import { border-left: 4px solid #10b981; }
+    .summary-card.export { border-left: 4px solid #f59e0b; }
+    .summary-card.order { border-left: 4px solid #3b82f6; }
+    .summary-card.adjust { border-left: 4px solid #8b5cf6; }
+    
+    .movements-table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .movements-table th, .movements-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .movements-table th { background: #f1f5f9; font-weight: 600; }
+    .movements-table tr:hover { background: #f8fafc; }
+    
+    .type-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .type-badge.import { background: #d1fae5; color: #065f46; }
+    .type-badge.export { background: #fef3c7; color: #92400e; }
+    .type-badge.order { background: #dbeafe; color: #1e40af; }
+    .type-badge.cancel { background: #fee2e2; color: #991b1b; }
+    .type-badge.adjustment { background: #e0e7ff; color: #3730a3; }
+    .type-badge.return { background: #f3e8ff; color: #6b21a8; }
+    
+    .quantity-change {
+      font-weight: 600;
+    }
+    .quantity-change.positive { color: #10b981; }
+    .quantity-change.negative { color: #ef4444; }
+    
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+    .pagination a, .pagination span {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+    .pagination a { background: #e2e8f0; color: #475569; }
+    .pagination a:hover { background: #cbd5e1; }
+    .pagination .active { background: #4f46e5; color: white; }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-history"></i> <%= title %></h1>
+        <a href="/admin/inventory" style="color:#4f46e5;text-decoration:none;">
+          <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+      </div>
+      
+      <div class="admin-content">
+        <!-- Summary -->
+        <div class="summary-cards">
+          <% 
+            const summaryMap = {};
+            summary.forEach(s => summaryMap[s._id] = s);
+          %>
+          <div class="summary-card import">
+            <h4>+<%= summaryMap.import?.totalQuantity || 0 %></h4>
+            <p>Nhập kho (<%= summaryMap.import?.count || 0 %> lần)</p>
+          </div>
+          <div class="summary-card export">
+            <h4><%= summaryMap.export?.totalQuantity || 0 %></h4>
+            <p>Xuất kho (<%= summaryMap.export?.count || 0 %> lần)</p>
+          </div>
+          <div class="summary-card order">
+            <h4><%= summaryMap.order?.totalQuantity || 0 %></h4>
+            <p>Đơn hàng (<%= summaryMap.order?.count || 0 %> đơn)</p>
+          </div>
+          <div class="summary-card adjust">
+            <h4><%= summaryMap.adjustment?.totalQuantity > 0 ? '+' : '' %><%= summaryMap.adjustment?.totalQuantity || 0 %></h4>
+            <p>Điều chỉnh (<%= summaryMap.adjustment?.count || 0 %> lần)</p>
+          </div>
+        </div>
+        
+        <!-- Filters -->
+        <form class="filters" method="GET">
+          <select name="type">
+            <option value="">-- Loại --</option>
+            <option value="import" <%= filters.type === 'import' ? 'selected' : '' %>>Nhập kho</option>
+            <option value="export" <%= filters.type === 'export' ? 'selected' : '' %>>Xuất kho</option>
+            <option value="order" <%= filters.type === 'order' ? 'selected' : '' %>>Đơn hàng</option>
+            <option value="cancel" <%= filters.type === 'cancel' ? 'selected' : '' %>>Hủy đơn</option>
+            <option value="adjustment" <%= filters.type === 'adjustment' ? 'selected' : '' %>>Điều chỉnh</option>
+            <option value="return" <%= filters.type === 'return' ? 'selected' : '' %>>Hoàn trả</option>
+          </select>
+          <input type="date" name="startDate" value="<%= filters.startDate || '' %>" placeholder="Từ ngày">
+          <input type="date" name="endDate" value="<%= filters.endDate || '' %>" placeholder="Đến ngày">
+          <button type="submit" style="background:#4f46e5;color:white;border:none;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;">
+            <i class="fas fa-filter"></i> Lọc
+          </button>
+          <a href="/admin/inventory/movements" style="color:#64748b;">Xóa bộ lọc</a>
+        </form>
+        
+        <!-- Movements Table -->
+        <table class="movements-table">
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Sản phẩm</th>
+              <th>Loại</th>
+              <th>Số lượng</th>
+              <th>Lý do</th>
+              <th>Người thực hiện</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (movements.length === 0) { %>
+              <tr>
+                <td colspan="6" style="text-align:center;padding:3rem;color:#64748b;">
+                  Chưa có lịch sử nào
+                </td>
+              </tr>
+            <% } %>
+            <% movements.forEach(m => { %>
+              <tr>
+                <td>
+                  <%= new Date(m.createdAt).toLocaleString('vi-VN') %>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <% if (m.product && m.product.images) { %>
+                      <img src="<%= m.product.images[0] || '/image/placeholder.png' %>" 
+                           style="width:40px;height:40px;object-fit:cover;border-radius:6px;">
+                    <% } %>
+                    <div>
+                      <div><%= m.product?.name || 'N/A' %></div>
+                      <% if (m.variant && m.variant.name) { %>
+                        <small style="color:#64748b;"><%= m.variant.name %>: <%= m.variant.value %></small>
+                      <% } %>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <% 
+                    const typeMap = {
+                      import: 'Nhập kho',
+                      export: 'Xuất kho',
+                      order: 'Đơn hàng',
+                      cancel: 'Hủy đơn',
+                      adjustment: 'Điều chỉnh',
+                      return: 'Hoàn trả'
+                    };
+                  %>
+                  <span class="type-badge <%= m.type %>"><%= typeMap[m.type] || m.type %></span>
+                </td>
+                <td>
+                  <span class="quantity-change <%= m.quantity > 0 ? 'positive' : 'negative' %>">
+                    <%= m.quantity > 0 ? '+' : '' %><%= m.quantity %>
+                  </span>
+                  <br>
+                  <small style="color:#64748b;"><%= m.previousStock %> → <%= m.newStock %></small>
+                </td>
+                <td>
+                  <%= m.reason %>
+                  <% if (m.order) { %>
+                    <br><small><a href="/admin/orders/<%= m.order._id %>">Đơn #<%= m.order.orderNumber %></a></small>
+                  <% } %>
+                  <% if (m.supplier && m.supplier.name) { %>
+                    <br><small style="color:#64748b;">NCC: <%= m.supplier.name %></small>
+                  <% } %>
+                </td>
+                <td>
+                  <%= m.createdBy?.name || 'Hệ thống' %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        <% if (pagination.totalPages > 1) { %>
+        <div class="pagination">
+          <% if (pagination.page > 1) { %>
+            <a href="?page=<%= pagination.page - 1 %>&type=<%= filters.type || '' %>&startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          <% } %>
+          
+          <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+            <% if (i === pagination.page) { %>
+              <span class="active"><%= i %></span>
+            <% } else if (i === 1 || i === pagination.totalPages || (i >= pagination.page - 2 && i <= pagination.page + 2)) { %>
+              <a href="?page=<%= i %>&type=<%= filters.type || '' %>&startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>"><%= i %></a>
+            <% } else if (i === pagination.page - 3 || i === pagination.page + 3) { %>
+              <span>...</span>
+            <% } %>
+          <% } %>
+          
+          <% if (pagination.page < pagination.totalPages) { %>
+            <a href="?page=<%= pagination.page + 1 %>&type=<%= filters.type || '' %>&startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          <% } %>
+        </div>
+        <% } %>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

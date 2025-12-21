@@ -96,13 +96,56 @@
 - Render error page (`views/error.ejs` hoặc `views/404.ejs`) cho client-facing errors.
 - Log errors để debug, sử dụng console.error hoặc logging library.
 
-## 10. Interaction Instructions for AI
-- Khi code tính năng mới, hãy kiểm tra file `@app.js` để đảm bảo routes được đăng ký đúng.
-- Kiểm tra `@routes/index.js` để hiểu cấu trúc routing chính.
-- Khi tạo admin features, luôn đặt trong `@routes/admin/` và `@controllers/admin/`.
-- Khi sửa đổi authentication, kiểm tra `@config/passport.js` và `@middleware/auth.js`.
-- Khi thêm model mới, tạo file trong `@models/` và import vào controllers tương ứng.
-- Khi làm việc với email, sử dụng `@utils/emailService.js` và config tại `@config/email.js`.
-- Khi upload files, sử dụng middleware từ `@middleware/upload.js`.
-- Luôn test các thay đổi trong môi trường Docker local trước khi commit.
-- Đọc `@README.md` và `@Readme.txt` để hiểu project structure và setup instructions.
+10. Interaction Instructions for AI
+Khi code tính năng mới, hãy kiểm tra file @app.js để đảm bảo routes được đăng ký đúng.
+
+Kiểm tra @routes/index.js để hiểu cấu trúc routing chính.
+
+Khi tạo admin features, luôn đặt trong @routes/admin/ và @controllers/admin/.
+
+Khi sửa đổi authentication, kiểm tra @config/passport.js và @middleware/auth.js.
+
+Khi thêm model mới, tạo file trong @models/ và import vào controllers tương ứng.
+
+Khi làm việc với email, sử dụng @utils/emailService.js và config tại @config/email.js.
+
+Khi upload files, sử dụng middleware từ @middleware/upload.js.
+
+Quy trình xử lý tác vụ phức tạp: Đối với các yêu cầu có độ dài lớn, kiến trúc phức tạp hoặc tác động đến nhiều file, phải tạo một bản kế hoạch (Plan) hoàn chỉnh trước. Bản kế hoạch cần liệt kê danh sách các file cần tác động và các bước thực hiện cụ thể. Sau khi kế hoạch được thống nhất, mới tiến hành thực hiện từng bước một.
+
+Luôn test các thay đổi trong môi trường Docker local trước khi commit.
+
+Đọc @README.md và @Readme.txt để hiểu project structure và setup instructions.
+
+11. Unit Testing Standards
+Quy tắc bắt buộc: Mọi tính năng sau khi hoàn thành (đặc biệt là logic trong Controllers, Middleware và Utils) phải đi kèm với các file Unit Test tương ứng để đảm bảo tính ổn định.
+
+Công cụ: Sử dụng Jest làm framework chính và Supertest để kiểm tra các điểm cuối (endpoints) API.
+
+Cấu trúc thư viện test: Các file test phải được đặt trong thư mục tests/ và đặt tên theo định dạng filename.test.js.
+
+Yêu cầu nội dung test:
+
+Kiểm tra các trường hợp dữ liệu đúng (Happy path).
+
+Kiểm tra các trường hợp lỗi (Edge cases) như: dữ liệu trống, sai định dạng, user không có quyền hoặc bị banned.
+
+Đảm bảo các hàm Mock (như jest.fn()) được sử dụng cho các dịch vụ bên ngoài (như Nodemailer) để không gửi email thật khi chạy test.
+
+Tự động hóa: Trước khi hoàn tất tác vụ, hãy chạy lệnh npm test để xác nhận toàn bộ mã nguồn mới không làm hỏng các tính năng cũ.
+
+## 12. Advanced Architectural Rules for Opus 4.5
+- **Performance First:** Luôn sử dụng `.lean()` cho các truy vấn MongoDB chỉ đọc để tiết kiệm bộ nhớ.
+- **Async Safety:** Luôn kiểm tra `if (!data)` sau khi truy vấn để tránh lỗi "property of null".
+- **Security Check:** Mọi dữ liệu từ `req.body` và `req.params` phải được validate qua một lớp middleware hoặc Schema validation trước khi vào Controller.
+
+## 13. Planning & Multi-step Execution
+- **Plan First:** Đối với bất kỳ tính năng nào tác động > 3 file, AI phải liệt kê:
+  1. Mục tiêu thay đổi.
+  2. Danh sách file sẽ tạo mới/chỉnh sửa.
+  3. Rủi ro tiềm ẩn (Breaking changes).
+  4. Sau khi người dùng gõ "Tiến hành", AI mới được thực hiện bước 1.
+
+## 14. Unit Testing & Quality Assurance
+- Mỗi khi tạo một Controller hoặc Util mới, AI phải tự động đề xuất file test tương ứng trong thư mục `tests/` sử dụng Jest.
+- Đảm bảo độ bao phủ (coverage) cho các logic tính toán giá tiền và coupon tối thiểu là 90%.

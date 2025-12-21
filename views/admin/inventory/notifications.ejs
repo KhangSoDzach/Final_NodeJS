@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .top-products {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .top-products h3 {
+      margin: 0 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .top-product-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      background: #f8fafc;
+    }
+    .top-product-item:hover { background: #f1f5f9; }
+    .subscriber-count {
+      background: #4f46e5;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    
+    .filters {
+      background: #f8fafc;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .filters select {
+      padding: 0.5rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    
+    .notifications-table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .notifications-table th, .notifications-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .notifications-table th { background: #f1f5f9; font-weight: 600; }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .status-badge.active { background: #d1fae5; color: #065f46; }
+    .status-badge.notified { background: #dbeafe; color: #1e40af; }
+    .status-badge.unsubscribed { background: #e2e8f0; color: #64748b; }
+    
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+    .pagination a, .pagination span {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+    .pagination a { background: #e2e8f0; color: #475569; }
+    .pagination .active { background: #4f46e5; color: white; }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-bell"></i> <%= title %></h1>
+        <a href="/admin/inventory" style="color:#4f46e5;text-decoration:none;">
+          <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+      </div>
+      
+      <div class="admin-content">
+        <!-- Top Products by Subscribers -->
+        <% if (productStats && productStats.length > 0) { %>
+        <div class="top-products">
+          <h3><i class="fas fa-fire"></i> Sản phẩm được quan tâm nhất</h3>
+          <% productStats.forEach(item => { %>
+            <div class="top-product-item">
+              <div>
+                <strong><%= item.product.name %></strong>
+                <% if (item.product.sku) { %>
+                  <small style="color:#64748b;"> (<%= item.product.sku %>)</small>
+                <% } %>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span class="subscriber-count"><%= item.count %> người đăng ký</span>
+                <button onclick="sendNotifications('<%= item._id %>')" 
+                        style="background:#10b981;color:white;border:none;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;">
+                  <i class="fas fa-paper-plane"></i> Gửi tất cả
+                </button>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+        <% } %>
+        
+        <!-- Filters -->
+        <form class="filters" method="GET">
+          <select name="status">
+            <option value="">-- Trạng thái --</option>
+            <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Đang chờ</option>
+            <option value="notified" <%= filters.status === 'notified' ? 'selected' : '' %>>Đã thông báo</option>
+            <option value="unsubscribed" <%= filters.status === 'unsubscribed' ? 'selected' : '' %>>Đã hủy</option>
+          </select>
+          <button type="submit" style="background:#4f46e5;color:white;border:none;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;">
+            <i class="fas fa-filter"></i> Lọc
+          </button>
+        </form>
+        
+        <!-- Table -->
+        <table class="notifications-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Sản phẩm</th>
+              <th>Trạng thái</th>
+              <th>Ngày đăng ký</th>
+              <th>Ngày thông báo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (notifications.length === 0) { %>
+              <tr>
+                <td colspan="5" style="text-align:center;padding:3rem;color:#64748b;">
+                  Không có đăng ký nào
+                </td>
+              </tr>
+            <% } %>
+            <% notifications.forEach(n => { %>
+              <tr>
+                <td>
+                  <%= n.email %>
+                  <% if (n.user) { %>
+                    <br><small style="color:#64748b;"><%= n.user.name %></small>
+                  <% } %>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <% if (n.product && n.product.images) { %>
+                      <img src="<%= n.product.images[0] || '/image/placeholder.png' %>" 
+                           style="width:40px;height:40px;object-fit:cover;border-radius:6px;">
+                    <% } %>
+                    <div>
+                      <%= n.product?.name || 'N/A' %>
+                      <% if (n.variant && n.variant.name) { %>
+                        <br><small style="color:#64748b;"><%= n.variant.name %>: <%= n.variant.value %></small>
+                      <% } %>
+                      <br><small style="color:#64748b;">Tồn kho: <%= n.product?.stock || 0 %></small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="status-badge <%= n.status %>">
+                    <% 
+                      const statusMap = {
+                        active: 'Đang chờ',
+                        notified: 'Đã thông báo',
+                        unsubscribed: 'Đã hủy'
+                      };
+                    %>
+                    <%= statusMap[n.status] || n.status %>
+                  </span>
+                </td>
+                <td><%= new Date(n.createdAt).toLocaleDateString('vi-VN') %></td>
+                <td>
+                  <% if (n.notifiedAt) { %>
+                    <%= new Date(n.notifiedAt).toLocaleDateString('vi-VN') %>
+                  <% } else { %>
+                    -
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        <% if (pagination.totalPages > 1) { %>
+        <div class="pagination">
+          <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+            <% if (i === pagination.page) { %>
+              <span class="active"><%= i %></span>
+            <% } else { %>
+              <a href="?page=<%= i %>&status=<%= filters.status || '' %>"><%= i %></a>
+            <% } %>
+          <% } %>
+        </div>
+        <% } %>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    function sendNotifications(productId) {
+      if (!confirm('Gửi thông báo cho tất cả người đăng ký sản phẩm này?')) return;
+      
+      fetch(`/admin/inventory/notifications/send/${productId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        if (data.success) location.reload();
+      });
+    }
+  </script>
+</body>
+</html>

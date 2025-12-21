@@ -1,0 +1,278 @@
+<div class="user-dashboard">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3">
+                <%- include('../partials/user-sidebar') %>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div class="dashboard-content">
+                    <h2><i class="fas fa-bell"></i> Thông báo hàng về</h2>
+                    <p class="subtitle">Các sản phẩm bạn đăng ký nhận thông báo khi có hàng</p>
+                    
+                    <% if (notifications && notifications.length > 0) { %>
+                        <div class="notifications-list">
+                            <% notifications.forEach(notification => { %>
+                                <div class="notification-item">
+                                    <div class="notification-product">
+                                        <% if (notification.product) { %>
+                                            <div class="product-image">
+                                                <a href="/products/<%= notification.product.slug %>">
+                                                    <img src="/uploads/products/<%= notification.product.images && notification.product.images[0] ? notification.product.images[0] : 'default.jpg' %>" 
+                                                         alt="<%= notification.product.name %>">
+                                                </a>
+                                            </div>
+                                            <div class="product-info">
+                                                <h4>
+                                                    <a href="/products/<%= notification.product.slug %>">
+                                                        <%= notification.product.name %>
+                                                    </a>
+                                                </h4>
+                                                <% if (notification.variant && notification.variant.name) { %>
+                                                    <p class="variant"><%= notification.variant.name %>: <%= notification.variant.value %></p>
+                                                <% } %>
+                                                <p class="price">
+                                                    <% if (notification.product.discountPrice) { %>
+                                                        <span class="sale-price"><%= notification.product.discountPrice.toLocaleString('vi-VN') %>đ</span>
+                                                        <span class="original-price"><%= notification.product.price.toLocaleString('vi-VN') %>đ</span>
+                                                    <% } else { %>
+                                                        <span class="current-price"><%= notification.product.price.toLocaleString('vi-VN') %>đ</span>
+                                                    <% } %>
+                                                </p>
+                                            </div>
+                                        <% } else { %>
+                                            <div class="product-info">
+                                                <h4 class="text-muted">Sản phẩm không còn tồn tại</h4>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                    
+                                    <div class="notification-status">
+                                        <% if (notification.product && notification.product.stock > 0) { %>
+                                            <div class="stock-badge in-stock">
+                                                <i class="fas fa-check-circle"></i> Đã có hàng!
+                                            </div>
+                                        <% } else { %>
+                                            <div class="stock-badge out-stock">
+                                                <i class="fas fa-clock"></i> Đang chờ hàng
+                                            </div>
+                                        <% } %>
+                                        
+                                        <p class="date">
+                                            Đăng ký: <%= new Date(notification.createdAt).toLocaleDateString('vi-VN') %>
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="notification-actions">
+                                        <% if (notification.product && notification.product.stock > 0) { %>
+                                            <a href="/products/<%= notification.product.slug %>" class="btn btn-primary">
+                                                <i class="fas fa-shopping-cart"></i> Mua ngay
+                                            </a>
+                                        <% } %>
+                                        <button type="button" class="btn btn-outline-danger btn-unsubscribe" 
+                                                data-id="<%= notification.product ? notification.product._id : '' %>"
+                                                data-email="<%= notification.email %>">
+                                            <i class="fas fa-bell-slash"></i> Hủy đăng ký
+                                        </button>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <div class="empty-state">
+                            <i class="fas fa-bell-slash"></i>
+                            <h3>Chưa có đăng ký thông báo</h3>
+                            <p>Đăng ký nhận thông báo khi sản phẩm hết hàng có hàng trở lại.</p>
+                            <a href="/products" class="btn btn-primary">Xem sản phẩm</a>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.subtitle {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.notification-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.notification-item:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.notification-product {
+    display: flex;
+    gap: 15px;
+    flex: 1;
+}
+
+.notification-product .product-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.notification-product .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.notification-product .product-info h4 {
+    margin: 0 0 5px;
+    font-size: 16px;
+}
+
+.notification-product .product-info h4 a {
+    color: #333;
+    text-decoration: none;
+}
+
+.notification-product .product-info h4 a:hover {
+    color: #3b82f6;
+}
+
+.notification-product .product-info p {
+    margin: 3px 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.notification-product .product-info .price .sale-price {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.notification-product .product-info .price .original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+.notification-product .product-info .price .current-price {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.notification-status {
+    text-align: center;
+    padding: 0 20px;
+}
+
+.stock-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.stock-badge.in-stock {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.stock-badge.out-stock {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.notification-status .date {
+    font-size: 12px;
+    color: #888;
+    margin-top: 8px;
+}
+
+.notification-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notification-actions .btn {
+    white-space: nowrap;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+}
+
+.empty-state i {
+    font-size: 60px;
+    margin-bottom: 20px;
+    color: #ddd;
+}
+
+.empty-state h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .notification-item {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .notification-status {
+        padding: 10px 0;
+    }
+    
+    .notification-actions {
+        flex-direction: row;
+        width: 100%;
+    }
+    
+    .notification-actions .btn {
+        flex: 1;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Unsubscribe notification
+    document.querySelectorAll('.btn-unsubscribe').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (!confirm('Bạn có chắc muốn hủy đăng ký thông báo cho sản phẩm này?')) return;
+            
+            const productId = this.dataset.id;
+            const email = this.dataset.email;
+            
+            if (!productId) {
+                alert('Sản phẩm không tồn tại');
+                window.location.reload();
+                return;
+            }
+            
+            window.location.href = `/products/notify/unsubscribe?email=${encodeURIComponent(email)}&productId=${productId}`;
+        });
+    });
+});
+</script>

@@ -44,6 +44,28 @@ const productSchema = new Schema({
     required: true,
     min: 0
   },
+  // Ngưỡng cảnh báo hết hàng
+  lowStockThreshold: {
+    type: Number,
+    default: 10,
+    min: 0
+  },
+  // Cho phép đặt hàng trước khi hết hàng
+  allowPreOrder: {
+    type: Boolean,
+    default: false
+  },
+  // Ngày dự kiến có hàng (cho pre-order)
+  estimatedRestockDate: {
+    type: Date
+  },
+  // SKU - Mã sản phẩm nội bộ
+  sku: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true
+  },
   sold: {
     type: Number,
     default: 0
@@ -126,6 +148,27 @@ productSchema.virtual('averageRating').get(function() {
   
   const totalRating = this.ratings.reduce((sum, rating) => sum + rating.rating, 0);
   return totalRating / this.ratings.length;
+});
+
+// Virtual: Kiểm tra sản phẩm sắp hết hàng
+productSchema.virtual('isLowStock').get(function() {
+  return this.stock > 0 && this.stock <= this.lowStockThreshold;
+});
+
+// Virtual: Kiểm tra sản phẩm hết hàng
+productSchema.virtual('isOutOfStock').get(function() {
+  return this.stock <= 0;
+});
+
+// Virtual: Trạng thái tồn kho
+productSchema.virtual('stockStatus').get(function() {
+  if (this.stock <= 0) {
+    return this.allowPreOrder ? 'pre-order' : 'out-of-stock';
+  }
+  if (this.stock <= this.lowStockThreshold) {
+    return 'low-stock';
+  }
+  return 'in-stock';
 });
 
 // Method to check if a product is in stock

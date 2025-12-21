@@ -120,12 +120,16 @@
 [ ] Chuyển khoản ngân hàng (với QR Code)
 [ ] Trả góp 0% qua thẻ tín dụng
 
-### 2. INVENTORY MANAGEMENT - Quản lý kho hàng
-[ ] Cảnh báo sản phẩm sắp hết hàng (Low stock alerts)
-[ ] Quản lý nhập/xuất kho
-[ ] Lịch sử thay đổi tồn kho
-[ ] Đặt hàng trước (Pre-order) cho sản phẩm hết hàng
-[ ] Thông báo khi sản phẩm có hàng trở lại (Back in stock notification)
+### 2. INVENTORY MANAGEMENT - Quản lý kho hàng ✅ COMPLETED
+[✅] Cảnh báo sản phẩm sắp hết hàng (Low stock alerts)
+[✅] Quản lý nhập/xuất kho
+[✅] Lịch sử thay đổi tồn kho
+[✅] Đặt hàng trước (Pre-order) cho sản phẩm hết hàng
+[✅] Thông báo khi sản phẩm có hàng trở lại (Back in stock notification)
+[✅] Admin inventory dashboard với thống kê
+[✅] Báo cáo kho hàng (Inventory report)
+[✅] Điều chỉnh tồn kho thủ công
+[✅] Email thông báo cảnh báo tồn kho thấp cho admin
 
 ### 3. SHIPPING & DELIVERY - Vận chuyển
 [ ] Tích hợp API GHTK (Giao Hàng Tiết Kiệm)

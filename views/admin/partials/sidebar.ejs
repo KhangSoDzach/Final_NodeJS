@@ -18,6 +18,12 @@
             </li>
             
             <li class="admin-nav-item">
+                <a href="/admin/inventory" class="admin-nav-link <%= typeof path !== 'undefined' && path.includes('/admin/inventory') ? 'active' : '' %>">
+                    <i class="fas fa-warehouse"></i> Kho hàng
+                </a>
+            </li>
+            
+            <li class="admin-nav-item">
                 <a href="/admin/orders" class="admin-nav-link <%= typeof path !== 'undefined' && path.includes('/admin/orders') ? 'active' : '' %>">
                     <i class="fas fa-shopping-cart"></i> Đơn hàng
                 </a>

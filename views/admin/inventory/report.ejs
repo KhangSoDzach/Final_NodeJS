@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .filters {
+      background: #f8fafc;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filters input {
+      padding: 0.5rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    
+    .report-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .report-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .report-card h3 {
+      margin: 0 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #1e293b;
+    }
+    
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .summary-stat {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .summary-stat h4 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    .summary-stat p { margin: 0.5rem 0 0; color: #64748b; }
+    .summary-stat.import { border-top: 4px solid #10b981; }
+    .summary-stat.import h4 { color: #10b981; }
+    .summary-stat.export { border-top: 4px solid #f59e0b; }
+    .summary-stat.export h4 { color: #f59e0b; }
+    .summary-stat.order { border-top: 4px solid #3b82f6; }
+    .summary-stat.order h4 { color: #3b82f6; }
+    
+    .top-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .top-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      background: #f8fafc;
+    }
+    .top-item:hover { background: #f1f5f9; }
+    .top-item .rank {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e2e8f0;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+    .top-item .rank.gold { background: #fef3c7; color: #d97706; }
+    .top-item .rank.silver { background: #e2e8f0; color: #64748b; }
+    .top-item .rank.bronze { background: #fed7aa; color: #c2410c; }
+    
+    .chart-container {
+      height: 300px;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-chart-bar"></i> <%= title %></h1>
+        <a href="/admin/inventory" style="color:#4f46e5;text-decoration:none;">
+          <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+      </div>
+      
+      <div class="admin-content">
+        <!-- Date Filter -->
+        <form class="filters" method="GET">
+          <label>Từ ngày:</label>
+          <input type="date" name="startDate" value="<%= filters.startDate %>">
+          <label>Đến ngày:</label>
+          <input type="date" name="endDate" value="<%= filters.endDate %>">
+          <button type="submit" style="background:#4f46e5;color:white;border:none;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;">
+            <i class="fas fa-sync"></i> Cập nhật
+          </button>
+        </form>
+        
+        <!-- Summary Stats -->
+        <div class="summary-stats">
+          <% 
+            const summaryMap = {};
+            movementSummary.forEach(s => summaryMap[s._id] = s);
+          %>
+          <div class="summary-stat import">
+            <h4>+<%= Math.abs(summaryMap.import?.totalQuantity || 0) %></h4>
+            <p><i class="fas fa-arrow-down"></i> Tổng nhập kho</p>
+          </div>
+          <div class="summary-stat export">
+            <h4><%= Math.abs(summaryMap.export?.totalQuantity || 0) + Math.abs(summaryMap.order?.totalQuantity || 0) %></h4>
+            <p><i class="fas fa-arrow-up"></i> Tổng xuất kho</p>
+          </div>
+          <div class="summary-stat order">
+            <h4><%= Math.abs(summaryMap.order?.totalQuantity || 0) %></h4>
+            <p><i class="fas fa-shopping-cart"></i> Bán qua đơn hàng</p>
+          </div>
+        </div>
+        
+        <!-- Charts and Lists -->
+        <div class="report-grid">
+          <!-- Daily Chart -->
+          <div class="report-card">
+            <h3><i class="fas fa-chart-line"></i> Biến động theo ngày</h3>
+            <div class="chart-container">
+              <canvas id="dailyChart"></canvas>
+            </div>
+          </div>
+          
+          <!-- Movement Type Chart -->
+          <div class="report-card">
+            <h3><i class="fas fa-pie-chart"></i> Phân bố theo loại</h3>
+            <div class="chart-container">
+              <canvas id="typeChart"></canvas>
+            </div>
+          </div>
+          
+          <!-- Top Imported -->
+          <div class="report-card">
+            <h3><i class="fas fa-truck-loading"></i> Top sản phẩm nhập kho</h3>
+            <div class="top-list">
+              <% if (topImported.length === 0) { %>
+                <p style="text-align:center;color:#64748b;">Không có dữ liệu</p>
+              <% } %>
+              <% topImported.forEach((item, index) => { %>
+                <div class="top-item">
+                  <div style="display:flex;align-items:center;gap:0.75rem;">
+                    <span class="rank <%= index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '' %>">
+                      <%= index + 1 %>
+                    </span>
+                    <span><%= item.product.name %></span>
+                  </div>
+                  <strong style="color:#10b981;">+<%= item.totalImported %></strong>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+          
+          <!-- Top Sold -->
+          <div class="report-card">
+            <h3><i class="fas fa-fire"></i> Top sản phẩm bán chạy</h3>
+            <div class="top-list">
+              <% if (topSold.length === 0) { %>
+                <p style="text-align:center;color:#64748b;">Không có dữ liệu</p>
+              <% } %>
+              <% topSold.forEach((item, index) => { %>
+                <div class="top-item">
+                  <div style="display:flex;align-items:center;gap:0.75rem;">
+                    <span class="rank <%= index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '' %>">
+                      <%= index + 1 %>
+                    </span>
+                    <span><%= item.product.name %></span>
+                  </div>
+                  <strong style="color:#3b82f6;"><%= item.totalSold %></strong>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script id="reportData" type="application/json"><%- JSON.stringify({ dailyMovements: dailyMovements, movementSummary: movementSummary }) %></script>
+  <script>
+    const reportData = JSON.parse(document.getElementById('reportData').textContent);
+    
+    // Daily movements chart
+    const dailyData = reportData.dailyMovements;
+    const dates = [...new Set(dailyData.map(d => d._id.date))].sort();
+    
+    const importData = dates.map(date => {
+      const item = dailyData.find(d => d._id.date === date && d._id.type === 'import');
+      return item ? item.total : 0;
+    });
+    
+    const orderData = dates.map(date => {
+      const item = dailyData.find(d => d._id.date === date && d._id.type === 'order');
+      return item ? Math.abs(item.total) : 0;
+    });
+    
+    new Chart(document.getElementById('dailyChart'), {
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: [
+          {
+            label: 'Nhập kho',
+            data: importData,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.3
+          },
+          {
+            label: 'Bán ra',
+            data: orderData,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+    
+    // Type distribution chart
+    const summaryData = reportData.movementSummary;
+    const typeLabels = {
+      import: 'Nhập kho',
+      export: 'Xuất kho',
+      order: 'Đơn hàng',
+      cancel: 'Hủy đơn',
+      adjustment: 'Điều chỉnh',
+      return: 'Hoàn trả'
+    };
+    
+    new Chart(document.getElementById('typeChart'), {
+      type: 'doughnut',
+      data: {
+        labels: summaryData.map(s => typeLabels[s._id] || s._id),
+        datasets: [{
+          data: summaryData.map(s => Math.abs(s.totalQuantity)),
+          backgroundColor: [
+            '#10b981', // import
+            '#f59e0b', // export
+            '#3b82f6', // order
+            '#ef4444', // cancel
+            '#8b5cf6', // adjustment
+            '#f472b6'  // return
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right' }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -168,6 +168,7 @@ const orderRoutes = require('./routes/order');
 const userRoutes = require('./routes/user');
 const adminRoutes = require('./routes/admin');
 const adminProductRoutes = require('./routes/admin/products');
+const adminInventoryRoutes = require('./routes/admin/inventory');
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
@@ -177,6 +178,7 @@ app.use('/orders', orderRoutes);
 app.use('/user', userRoutes);
 app.use('/admin', adminRoutes);
 app.use('/admin/products', adminProductRoutes);
+app.use('/admin/inventory', adminInventoryRoutes);
 
 // Error handling
 app.use((req, res, next) => {

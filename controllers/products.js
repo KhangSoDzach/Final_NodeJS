@@ -269,3 +269,290 @@ exports.postAddReview = async (req, res) => {
     res.redirect(`/products/${req.params.slug}`);
   }
 };
+
+// ===== PRE-ORDER & NOTIFICATION FUNCTIONS =====
+
+const PreOrder = require('../models/preOrder');
+const BackInStockNotification = require('../models/backInStockNotification');
+
+/**
+ * Đặt trước sản phẩm (Pre-order)
+ */
+exports.createPreOrder = async (req, res) => {
+  try {
+    const { productId, quantity, variant } = req.body;
+    
+    // Check authentication
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({
+        success: false,
+        message: 'Vui lòng đăng nhập để đặt trước sản phẩm'
+      });
+    }
+    
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy sản phẩm'
+      });
+    }
+    
+    // Check if product allows pre-order
+    if (!product.allowPreOrder) {
+      return res.status(400).json({
+        success: false,
+        message: 'Sản phẩm này không hỗ trợ đặt trước'
+      });
+    }
+    
+    // Check if product is actually out of stock
+    if (product.stock > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Sản phẩm còn hàng, bạn có thể mua ngay'
+      });
+    }
+    
+    // Check for existing pre-order
+    const existingPreOrder = await PreOrder.findOne({
+      user: req.user._id,
+      product: productId,
+      status: { $in: ['pending', 'notified'] }
+    });
+    
+    if (existingPreOrder) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bạn đã đặt trước sản phẩm này rồi'
+      });
+    }
+    
+    // Create pre-order
+    const preOrder = await PreOrder.createPreOrder({
+      user: req.user._id,
+      product: productId,
+      quantity: quantity || 1,
+      variant: variant,
+      contactEmail: req.user.email
+    });
+    
+    res.json({
+      success: true,
+      message: 'Đặt trước thành công! Chúng tôi sẽ thông báo khi sản phẩm có hàng.',
+      preOrder: {
+        id: preOrder._id,
+        product: product.name,
+        quantity: preOrder.quantity,
+        status: preOrder.status
+      }
+    });
+    
+  } catch (error) {
+    console.error('Create pre-order error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Đã xảy ra lỗi khi đặt trước sản phẩm'
+    });
+  }
+};
+
+/**
+ * Hủy đặt trước
+ */
+exports.cancelPreOrder = async (req, res) => {
+  try {
+    const { preOrderId } = req.params;
+    
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({
+        success: false,
+        message: 'Vui lòng đăng nhập'
+      });
+    }
+    
+    const preOrder = await PreOrder.findOne({
+      _id: preOrderId,
+      user: req.user._id
+    });
+    
+    if (!preOrder) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy đơn đặt trước'
+      });
+    }
+    
+    if (preOrder.status !== 'pending' && preOrder.status !== 'notified') {
+      return res.status(400).json({
+        success: false,
+        message: 'Không thể hủy đơn đặt trước này'
+      });
+    }
+    
+    preOrder.status = 'cancelled';
+    await preOrder.save();
+    
+    res.json({
+      success: true,
+      message: 'Đã hủy đặt trước thành công'
+    });
+    
+  } catch (error) {
+    console.error('Cancel pre-order error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Đã xảy ra lỗi khi hủy đặt trước'
+    });
+  }
+};
+
+/**
+ * Lấy danh sách pre-orders của user
+ */
+exports.getUserPreOrders = async (req, res) => {
+  try {
+    if (!req.isAuthenticated()) {
+      return res.redirect('/auth/login');
+    }
+    
+    const preOrders = await PreOrder.find({ user: req.user._id })
+      .populate('product', 'name images slug price discountPrice')
+      .sort({ createdAt: -1 });
+    
+    res.render('user/pre-orders', {
+      title: 'Đơn đặt trước',
+      preOrders
+    });
+    
+  } catch (error) {
+    console.error('Get user pre-orders error:', error);
+    req.flash('error', 'Đã xảy ra lỗi');
+    res.redirect('/user/profile');
+  }
+};
+
+/**
+ * Đăng ký nhận thông báo khi có hàng
+ */
+exports.subscribeNotification = async (req, res) => {
+  try {
+    const { productId, email, variant } = req.body;
+    
+    // Validate email
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email không hợp lệ'
+      });
+    }
+    
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy sản phẩm'
+      });
+    }
+    
+    // Check if product is actually out of stock
+    if (product.stock > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Sản phẩm còn hàng, bạn có thể mua ngay'
+      });
+    }
+    
+    // Subscribe
+    const result = await BackInStockNotification.subscribe({
+      email,
+      product: productId,
+      user: req.isAuthenticated() ? req.user._id : null,
+      variant
+    });
+    
+    if (result.alreadySubscribed) {
+      return res.json({
+        success: true,
+        message: 'Bạn đã đăng ký nhận thông báo cho sản phẩm này rồi'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Đăng ký thành công! Chúng tôi sẽ gửi email khi sản phẩm có hàng.'
+    });
+    
+  } catch (error) {
+    console.error('Subscribe notification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Đã xảy ra lỗi khi đăng ký thông báo'
+    });
+  }
+};
+
+/**
+ * Hủy đăng ký thông báo
+ */
+exports.unsubscribeNotification = async (req, res) => {
+  try {
+    const { email, productId } = req.query;
+    
+    if (!email || !productId) {
+      return res.render('error', {
+        title: 'Lỗi',
+        message: 'Liên kết không hợp lệ'
+      });
+    }
+    
+    const result = await BackInStockNotification.unsubscribe(email, productId);
+    
+    if (!result) {
+      return res.render('error', {
+        title: 'Không tìm thấy',
+        message: 'Không tìm thấy đăng ký thông báo'
+      });
+    }
+    
+    res.render('user/unsubscribe-success', {
+      title: 'Hủy đăng ký thành công',
+      message: 'Bạn đã hủy đăng ký nhận thông báo cho sản phẩm này.'
+    });
+    
+  } catch (error) {
+    console.error('Unsubscribe notification error:', error);
+    res.render('error', {
+      title: 'Lỗi',
+      message: 'Đã xảy ra lỗi khi hủy đăng ký'
+    });
+  }
+};
+
+/**
+ * Lấy danh sách thông báo đã đăng ký của user
+ */
+exports.getUserNotifications = async (req, res) => {
+  try {
+    if (!req.isAuthenticated()) {
+      return res.redirect('/auth/login');
+    }
+    
+    const notifications = await BackInStockNotification.find({ 
+      user: req.user._id,
+      status: 'active'
+    })
+    .populate('product', 'name images slug price discountPrice stock')
+    .sort({ createdAt: -1 });
+    
+    res.render('user/stock-notifications', {
+      title: 'Thông báo hàng về',
+      notifications
+    });
+    
+  } catch (error) {
+    console.error('Get user notifications error:', error);
+    req.flash('error', 'Đã xảy ra lỗi');
+    res.redirect('/user/profile');
+  }
+};

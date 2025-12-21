@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node --no-deprecation app.js",
     "dev": "nodemon --no-deprecation app.js",
-    "seed": "node seeders/admin-seeder.js && node seeders/demo-products-seeder.js && node seeders/coupons-seeder.js"
+    "seed": "node seeders/admin-seeder.js && node seeders/demo-products-seeder.js && node seeders/coupons-seeder.js",
+    "test": "jest --detectOpenHandles --forceExit",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -25,14 +28,18 @@
     "mongoose-sequence": "^5.3.1",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.2",
+    "nodemon": "^2.0.22",
     "passport": "^0.6.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
-    "ws": "^8.13.0",
-    "nodemon": "^2.0.22"
+    "ws": "^8.13.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "@faker-js/faker": "^9.9.0",
+    "jest": "^30.2.0",
+    "mongodb-memory-server": "^11.0.0",
+    "nodemon": "^3.1.9",
+    "supertest": "^7.1.4"
   },
   "engines": {
     "node": ">=16.0.0"
