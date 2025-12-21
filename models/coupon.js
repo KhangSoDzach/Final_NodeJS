@@ -29,7 +29,16 @@ const couponSchema = new Schema({
     type: Number,
     default: 0,
     min: 0 // Minimum order amount to apply the coupon
-  },  maxUses: {
+  },
+  startDate: {
+    type: Date,
+    default: Date.now
+  },
+  endDate: {
+    type: Date,
+    default: null
+  },
+  maxUses: {
     type: Number,
     default: 10,
     max: 10
@@ -54,6 +63,11 @@ const couponSchema = new Schema({
 couponSchema.methods.isValid = function () {
   if (!this.active) return false;
   if (this.usedCount >= this.maxUses) return false;
+  
+  // Kiểm tra thời hạn coupon
+  const now = new Date();
+  if (this.startDate && now < this.startDate) return false;
+  if (this.endDate && now > this.endDate) return false;
 
   return true;
 };

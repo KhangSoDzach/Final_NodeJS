@@ -18,9 +18,9 @@ exports.getDashboard = async (req, res) => {
     // Get total orders
     const totalOrders = orders.length;
     
-    // Get pending orders
+    // Get pending orders - BUG-008 FIX: Đổi từ 'processing' thành 'pending'
     const pendingOrders = await Order.countDocuments({
-      status: 'processing'
+      status: 'pending'
     });
     
     // Get total users
@@ -567,11 +567,16 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm.' });
     }
     
-    // Delete product images
+    // Delete product images - BUG-012 FIX: Thống nhất đường dẫn với uploads/products
     product.images.forEach(img => {
-      const imagePath = path.join(__dirname, '../public/uploads/products', img);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
+      // Kiểm tra cả 2 đường dẫn có thể có
+      const uploadPath = path.join(__dirname, '../uploads/products', img);
+      const publicPath = path.join(__dirname, '../public/uploads/products', img);
+      
+      if (fs.existsSync(uploadPath)) {
+        fs.unlinkSync(uploadPath);
+      } else if (fs.existsSync(publicPath)) {
+        fs.unlinkSync(publicPath);
       }
     });
     

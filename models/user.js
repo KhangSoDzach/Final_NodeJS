@@ -45,8 +45,8 @@ const userSchema = new Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin', 'customer'],
-    default: 'user'
+    enum: ['customer', 'admin'],  // BUG-011 FIX: Thống nhất chỉ dùng 'customer' và 'admin'
+    default: 'customer'
   },
   addresses: [addressSchema],
   loyaltyPoints: {

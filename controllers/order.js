@@ -4,91 +4,12 @@ const User = require('../models/user');
 const nodemailer = require('nodemailer');
 const emailService = require('../utils/emailService');
 
-// Order Creation
+// BUG-006 FIX: Function này đã deprecated, sử dụng postCheckout thay thế
+// Để tránh trừ stock 2 lần, route /orders/create sẽ redirect tới /orders/checkout
 exports.createOrder = async (req, res) => {
-  try {
-    const { paymentDetails } = req.body;    // Find the user's cart
-    const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
-    if (!cart || cart.items.length === 0) {
-      return res.status(400).json({ success: false, message: 'Giỏ hàng trống.' });
-    }
-
-    // Calculate total amount (including discount if coupon applied)
-    const totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();    // Create order
-    const order = new Order({
-      user: req.user._id,
-      items: cart.items,
-      totalAmount,
-      paymentDetails,
-      status: 'pending',
-      statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }]
-    });    // Add coupon information if coupon was applied
-    if (cart.coupon && cart.coupon.code) {
-      order.couponCode = cart.coupon.code;
-      order.discount = cart.coupon.discount;
-      
-      // Tăng số lần sử dụng của coupon
-      try {
-        const Coupon = require('../models/coupon');
-        await Coupon.findOneAndUpdate(
-          { code: cart.coupon.code },
-          { $inc: { usedCount: 1 } }
-        );
-        console.log(`Coupon ${cart.coupon.code} usage count increased.`);
-      } catch (couponError) {
-        console.error('Error updating coupon usedCount:', couponError);
-        // Continue processing the order even if we can't update the coupon count
-      }
-    }
-
-    await order.save();
-    
-    // Cập nhật tồn kho và số lượng đã bán cho mỗi sản phẩm
-    for (const item of cart.items) {
-      const product = item.product;
-      if (product) {
-        // Kiểm tra xem có variant hay không
-        if (item.variants && Object.keys(item.variants).length > 0) {
-          // Nếu có variant, cập nhật cả variant và sản phẩm chính
-          for (const [variantName, variantValue] of Object.entries(item.variants)) {
-            product.updateStock(item.quantity, true, variantName, variantValue);
-          }
-        } else {
-          // Nếu không có variant, chỉ cập nhật sản phẩm chính
-          product.updateStock(item.quantity);
-        }
-        await product.save();
-        console.log(`Đã cập nhật tồn kho và số lượng đã bán cho sản phẩm ${product.name}`);
-      }
-    }
-    
-    // Clear the user's cart
-    cart.items = [];
-    await cart.save();
-
-    // Send confirmation email using the email service
-    try {
-      const populatedOrder = await Order.findById(order._id).populate({
-        path: 'items.product',
-        select: 'name images slug'
-      });
-      
-      await emailService.sendOrderConfirmationEmail(req.user.email, populatedOrder);
-      console.log(`Order confirmation email sent to ${req.user.email}`);
-    } catch (emailError) {
-      console.error('Error sending order confirmation email:', emailError);
-      // Continue execution even if email fails
-    }
-
-    // Show success screen
-    res.render('orders/success', {
-      title: 'Đặt hàng thành công',
-      order
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi tạo đơn hàng.' });
-  }
+  // Redirect tới checkout page thay vì xử lý trực tiếp
+  req.flash('error', 'Vui lòng sử dụng trang thanh toán để đặt hàng.');
+  return res.redirect('/orders/checkout');
 };
 
 // Order Tracking

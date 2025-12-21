@@ -52,8 +52,9 @@ exports.addToCart = async (req, res) => {
     let isInStock = true;
     let price = product.discountPrice || product.price;
 
-    // Kiểm tra tồn kho cho từng lựa chọn variant
-    if (variants && typeof variants === 'object') {
+    // BUG-005 FIX: Kiểm tra tồn kho cho cả variant và tổng stock product
+    if (variants && typeof variants === 'object' && Object.keys(variants).length > 0) {
+      // Kiểm tra từng variant
       for (const [variantName, variantValue] of Object.entries(variants)) {
         const productVariant = product.variants.find(v => v.name === variantName);
         if (productVariant) {
@@ -64,7 +65,10 @@ exports.addToCart = async (req, res) => {
           }
         }
       }
+      // Cũng kiểm tra tổng stock product để đảm bảo đồng nhất
+      if (product.stock < qty) isInStock = false;
     } else {
+      // Không có variant, chỉ kiểm tra stock product chính
       isInStock = product.stock >= qty;
     }
     
@@ -183,6 +187,38 @@ exports.updateCart = async (req, res) => {
       });
     }
     
+    // BUG-007 FIX: Kiểm tra stock trước khi update quantity
+    const cartItem = cart.items[itemIndex];
+    const product = await Product.findById(cartItem.product);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sản phẩm không tồn tại.'
+      });
+    }
+    
+    // Kiểm tra tồn kho
+    let availableStock = product.stock;
+    if (cartItem.variants && Object.keys(cartItem.variants).length > 0) {
+      for (const [variantName, variantValue] of Object.entries(cartItem.variants)) {
+        const productVariant = product.variants.find(v => v.name === variantName);
+        if (productVariant) {
+          const variantOption = productVariant.options.find(o => o.value === variantValue);
+          if (variantOption && variantOption.stock < qty) {
+            return res.status(400).json({
+              success: false,
+              message: `Số lượng vượt quá tồn kho. Chỉ còn ${variantOption.stock} sản phẩm.`
+            });
+          }
+        }
+      }
+    } else if (qty > availableStock) {
+      return res.status(400).json({
+        success: false,
+        message: `Số lượng vượt quá tồn kho. Chỉ còn ${availableStock} sản phẩm.`
+      });
+    }
+    
     // Update quantity
     cart.items[itemIndex].quantity = qty;
     await cart.save();
@@ -270,6 +306,21 @@ exports.applyCoupon = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Mã giảm giá đã hết lượt sử dụng.'
+      });
+    }
+    
+    // BUG-004 FIX: Kiểm tra thời hạn coupon (startDate và endDate)
+    const now = new Date();
+    if (coupon.startDate && now < coupon.startDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mã giảm giá chưa có hiệu lực.'
+      });
+    }
+    if (coupon.endDate && now > coupon.endDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mã giảm giá đã hết hạn.'
       });
     }
     

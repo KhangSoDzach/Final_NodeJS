@@ -212,6 +212,19 @@ exports.postAddReview = async (req, res) => {
       return res.redirect('/products');
     }
     
+    // BUG-009 FIX: Kiểm tra user đã mua sản phẩm chưa
+    const Order = require('../models/order');
+    const hasPurchased = await Order.findOne({
+      user: req.user._id,
+      'items.product': product._id,
+      status: 'delivered'  // Chỉ cho review khi đơn hàng đã được giao
+    });
+    
+    if (!hasPurchased) {
+      req.flash('error', 'Bạn cần mua và nhận sản phẩm này trước khi đánh giá.');
+      return res.redirect(`/products/${slug}`);
+    }
+    
     // Check if user has already reviewed this product
     const existingReviewIndex = product.ratings.findIndex(
       r => r.user && r.user.toString() === req.user._id.toString()

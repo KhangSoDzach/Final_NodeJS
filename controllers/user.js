@@ -274,17 +274,60 @@ exports.cancelOrder = async (req, res) => {
     const { orderId } = req.params;
 
     // Tìm đơn hàng theo ID và kiểm tra quyền sở hữu
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId).populate('items.product');
     if (!order || order.user.toString() !== req.user._id.toString()) {
       req.flash('error', 'Không tìm thấy đơn hàng.');
       return res.redirect('/user/orders');
     }
 
     // Kiểm tra trạng thái đơn hàng (chỉ cho phép hủy nếu chưa giao hàng)
-    if (order.status === 'shipped' || order.status === 'delivered') {
-      req.flash('error', 'Không thể hủy đơn hàng đã được giao.');
+    if (order.status === 'shipping' || order.status === 'delivered') {
+      req.flash('error', 'Không thể hủy đơn hàng đã được giao hoặc đang vận chuyển.');
       return res.redirect('/user/orders');
-    }    // Cập nhật trạng thái đơn hàng
+    }
+
+    // BUG-002 FIX: Hoàn trả tồn kho cho từng sản phẩm trong đơn hàng
+    const Product = require('../models/product');
+    for (const item of order.items) {
+      try {
+        const product = await Product.findById(item.product._id || item.product);
+        if (product) {
+          // Hoàn trả stock cho variant nếu có
+          if (item.variants && Object.keys(item.variants).length > 0) {
+            for (const [variantName, variantValue] of Object.entries(item.variants)) {
+              const variant = product.variants.find(v => v.name === variantName);
+              if (variant) {
+                const option = variant.options.find(o => o.value === variantValue);
+                if (option) {
+                  option.stock += item.quantity;
+                }
+              }
+            }
+          } else {
+            // Hoàn trả stock cho sản phẩm chính
+            product.stock += item.quantity;
+          }
+          // Giảm số lượng đã bán
+          product.sold = Math.max(0, product.sold - item.quantity);
+          await product.save();
+          console.log(`Restored ${item.quantity} stock for product ${product.name}`);
+        }
+      } catch (stockError) {
+        console.error('Error restoring stock:', stockError);
+      }
+    }
+
+    // BUG-003 FIX: Hoàn trả Loyalty Points đã sử dụng
+    if (order.loyaltyPointsUsed > 0) {
+      const User = require('../models/user');
+      await User.findByIdAndUpdate(
+        req.user._id,
+        { $inc: { loyaltyPoints: order.loyaltyPointsUsed } }
+      );
+      console.log(`Restored ${order.loyaltyPointsUsed} loyalty points to user ${req.user._id}`);
+    }
+
+    // Cập nhật trạng thái đơn hàng
     order.status = 'cancelled';
     order.statusHistory.push({
       status: 'cancelled',
@@ -292,8 +335,8 @@ exports.cancelOrder = async (req, res) => {
       note: 'Đơn hàng đã được hủy bởi người dùng.',
     });
     
-    // Nếu đơn hàng đã được xác nhận thanh toán và có sử dụng coupon, giảm số lượt đã dùng của coupon
-    if (order.paymentStatus === 'paid' && order.couponCode) {
+    // Nếu có sử dụng coupon, giảm số lượt đã dùng của coupon
+    if (order.couponCode) {
       try {
         const Coupon = require('../models/coupon');
         await Coupon.findOneAndUpdate(
@@ -308,7 +351,7 @@ exports.cancelOrder = async (req, res) => {
     
     await order.save();
 
-    req.flash('success', 'Đơn hàng đã được hủy thành công.');
+    req.flash('success', 'Đơn hàng đã được hủy thành công. Tồn kho và điểm tích lũy đã được hoàn trả.');
     res.redirect('/user/orders');
   } catch (err) {
     console.error(err);

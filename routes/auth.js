@@ -20,9 +20,16 @@ router.post(
       .isEmail()
       .withMessage('Vui lòng nhập một địa chỉ email hợp lệ')
       .normalizeEmail(),
+    // BUG-010 FIX: Tăng cường password validation
     body('password')
-      .isLength({ min: 6 })
-      .withMessage('Mật khẩu phải có ít nhất 6 ký tự'),
+      .isLength({ min: 8 })
+      .withMessage('Mật khẩu phải có ít nhất 8 ký tự')
+      .matches(/[A-Z]/)
+      .withMessage('Mật khẩu phải có ít nhất 1 chữ hoa')
+      .matches(/[a-z]/)
+      .withMessage('Mật khẩu phải có ít nhất 1 chữ thường')
+      .matches(/[0-9]/)
+      .withMessage('Mật khẩu phải có ít nhất 1 chữ số'),
     body('confirmPassword').custom((value, { req }) => {
       if (value !== req.body.password) {
         throw new Error('Mật khẩu nhập lại không khớp');

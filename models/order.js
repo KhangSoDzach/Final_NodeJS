@@ -66,7 +66,13 @@ const orderSchema = new Schema({
     type: String,
     enum: ['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'],
     default: 'pending'
-  },  statusHistory: [statusHistorySchema],
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'paid', 'failed', 'refunded'],
+    default: 'pending'
+  },
+  statusHistory: [statusHistorySchema],
   couponCode: {
     type: String,
     default: null

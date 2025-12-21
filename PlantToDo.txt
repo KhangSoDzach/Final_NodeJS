@@ -1,0 +1,288 @@
+# SourceComputer E-commerce - Plan ToDo
+# So sánh với các trang e-commerce quốc tế (Amazon, Shopee, Lazada, Newegg...)
+# Cập nhật: December 21, 2025
+
+================================================================================
+## 🐛 BUGS & LOGIC ISSUES - LỖI CẦN SỬA NGAY (Tester Report)
+================================================================================
+
+### BUG-001: Order Model thiếu field paymentStatus ✅ FIXED
+- File: models/order.js
+- Vấn đề: View admin/orders/detail.ejs và controllers/user.js sử dụng 
+  `order.paymentStatus` nhưng Order model KHÔNG có field này
+- Hậu quả: Hiển thị undefined, logic kiểm tra coupon khi cancel sai
+- Fix: ✅ Đã thêm paymentStatus vào Order model với enum ['pending', 'paid', 'failed', 'refunded']
+
+### BUG-002: Không hoàn trả tồn kho khi hủy đơn hàng ✅ FIXED
+- File: controllers/user.js (cancelOrder) và controllers/admin.js
+- Vấn đề: Khi user hoặc admin hủy đơn hàng, stock KHÔNG được hoàn trả
+- Hậu quả: Tồn kho bị giảm vĩnh viễn, sản phẩm hết hàng ảo
+- Fix: ✅ Đã thêm logic hoàn trả stock khi hủy đơn (cả variant và product chính)
+
+### BUG-003: Không hoàn trả Loyalty Points khi hủy đơn ✅ FIXED
+- File: controllers/user.js (cancelOrder)
+- Vấn đề: Khi hủy đơn hàng, loyaltyPointsUsed KHÔNG được hoàn trả cho user
+- Hậu quả: User mất điểm tích lũy đã dùng
+- Fix: ✅ Đã thêm logic hoàn trả loyaltyPoints khi hủy đơn
+
+### BUG-004: Coupon model thiếu startDate và endDate ✅ FIXED
+- File: models/coupon.js  
+- Vấn đề: Admin controller postAddCoupon/postUpdateCoupon lưu startDate/endDate
+  nhưng Coupon schema KHÔNG có các field này
+- Hậu quả: Không validate thời hạn coupon, coupon hết hạn vẫn dùng được
+- Fix: ✅ Đã thêm startDate, endDate vào schema và validate trong applyCoupon
+
+### BUG-005: Logic kiểm tra tồn kho variant không đồng nhất ✅ FIXED
+- File: controllers/cart.js (addToCart)
+- Vấn đề: Chỉ kiểm tra stock của variant nhưng không kiểm tra tổng stock product
+- Hậu quả: Có thể thêm vào giỏ số lượng vượt quá tồn kho thực
+- Fix: ✅ Đã thêm kiểm tra cả variant stock và product stock
+
+### BUG-006: Duplicate code updateStock trong order.js ✅ FIXED
+- File: controllers/order.js
+- Vấn đề: Có 2 function createOrder và postCheckout đều trừ stock
+  Nếu dùng cả 2 route sẽ trừ stock 2 lần
+- Fix: ✅ Đã deprecate createOrder, redirect về checkout page
+
+### BUG-007: Không validate số lượng khi update cart ✅ FIXED
+- File: controllers/cart.js (updateCart)
+- Vấn đề: Không kiểm tra số lượng mới có vượt quá tồn kho không
+- Hậu quả: User có thể update số lượng lớn hơn stock
+- Fix: ✅ Đã thêm validation stock trước khi update
+
+### BUG-008: Dashboard pendingOrders sai status ✅ FIXED
+- File: controllers/admin.js (getDashboard)
+- Vấn đề: Query filter status = 'processing' nhưng Order chỉ có 'pending'
+  trong enum ['pending', 'confirmed', 'shipping', 'delivered', 'cancelled']
+- Fix: ✅ Đã đổi thành status = 'pending'
+
+### BUG-009: User có thể review sản phẩm chưa mua ✅ FIXED
+- File: controllers/products.js (postAddReview)
+- Vấn đề: Không kiểm tra user đã mua sản phẩm chưa
+- Hậu quả: Fake review, đánh giá không đáng tin cậy
+- Fix: ✅ Đã thêm kiểm tra Order với status='delivered' trước khi cho review
+
+### BUG-010: Password validation yếu ✅ FIXED
+- File: routes/auth.js (postRegister)
+- Vấn đề: Không validate độ mạnh mật khẩu (độ dài, ký tự đặc biệt...)
+- Fix: ✅ Yêu cầu ít nhất 8 ký tự, 1 chữ hoa, 1 chữ thường, 1 số
+
+### BUG-011: Role 'user' vs 'customer' không nhất quán ✅ FIXED
+- File: models/user.js
+- Vấn đề: Schema có enum ['user', 'admin', 'customer'] nhưng register tạo 'customer'
+  còn updateUserRole chỉ accept ['customer', 'admin']
+- Fix: ✅ Đã thống nhất chỉ sử dụng 'customer' và 'admin'
+
+### BUG-012: Image path không nhất quán ✅ FIXED
+- File: controllers/admin.js (deleteProduct, postUpdateProduct)
+- Vấn đề: Delete image từ '../public/uploads/products' nhưng upload lưu vào 
+  '/uploads/products' - có thể không đồng bộ
+- Fix: ✅ Đã kiểm tra cả 2 đường dẫn khi xóa image
+
+================================================================================
+## ĐÃ CÓ (✅ COMPLETED) - Tất cả bugs đã được fix
+================================================================================
+[✅] Authentication (Login/Register/Forgot Password)
+[✅] Google OAuth Integration
+[✅] Product Management (CRUD)
+[✅] Product Categories & Subcategories
+[✅] Product Variants (RAM, SSD, Color...)
+[✅] Product Specifications
+[✅] Product Images (Multiple)
+[✅] Product Ratings & Reviews (Chỉ cho phép review khi đã mua)
+[✅] Shopping Cart (Session + User)
+[✅] Order Management & Tracking
+[✅] Order History
+[✅] Coupon/Discount System (Có date validation)
+[✅] Loyalty Points System (Hoàn điểm khi cancel)
+[✅] User Profile Management
+[✅] Multiple Shipping Addresses
+[✅] Admin Dashboard
+[✅] Admin Product/Order/User Management
+[✅] Email Notifications (Order, Reset Password)
+[✅] User Ban System
+[✅] WebSocket Real-time Reviews
+[✅] Search & Filter Products
+[✅] Sort Products (Price, Name, Rating, Bestseller)
+[✅] Pagination
+
+================================================================================
+## CẦN LÀM - ƯU TIÊN CAO (🔴 HIGH PRIORITY)
+================================================================================
+
+### 1. PAYMENT INTEGRATION - Tích hợp thanh toán
+[ ] Tích hợp VNPay (Phổ biến tại Việt Nam)
+[ ] Tích hợp MoMo Wallet
+[ ] Tích hợp ZaloPay
+[ ] Tích hợp PayPal (Quốc tế)
+[ ] Tích hợp Stripe (Quốc tế)
+[ ] COD (Cash on Delivery) - Thanh toán khi nhận hàng
+[ ] Chuyển khoản ngân hàng (với QR Code)
+[ ] Trả góp 0% qua thẻ tín dụng
+
+### 2. INVENTORY MANAGEMENT - Quản lý kho hàng
+[ ] Cảnh báo sản phẩm sắp hết hàng (Low stock alerts)
+[ ] Quản lý nhập/xuất kho
+[ ] Lịch sử thay đổi tồn kho
+[ ] Đặt hàng trước (Pre-order) cho sản phẩm hết hàng
+[ ] Thông báo khi sản phẩm có hàng trở lại (Back in stock notification)
+
+### 3. SHIPPING & DELIVERY - Vận chuyển
+[ ] Tích hợp API GHTK (Giao Hàng Tiết Kiệm)
+[ ] Tích hợp API GHN (Giao Hàng Nhanh)
+[ ] Tích hợp API Viettel Post
+[ ] Tính phí ship tự động theo địa chỉ
+[ ] Theo dõi đơn hàng realtime (Tracking number)
+[ ] Chọn thời gian giao hàng mong muốn
+[ ] Giao hàng hỏa tốc (Express delivery)
+
+### 4. SECURITY - Bảo mật
+[ ] Two-Factor Authentication (2FA)
+[ ] CAPTCHA cho form đăng nhập/đăng ký
+[ ] Rate Limiting (Chống brute force)
+[ ] CSRF Protection
+[ ] Input Sanitization (XSS Prevention)
+[ ] SQL/NoSQL Injection Prevention
+[ ] Audit Log (Ghi log hoạt động admin)
+[ ] Session Management nâng cao (Đăng xuất từ xa)
+
+================================================================================
+## CẦN LÀM - ƯU TIÊN TRUNG BÌNH (🟡 MEDIUM PRIORITY)
+================================================================================
+
+### 5. PRODUCT FEATURES - Tính năng sản phẩm
+[ ] So sánh sản phẩm (Compare products) - Tối đa 3-4 SP
+[ ] Danh sách yêu thích (Wishlist)
+[ ] Sản phẩm đã xem gần đây (Recently viewed)
+[ ] Sản phẩm liên quan/Gợi ý (Related products)
+[ ] Flash Sale / Deal sốc
+[ ] Combo sản phẩm (Bundle deals)
+[ ] Sản phẩm hot/trending
+[ ] Video review sản phẩm
+[ ] Hình ảnh 360 độ sản phẩm
+[ ] Zoom ảnh sản phẩm
+[ ] Q&A sản phẩm (Hỏi đáp)
+
+### 6. USER FEATURES - Tính năng người dùng
+[ ] Đăng nhập bằng Facebook
+[ ] Đăng nhập bằng Apple ID
+[ ] Liên kết tài khoản mạng xã hội
+[ ] Upload avatar người dùng
+[ ] Thông báo đẩy (Push notifications)
+[ ] Notification Center (Trung tâm thông báo)
+[ ] Lịch sử điểm thưởng chi tiết
+[ ] VIP Member Tiers (Hạng thành viên)
+[ ] Referral Program (Giới thiệu bạn bè)
+
+### 7. SEARCH & FILTER - Tìm kiếm & Lọc
+[ ] Tìm kiếm gợi ý (Autocomplete/Suggestions)
+[ ] Tìm kiếm theo giọng nói (Voice search)
+[ ] Tìm kiếm bằng hình ảnh (Image search)
+[ ] Lịch sử tìm kiếm
+[ ] Bộ lọc nâng cao (Specs: RAM, CPU, GPU...)
+[ ] Lọc theo đánh giá (4 sao trở lên...)
+[ ] Lọc theo tình trạng (Còn hàng, Hết hàng)
+[ ] Lọc theo khuyến mãi/giảm giá
+[ ] Elasticsearch integration (Tìm kiếm nhanh)
+
+### 8. CHECKOUT OPTIMIZATION - Tối ưu thanh toán
+[ ] Guest Checkout (Mua không cần đăng ký)
+[ ] One-click Checkout (Mua nhanh)
+[ ] Save payment methods
+[ ] Auto-fill địa chỉ
+[ ] Tính thuế VAT tự động
+[ ] Xuất hóa đơn VAT (Invoice)
+[ ] Gift wrapping option (Gói quà)
+[ ] Gift card / Voucher
+
+================================================================================
+## CẦN LÀM - ƯU TIÊN THẤP (🟢 LOW PRIORITY)
+================================================================================
+
+### 9. MARKETING & PROMOTIONS - Marketing
+[ ] Email Marketing (Newsletter subscription)
+[ ] Abandoned Cart Recovery (Email nhắc giỏ hàng bỏ quên)
+[ ] SMS Marketing
+[ ] Push Notification Campaigns
+[ ] Popup khuyến mãi
+[ ] Banner quảng cáo động
+[ ] SEO Optimization (Meta tags, Sitemap, Schema.org)
+[ ] Social sharing buttons
+[ ] Affiliate Program (Chương trình tiếp thị liên kết)
+
+### 10. ANALYTICS & REPORTING - Phân tích & Báo cáo
+[ ] Dashboard thống kê doanh thu
+[ ] Báo cáo bán hàng theo thời gian
+[ ] Báo cáo sản phẩm bán chạy
+[ ] Báo cáo khách hàng
+[ ] Tích hợp Google Analytics
+[ ] Tích hợp Facebook Pixel
+[ ] Heatmap tracking
+[ ] A/B Testing
+[ ] Export báo cáo (Excel, PDF)
+
+### 11. CUSTOMER SERVICE - Chăm sóc khách hàng
+[ ] Live Chat Support (Tawk.to, Zendesk)
+[ ] Chatbot AI hỗ trợ
+[ ] Ticket Support System
+[ ] FAQ/Help Center
+[ ] Return/Refund Request System (Đổi trả)
+[ ] Warranty Management (Quản lý bảo hành)
+[ ] Khảo sát đánh giá sau mua hàng
+
+### 12. MULTI-LANGUAGE & LOCALIZATION - Đa ngôn ngữ
+[ ] Hỗ trợ đa ngôn ngữ (i18n)
+[ ] Đa tiền tệ (Multi-currency)
+[ ] Định dạng ngày tháng theo locale
+[ ] Định dạng số theo locale
+
+### 13. PERFORMANCE & SCALABILITY - Hiệu suất
+[ ] Image optimization (Lazy loading, WebP)
+[ ] CDN Integration (CloudFlare, AWS CloudFront)
+[ ] Redis Caching
+[ ] Database Indexing Optimization
+[ ] API Rate Limiting
+[ ] Load Balancing
+[ ] Microservices Architecture (Tách nhỏ services)
+
+### 14. MOBILE & PWA
+[ ] Responsive Design Optimization
+[ ] Progressive Web App (PWA)
+[ ] Mobile App (React Native/Flutter)
+[ ] Deep linking
+[ ] Offline mode support
+
+### 15. ADMIN FEATURES - Tính năng Admin
+[ ] Role-based Access Control (Phân quyền chi tiết)
+[ ] Bulk product import/export (CSV/Excel)
+[ ] Bulk order processing
+[ ] Inventory import từ supplier
+[ ] CMS cho trang About, Terms, Policy
+[ ] Blog/News management
+[ ] Backup & Restore database
+[ ] System health monitoring
+
+================================================================================
+## BUGS & IMPROVEMENTS - Sửa lỗi & Cải thiện
+================================================================================
+[ ] Unit Testing (Jest/Mocha)
+[ ] Integration Testing
+[ ] E2E Testing (Cypress/Playwright)
+[ ] API Documentation (Swagger)
+[ ] Error Logging (Winston, Sentry)
+[ ] CI/CD Pipeline (GitHub Actions)
+[ ] Code Review & Refactoring
+[ ] Database Migration Scripts
+[ ] Environment Configuration (.env templates)
+
+================================================================================
+## GHI CHÚ
+================================================================================
+- Ưu tiên HIGH: Cần thiết để website hoạt động như e-commerce thực thụ
+- Ưu tiên MEDIUM: Nâng cao trải nghiệm người dùng
+- Ưu tiên LOW: Tính năng nâng cao, có thể làm sau
+
+- Tham khảo các trang: Amazon, Shopee, Lazada, Tiki, Thế Giới Di Động, 
+  Phong Vũ, Newegg, Best Buy
+
+================================================================================
