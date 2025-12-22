@@ -2687,3 +2687,479 @@ section {
     padding: 0.4rem 0.5rem;
   }
 }
+
+/* ===== PWA STYLES ===== */
+
+/* PWA Install Banner */
+.pwa-install-banner {
+  position: fixed;
+  bottom: -120px;
+  left: 0;
+  right: 0;
+  background: white;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  padding: 16px 20px;
+  z-index: 9999;
+  transition: transform 0.3s ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pwa-install-banner.show {
+  transform: translateY(-120px);
+}
+
+.pwa-install-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.pwa-install-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.pwa-install-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pwa-install-text strong {
+  font-size: 15px;
+  color: var(--dark-color);
+}
+
+.pwa-install-text span {
+  font-size: 13px;
+  color: var(--grey-color);
+}
+
+.pwa-install-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pwa-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pwa-btn-install {
+  background: var(--primary-color);
+  color: white;
+}
+
+.pwa-btn-install:hover {
+  background: #0052a3;
+}
+
+.pwa-btn-dismiss {
+  background: var(--light-grey);
+  color: var(--grey-color);
+}
+
+.pwa-btn-dismiss:hover {
+  background: #ddd;
+}
+
+/* PWA Update Notification */
+.pwa-update-notification {
+  position: fixed;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--secondary-color);
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  transition: top 0.3s ease-out;
+}
+
+.pwa-update-notification.show {
+  top: 20px;
+}
+
+.pwa-update-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.pwa-update-content i {
+  font-size: 18px;
+}
+
+.pwa-update-content span {
+  font-size: 14px;
+}
+
+.pwa-btn-update {
+  background: white;
+  color: var(--secondary-color);
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.pwa-btn-update:hover {
+  background: #f0f0f0;
+}
+
+.pwa-btn-close {
+  background: transparent;
+  border: none;
+  color: white;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 8px;
+}
+
+.pwa-btn-close:hover {
+  opacity: 1;
+}
+
+/* Offline Indicator */
+.offline-indicator {
+  position: fixed;
+  bottom: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--danger-color);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 9998;
+  transition: bottom 0.3s ease-out;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.offline-indicator.show {
+  bottom: 20px;
+}
+
+.offline-indicator i {
+  font-size: 16px;
+}
+
+/* Offline body state */
+body.offline {
+  position: relative;
+}
+
+body.offline::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--danger-color);
+  z-index: 9997;
+}
+
+/* PWA Standalone Mode Adjustments */
+@media (display-mode: standalone) {
+  /* Adjust header for notch on iOS */
+  .top-header {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+  
+  /* Adjust bottom for home indicator */
+  .pwa-install-banner {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0));
+  }
+  
+  footer {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  
+  /* Hide install related UI in standalone mode */
+  .pwa-install-banner {
+    display: none !important;
+  }
+}
+
+/* ===== ENHANCED RESPONSIVE BREAKPOINTS ===== */
+
+/* Extra Large screens */
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1360px;
+  }
+  
+  .product-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Large screens (Desktop) */
+@media (min-width: 992px) and (max-width: 1399px) {
+  .product-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Medium screens (Tablet Landscape) */
+@media (min-width: 768px) and (max-width: 991px) {
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .hero-slider {
+    height: 350px;
+  }
+}
+
+/* Small screens (Tablet Portrait) */
+@media (min-width: 576px) and (max-width: 767px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .hero-slider {
+    height: 280px;
+  }
+  
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+}
+
+/* Extra small screens (Mobile) */
+@media (max-width: 575px) {
+  /* Typography */
+  html { font-size: 14px; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.1rem; }
+  
+  /* Spacing */
+  .container {
+    padding: 0 12px;
+  }
+  
+  section {
+    padding: 1rem 0;
+  }
+  
+  /* Product Grid */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .product-card {
+    padding: 8px;
+  }
+  
+  .product-card .image {
+    height: 140px;
+  }
+  
+  .product-card h3 {
+    font-size: 0.85rem;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  
+  .product-card .price {
+    font-size: 0.95rem;
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+  
+  /* Forms */
+  .form-control {
+    padding: 10px 12px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  /* Tables - Horizontal scroll */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 600px;
+  }
+  
+  /* Cart page */
+  .cart-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .cart-item img {
+    width: 100%;
+    max-width: 200px;
+    margin-bottom: 12px;
+  }
+  
+  /* Checkout */
+  .checkout-form {
+    padding: 16px;
+  }
+  
+  /* Hero */
+  .hero-slider {
+    height: 200px;
+  }
+  
+  /* Footer */
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  /* PWA Banner Mobile */
+  .pwa-install-banner {
+    flex-direction: column;
+    padding: 12px;
+    bottom: -150px;
+  }
+  
+  .pwa-install-banner.show {
+    transform: translateY(-150px);
+  }
+  
+  .pwa-install-content {
+    width: 100%;
+  }
+  
+  .pwa-install-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .pwa-install-actions .pwa-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .btn, 
+  .nav-link,
+  .dropdown-item,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Remove hover effects on touch */
+  .product-card:hover {
+    transform: none;
+  }
+  
+  .btn:hover {
+    transform: none;
+  }
+  
+  /* Active states instead */
+  .btn:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  
+  .product-card:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .top-header,
+  .main-nav,
+  footer,
+  .pwa-install-banner,
+  .offline-indicator,
+  .btn,
+  .sidebar {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .container {
+    max-width: 100%;
+    padding: 0;
+  }
+  
+  a {
+    color: black;
+    text-decoration: underline;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --primary-color: #0000EE;
+    --secondary-color: #000000;
+    --grey-color: #333333;
+    --border-color: #000000;
+  }
+  
+  .btn {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Dark Mode Support (Future) */
+@media (prefers-color-scheme: dark) {
+  /* 
+   * TODO: Implement dark mode
+   * :root {
+   *   --lighter-grey: #1a1a1a;
+   *   --light-grey: #2d2d2d;
+   *   --dark-color: #f0f0f0;
+   * }
+   */
+}

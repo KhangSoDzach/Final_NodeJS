@@ -79,6 +79,13 @@ app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Thêm dòng này để phục vụ thư mục uploads
 
+// Service Worker - Serve with correct scope
+app.get('/service-worker.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.sendFile(path.join(__dirname, 'public', 'service-worker.js'));
+});
+
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: false // Disable for development

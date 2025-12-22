@@ -169,7 +169,6 @@
 
 ### 6. USER FEATURES - Tính năng người dùng
 [ ] Đăng nhập bằng Facebook
-[ ] Đăng nhập bằng Apple ID
 [ ] Liên kết tài khoản mạng xã hội
 [ ] Upload avatar người dùng
 [ ] Thông báo đẩy (Push notifications)
@@ -249,12 +248,11 @@
 [ ] Load Balancing
 [ ] Microservices Architecture (Tách nhỏ services)
 
-### 14. MOBILE & PWA
-[ ] Responsive Design Optimization
-[ ] Progressive Web App (PWA)
-[ ] Mobile App (React Native/Flutter)
-[ ] Deep linking
-[ ] Offline mode support
+### 14. MOBILE & PWA ✅ COMPLETED
+[✅] Responsive Design Optimization
+[✅] Progressive Web App (PWA)
+[✅] Deep linking
+[✅] Offline mode support
 
 ### 15. ADMIN FEATURES - Tính năng Admin
 [ ] Role-based Access Control (Phân quyền chi tiết)
