@@ -92,13 +92,24 @@ app.use(helmet({
 }));
 app.use(compression());
 
+// Trust proxy - QUAN TRỌNG khi dùng Nginx reverse proxy
+app.set('trust proxy', 1);
+
 // Session configuration
 app.use(session({
   secret: process.env.SESSION_SECRET || 'e2f3c4d5e6f7a8b9c0d1e2f3c4d5e6f7a8b9c0d1e2f3',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:27017/sourcecomputer' }),
-  cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 ngày
+  store: MongoStore.create({ 
+    mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:27017/sourcecomputer',
+    ttl: 24 * 60 * 60 // Session expire sau 1 ngày
+  }),
+  cookie: { 
+    maxAge: 1000 * 60 * 60 * 24, // 1 ngày
+    secure: false, // Set true nếu dùng HTTPS
+    httpOnly: true,
+    sameSite: 'lax'
+  }
 }));
 
 // Initialize Passport
@@ -176,6 +187,9 @@ const userRoutes = require('./routes/user');
 const adminRoutes = require('./routes/admin');
 const adminProductRoutes = require('./routes/admin/products');
 const adminInventoryRoutes = require('./routes/admin/inventory');
+const compareRoutes = require('./routes/compare');
+const questionRoutes = require('./routes/questions');
+const wishlistRoutes = require('./routes/wishlist');
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
@@ -186,6 +200,9 @@ app.use('/user', userRoutes);
 app.use('/admin', adminRoutes);
 app.use('/admin/products', adminProductRoutes);
 app.use('/admin/inventory', adminInventoryRoutes);
+app.use('/compare', compareRoutes);
+app.use('/questions', questionRoutes);
+app.use('/user/wishlist', wishlistRoutes);
 
 // Error handling
 app.use((req, res, next) => {

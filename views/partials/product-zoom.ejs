@@ -1,0 +1,541 @@
+<!-- views/partials/product-zoom.ejs -->
+<!-- Component zoom ảnh sản phẩm -->
+
+<div class="product-zoom-container" id="product-zoom-container">
+  <!-- Main Image -->
+  <div class="main-image-wrapper">
+    <div class="zoom-lens" id="zoom-lens"></div>
+    <img src="<%= product.images && product.images[0] ? product.images[0] : '/image/no-image.png' %>" 
+         alt="<%= product.name %>"
+         class="main-image"
+         id="main-product-image">
+    <div class="zoom-result" id="zoom-result"></div>
+    
+    <!-- Controls -->
+    <div class="image-controls">
+      <button class="btn btn-sm btn-light" id="btn-fullscreen" title="Xem toàn màn hình">
+        <i class="fas fa-expand"></i>
+      </button>
+      <% if (product.images360 && product.images360.length > 0) { %>
+        <button class="btn btn-sm btn-light" id="btn-360" title="Xem 360°">
+          <i class="fas fa-sync"></i>
+        </button>
+      <% } %>
+      <% if (product.videoUrl) { %>
+        <button class="btn btn-sm btn-light" id="btn-video" title="Xem video">
+          <i class="fas fa-play"></i>
+        </button>
+      <% } %>
+    </div>
+  </div>
+  
+  <!-- Thumbnails -->
+  <% if (product.images && product.images.length > 1) { %>
+    <div class="thumbnail-wrapper">
+      <button class="btn btn-sm btn-light thumbnail-nav prev" id="thumb-prev">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <div class="thumbnail-list" id="thumbnail-list">
+        <% product.images.forEach((img, index) => { %>
+          <div class="thumbnail-item <%= index === 0 ? 'active' : '' %>" data-index="<%= index %>">
+            <img src="<%= img %>" alt="<%= product.name %> - <%= index + 1 %>">
+          </div>
+        <% }); %>
+      </div>
+      <button class="btn btn-sm btn-light thumbnail-nav next" id="thumb-next">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  <% } %>
+</div>
+
+<!-- Fullscreen Modal -->
+<div class="modal fade" id="imageFullscreenModal" tabindex="-1">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content bg-dark">
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-white"><%= product.name %></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body d-flex align-items-center justify-content-center">
+        <button class="btn btn-light position-absolute start-0 ms-3 fullscreen-nav" id="fullscreen-prev">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <img src="" alt="" class="fullscreen-image" id="fullscreen-image">
+        <button class="btn btn-light position-absolute end-0 me-3 fullscreen-nav" id="fullscreen-next">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+      <div class="modal-footer border-0 justify-content-center">
+        <div class="fullscreen-thumbnails" id="fullscreen-thumbnails"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Video Modal -->
+<% if (product.videoUrl) { %>
+<div class="modal fade" id="videoModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Video review: <%= product.name %></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="ratio ratio-16x9">
+          <iframe id="product-video" src="" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<!-- 360° Modal -->
+<% if (product.images360 && product.images360.length > 0) { %>
+<div class="modal fade" id="modal360" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Xem 360°: <%= product.name %></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <div class="viewer-360" id="viewer-360">
+          <img src="" alt="" id="image-360">
+          <div class="spinner-360">
+            <i class="fas fa-sync fa-spin fa-2x"></i>
+          </div>
+        </div>
+        <p class="text-muted mt-2">
+          <i class="fas fa-hand-point-up me-1"></i>
+          Kéo chuột để xoay 360°
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<style>
+.product-zoom-container {
+  position: relative;
+}
+
+.main-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.main-image {
+  width: 100%;
+  height: auto;
+  max-height: 500px;
+  object-fit: contain;
+  cursor: crosshair;
+  transition: opacity 0.3s;
+}
+
+.zoom-lens {
+  position: absolute;
+  border: 2px solid #0d6efd;
+  background-color: rgba(13, 110, 253, 0.1);
+  width: 150px;
+  height: 150px;
+  display: none;
+  pointer-events: none;
+}
+
+.zoom-result {
+  position: absolute;
+  top: 0;
+  right: -320px;
+  width: 300px;
+  height: 300px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-repeat: no-repeat;
+  display: none;
+  z-index: 100;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.image-controls {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  gap: 5px;
+}
+
+.image-controls .btn {
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+.image-controls .btn:hover {
+  opacity: 1;
+}
+
+.thumbnail-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.thumbnail-list {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  flex: 1;
+  padding: 5px 0;
+}
+
+.thumbnail-item {
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.thumbnail-item:hover,
+.thumbnail-item.active {
+  border-color: #0d6efd;
+}
+
+.thumbnail-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail-nav {
+  flex-shrink: 0;
+}
+
+/* Fullscreen modal */
+.fullscreen-image {
+  max-width: 90%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+.fullscreen-nav {
+  z-index: 10;
+}
+
+.fullscreen-thumbnails {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  max-width: 80%;
+}
+
+.fullscreen-thumbnails img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  opacity: 0.7;
+  transition: all 0.3s;
+}
+
+.fullscreen-thumbnails img:hover,
+.fullscreen-thumbnails img.active {
+  border-color: #fff;
+  opacity: 1;
+}
+
+/* 360 viewer */
+.viewer-360 {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  cursor: grab;
+  overflow: hidden;
+}
+
+.viewer-360:active {
+  cursor: grabbing;
+}
+
+.viewer-360 img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.spinner-360 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #0d6efd;
+}
+
+@media (max-width: 992px) {
+  .zoom-result {
+    display: none !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .thumbnail-item {
+    width: 50px;
+    height: 50px;
+  }
+}
+</style>
+
+<script>
+(function() {
+  const images = <%= JSON.stringify(product.images || []) %>;
+  const images360 = <%= JSON.stringify(product.images360 || []) %>;
+  const videoUrl = '<%= product.videoUrl || "" %>';
+  
+  let currentIndex = 0;
+  let current360Index = 0;
+  let isDragging = false;
+  let startX = 0;
+  
+  // Elements
+  const mainImage = document.getElementById('main-product-image');
+  const zoomLens = document.getElementById('zoom-lens');
+  const zoomResult = document.getElementById('zoom-result');
+  const thumbnails = document.querySelectorAll('.thumbnail-item');
+  
+  // Thumbnail click
+  thumbnails.forEach((thumb, index) => {
+    thumb.addEventListener('click', function() {
+      setActiveImage(index);
+    });
+  });
+  
+  function setActiveImage(index) {
+    currentIndex = index;
+    if (images[index]) {
+      mainImage.src = images[index];
+      thumbnails.forEach((t, i) => {
+        t.classList.toggle('active', i === index);
+      });
+    }
+  }
+  
+  // Thumbnail navigation
+  const thumbPrev = document.getElementById('thumb-prev');
+  const thumbNext = document.getElementById('thumb-next');
+  const thumbnailList = document.getElementById('thumbnail-list');
+  
+  if (thumbPrev && thumbnailList) {
+    thumbPrev.addEventListener('click', () => {
+      thumbnailList.scrollBy({ left: -80, behavior: 'smooth' });
+    });
+  }
+  
+  if (thumbNext && thumbnailList) {
+    thumbNext.addEventListener('click', () => {
+      thumbnailList.scrollBy({ left: 80, behavior: 'smooth' });
+    });
+  }
+  
+  // Zoom functionality (desktop only)
+  if (window.innerWidth > 992) {
+    const wrapper = document.querySelector('.main-image-wrapper');
+    
+    wrapper.addEventListener('mousemove', function(e) {
+      const rect = mainImage.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Position lens
+      let lensX = x - zoomLens.offsetWidth / 2;
+      let lensY = y - zoomLens.offsetHeight / 2;
+      
+      // Boundaries
+      lensX = Math.max(0, Math.min(lensX, rect.width - zoomLens.offsetWidth));
+      lensY = Math.max(0, Math.min(lensY, rect.height - zoomLens.offsetHeight));
+      
+      zoomLens.style.left = lensX + 'px';
+      zoomLens.style.top = lensY + 'px';
+      
+      // Background position for zoom
+      const cx = zoomResult.offsetWidth / zoomLens.offsetWidth;
+      const cy = zoomResult.offsetHeight / zoomLens.offsetHeight;
+      
+      zoomResult.style.backgroundImage = `url('${mainImage.src}')`;
+      zoomResult.style.backgroundSize = `${rect.width * cx}px ${rect.height * cy}px`;
+      zoomResult.style.backgroundPosition = `-${lensX * cx}px -${lensY * cy}px`;
+    });
+    
+    wrapper.addEventListener('mouseenter', function() {
+      zoomLens.style.display = 'block';
+      zoomResult.style.display = 'block';
+    });
+    
+    wrapper.addEventListener('mouseleave', function() {
+      zoomLens.style.display = 'none';
+      zoomResult.style.display = 'none';
+    });
+  }
+  
+  // Fullscreen modal
+  const fullscreenBtn = document.getElementById('btn-fullscreen');
+  const fullscreenModal = document.getElementById('imageFullscreenModal');
+  const fullscreenImage = document.getElementById('fullscreen-image');
+  const fullscreenThumbnails = document.getElementById('fullscreen-thumbnails');
+  
+  if (fullscreenBtn && fullscreenModal) {
+    fullscreenBtn.addEventListener('click', function() {
+      openFullscreen(currentIndex);
+    });
+    
+    function openFullscreen(index) {
+      fullscreenImage.src = images[index] || '';
+      currentIndex = index;
+      
+      // Render thumbnails
+      fullscreenThumbnails.innerHTML = images.map((img, i) => 
+        `<img src="${img}" class="${i === index ? 'active' : ''}" data-index="${i}">`
+      ).join('');
+      
+      // Add click events
+      fullscreenThumbnails.querySelectorAll('img').forEach(img => {
+        img.addEventListener('click', function() {
+          const idx = parseInt(this.dataset.index);
+          openFullscreen(idx);
+        });
+      });
+      
+      const modal = new bootstrap.Modal(fullscreenModal);
+      modal.show();
+    }
+    
+    // Navigation
+    document.getElementById('fullscreen-prev')?.addEventListener('click', function() {
+      const newIndex = currentIndex > 0 ? currentIndex - 1 : images.length - 1;
+      openFullscreen(newIndex);
+    });
+    
+    document.getElementById('fullscreen-next')?.addEventListener('click', function() {
+      const newIndex = currentIndex < images.length - 1 ? currentIndex + 1 : 0;
+      openFullscreen(newIndex);
+    });
+    
+    // Keyboard navigation
+    fullscreenModal.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowLeft') {
+        document.getElementById('fullscreen-prev')?.click();
+      } else if (e.key === 'ArrowRight') {
+        document.getElementById('fullscreen-next')?.click();
+      }
+    });
+  }
+  
+  // Video modal
+  const videoBtn = document.getElementById('btn-video');
+  const videoModal = document.getElementById('videoModal');
+  
+  if (videoBtn && videoModal && videoUrl) {
+    videoBtn.addEventListener('click', function() {
+      const iframe = document.getElementById('product-video');
+      // Convert YouTube URL to embed format
+      let embedUrl = videoUrl;
+      if (videoUrl.includes('youtube.com/watch')) {
+        const videoId = new URL(videoUrl).searchParams.get('v');
+        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+      } else if (videoUrl.includes('youtu.be/')) {
+        const videoId = videoUrl.split('youtu.be/')[1];
+        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+      }
+      iframe.src = embedUrl;
+      
+      const modal = new bootstrap.Modal(videoModal);
+      modal.show();
+    });
+    
+    // Stop video when modal closes
+    videoModal.addEventListener('hidden.bs.modal', function() {
+      document.getElementById('product-video').src = '';
+    });
+  }
+  
+  // 360° viewer
+  const btn360 = document.getElementById('btn-360');
+  const modal360 = document.getElementById('modal360');
+  const image360 = document.getElementById('image-360');
+  
+  if (btn360 && modal360 && images360.length > 0) {
+    btn360.addEventListener('click', function() {
+      current360Index = 0;
+      image360.src = images360[0];
+      
+      const modal = new bootstrap.Modal(modal360);
+      modal.show();
+    });
+    
+    // Drag to rotate
+    const viewer360 = document.getElementById('viewer-360');
+    
+    viewer360.addEventListener('mousedown', function(e) {
+      isDragging = true;
+      startX = e.clientX;
+    });
+    
+    document.addEventListener('mousemove', function(e) {
+      if (!isDragging) return;
+      
+      const deltaX = e.clientX - startX;
+      if (Math.abs(deltaX) > 10) {
+        if (deltaX > 0) {
+          current360Index = (current360Index + 1) % images360.length;
+        } else {
+          current360Index = current360Index > 0 ? current360Index - 1 : images360.length - 1;
+        }
+        image360.src = images360[current360Index];
+        startX = e.clientX;
+      }
+    });
+    
+    document.addEventListener('mouseup', function() {
+      isDragging = false;
+    });
+    
+    // Touch support
+    viewer360.addEventListener('touchstart', function(e) {
+      isDragging = true;
+      startX = e.touches[0].clientX;
+    });
+    
+    viewer360.addEventListener('touchmove', function(e) {
+      if (!isDragging) return;
+      
+      const deltaX = e.touches[0].clientX - startX;
+      if (Math.abs(deltaX) > 10) {
+        if (deltaX > 0) {
+          current360Index = (current360Index + 1) % images360.length;
+        } else {
+          current360Index = current360Index > 0 ? current360Index - 1 : images360.length - 1;
+        }
+        image360.src = images360[current360Index];
+        startX = e.touches[0].clientX;
+      }
+    });
+    
+    viewer360.addEventListener('touchend', function() {
+      isDragging = false;
+    });
+  }
+})();
+</script>

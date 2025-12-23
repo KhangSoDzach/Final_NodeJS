@@ -907,6 +907,7 @@ section {
   overflow: hidden;
   padding: var(--spacing-md);
   background-color: #f8f9fa;
+  position: relative;
 }
 
 .product-card .image img {
@@ -918,6 +919,95 @@ section {
 
 .product-card:hover .image img {
   transform: scale(1.05);
+}
+
+/* Product Quick Actions */
+.product-quick-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.product-card:hover .product-quick-actions {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.product-quick-actions button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: white;
+  color: var(--grey-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.product-quick-actions button:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: scale(1.1);
+}
+
+.product-quick-actions button.active {
+  background: var(--danger-color);
+  color: white;
+}
+
+.product-quick-actions .btn-wishlist.active i {
+  color: white;
+}
+
+.product-quick-actions .btn-compare.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Product Badges */
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--danger-color);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  z-index: 5;
+}
+
+.stock-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  z-index: 5;
+}
+
+.stock-badge.out-of-stock {
+  background: var(--danger-color);
+  color: white;
+}
+
+.stock-badge.low-stock {
+  background: var(--warning-color);
+  color: var(--dark-color);
 }
 
 .product-card .content {
@@ -981,6 +1071,34 @@ section {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+/* Header Action Icons */
+.user-actions .compare-icon,
+.user-actions .wishlist-icon {
+  position: relative;
+  margin-right: 15px;
+  color: var(--dark-color);
+  font-size: 1.2rem;
+}
+
+.user-actions .compare-icon:hover,
+.user-actions .wishlist-icon:hover {
+  color: var(--primary-color);
+}
+
+.user-actions .compare-count,
+.user-actions .wishlist-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 18px;
+  height: 18px;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
 }
 
 .view-more {

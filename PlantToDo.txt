@@ -154,18 +154,20 @@
 ## CẦN LÀM - ƯU TIÊN TRUNG BÌNH (🟡 MEDIUM PRIORITY)
 ================================================================================
 
-### 5. PRODUCT FEATURES - Tính năng sản phẩm
-[ ] So sánh sản phẩm (Compare products) - Tối đa 3-4 SP
-[ ] Danh sách yêu thích (Wishlist)
-[ ] Sản phẩm đã xem gần đây (Recently viewed)
-[ ] Sản phẩm liên quan/Gợi ý (Related products)
+### 5. PRODUCT FEATURES - Tính năng sản phẩm ✅ COMPLETED
+[✅] So sánh sản phẩm (Compare products) - Tối đa 4 SP cùng danh mục
+[✅] Danh sách yêu thích (Wishlist) - Theo dõi giá, thông báo giảm giá
+[✅] Sản phẩm đã xem gần đây (Recently viewed) - LocalStorage
+[✅] Q&A sản phẩm (Hỏi đáp) - Người dùng hỏi, admin/user trả lời
+[✅] Zoom ảnh sản phẩm - Hover zoom, fullscreen view
+[✅] Video review sản phẩm - Modal YouTube embed
+[✅] Hình ảnh 360 độ sản phẩm - Drag to rotate
+[✅] Quick View Modal
+[✅] Product Quick Actions (Wishlist/Compare/Quick View buttons)
 [ ] Flash Sale / Deal sốc
 [ ] Combo sản phẩm (Bundle deals)
 [ ] Sản phẩm hot/trending
-[ ] Video review sản phẩm
-[ ] Hình ảnh 360 độ sản phẩm
-[ ] Zoom ảnh sản phẩm
-[ ] Q&A sản phẩm (Hỏi đáp)
+[ ] Sản phẩm liên quan/Gợi ý (Related products)
 
 ### 6. USER FEATURES - Tính năng người dùng
 [ ] Đăng nhập bằng Facebook

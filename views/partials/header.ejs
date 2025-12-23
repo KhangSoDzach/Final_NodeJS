@@ -20,6 +20,20 @@
                 </form>
             </div>
               <div class="user-actions">
+                <!-- Compare Button -->
+                <a href="/compare" class="compare-icon" title="So sánh sản phẩm">
+                    <i class="fas fa-balance-scale"></i>
+                    <span class="compare-count badge bg-primary" style="display: none;">0</span>
+                </a>
+                
+                <!-- Wishlist Button (chỉ hiển thị khi đã đăng nhập) -->
+                <% if (typeof user !== 'undefined' && user) { %>
+                <a href="/user/wishlist" class="wishlist-icon" title="Danh sách yêu thích">
+                    <i class="fas fa-heart"></i>
+                    <span class="wishlist-count badge bg-danger" style="display: none;">0</span>
+                </a>
+                <% } %>
+                
                 <a href="/cart" class="cart-icon">
                     <i class="fas fa-shopping-cart"></i>
                     <% if (typeof cart !== 'undefined' && cart && cart.items && cart.items.length > 0) { %>
@@ -35,6 +49,7 @@
                         <div class="dropdown-content">
                             <a href="/user/profile">Thông tin tài khoản</a>
                             <a href="/user/orders">Đơn hàng của tôi</a>
+                            <a href="/user/wishlist"><i class="fas fa-heart text-danger"></i> Yêu thích</a>
                             <a href="/user/addresses">Địa chỉ</a>
                             <a href="/user/loyalty-points">Điểm tích lũy</a>
                             <% if (user.role === 'admin') { %>
