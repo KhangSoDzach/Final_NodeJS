@@ -179,16 +179,16 @@
 [ ] VIP Member Tiers (Hạng thành viên)
 [ ] Referral Program (Giới thiệu bạn bè)
 
-### 7. SEARCH & FILTER - Tìm kiếm & Lọc
-[ ] Tìm kiếm gợi ý (Autocomplete/Suggestions)
-[ ] Tìm kiếm theo giọng nói (Voice search)
-[ ] Tìm kiếm bằng hình ảnh (Image search)
-[ ] Lịch sử tìm kiếm
-[ ] Bộ lọc nâng cao (Specs: RAM, CPU, GPU...)
-[ ] Lọc theo đánh giá (4 sao trở lên...)
-[ ] Lọc theo tình trạng (Còn hàng, Hết hàng)
-[ ] Lọc theo khuyến mãi/giảm giá
-[ ] Elasticsearch integration (Tìm kiếm nhanh)
+### 7. SEARCH & FILTER - Tìm kiếm & Lọc ✅ COMPLETED (Dec 23, 2025)
+[✅] Tìm kiếm gợi ý (Autocomplete/Suggestions) - Debounce 300ms, hiển thị products, brands, categories
+[✅] Tìm kiếm theo giọng nói (Voice search) - Web Speech API, vi-VN support
+[✅] Lịch sử tìm kiếm - Server-side cho user đăng nhập, LocalStorage cho guest
+[✅] Bộ lọc nâng cao (Specs: RAM, CPU, GPU...) - Dynamic specs filter
+[✅] Lọc theo đánh giá (4 sao trở lên...) - 1-5 star rating filter
+[✅] Lọc theo tình trạng (Còn hàng, Hết hàng, Đặt trước)
+[✅] Lọc theo khuyến mãi/giảm giá
+[ ] Tìm kiếm bằng hình ảnh (Image search) - Requires complex infrastructure
+[ ] Elasticsearch integration (Tìm kiếm nhanh) - Requires separate setup
 
 ### 8. CHECKOUT OPTIMIZATION - Tối ưu thanh toán
 [ ] Guest Checkout (Mua không cần đăng ký)

@@ -40,9 +40,14 @@ exports.getProducts = async (req, res) => {
     // Build filter
     const filter = {};
     
-    // Search query
+    // Search query - tìm kiếm trong name, description, brand
     if (req.query.search) {
-      filter.name = { $regex: req.query.search, $options: 'i' };
+      const searchRegex = { $regex: req.query.search, $options: 'i' };
+      filter.$or = [
+        { name: searchRegex },
+        { description: searchRegex },
+        { brand: searchRegex }
+      ];
     }
     
     // Category filter - hỗ trợ cả tên tiếng Anh và tiếng Việt
@@ -68,13 +73,101 @@ exports.getProducts = async (req, res) => {
     
     // Price range filter
     if (req.query.minPrice || req.query.maxPrice) {
-      filter.price = {};
-      if (req.query.minPrice) {
-        filter.price.$gte = parseInt(req.query.minPrice);
+      // Sử dụng $expr để filter cả price và discountPrice
+      const minPrice = req.query.minPrice ? parseInt(req.query.minPrice) : 0;
+      const maxPrice = req.query.maxPrice ? parseInt(req.query.maxPrice) : Number.MAX_SAFE_INTEGER;
+      
+      filter.$and = filter.$and || [];
+      filter.$and.push({
+        $expr: {
+          $and: [
+            { $gte: [{ $ifNull: ['$discountPrice', '$price'] }, minPrice] },
+            { $lte: [{ $ifNull: ['$discountPrice', '$price'] }, maxPrice] }
+          ]
+        }
+      });
+    }
+    
+    // Rating filter - Lọc theo đánh giá tối thiểu
+    if (req.query.rating) {
+      const minRating = parseInt(req.query.rating);
+      if (minRating >= 1 && minRating <= 5) {
+        // Tính average rating và filter
+        filter.$and = filter.$and || [];
+        filter.$and.push({
+          $expr: {
+            $gte: [
+              { 
+                $cond: {
+                  if: { $eq: [{ $size: '$ratings' }, 0] },
+                  then: 0,
+                  else: { $divide: [{ $sum: '$ratings.rating' }, { $size: '$ratings' }] }
+                }
+              },
+              minRating
+            ]
+          }
+        });
       }
-      if (req.query.maxPrice) {
-        filter.price.$lte = parseInt(req.query.maxPrice);
+    }
+    
+    // Stock filter - Lọc theo tình trạng tồn kho
+    if (req.query.stock) {
+      switch (req.query.stock) {
+        case 'in-stock':
+          filter.stock = { $gt: 0 };
+          break;
+        case 'out-of-stock':
+          filter.stock = { $lte: 0 };
+          filter.allowPreOrder = { $ne: true };
+          break;
+        case 'pre-order':
+          filter.stock = { $lte: 0 };
+          filter.allowPreOrder = true;
+          break;
       }
+    }
+    
+    // Discount filter - Lọc sản phẩm đang giảm giá
+    if (req.query.discount) {
+      if (req.query.discount === 'has-discount') {
+        filter.discountPrice = { $ne: null, $gt: 0 };
+      } else if (req.query.discount === 'no-discount') {
+        filter.$or = filter.$or || [];
+        filter.$or.push(
+          { discountPrice: null },
+          { discountPrice: { $exists: false } },
+          { discountPrice: 0 }
+        );
+      }
+    }
+    
+    // Specifications filter - Lọc theo thông số kỹ thuật
+    if (req.query.specs) {
+      let specs = req.query.specs;
+      if (typeof specs === 'string') {
+        try {
+          specs = JSON.parse(specs);
+        } catch (e) {
+          specs = {};
+        }
+      }
+      
+      // specs format: { "RAM": ["8GB", "16GB"], "CPU": ["Intel Core i5"] }
+      Object.keys(specs).forEach(specName => {
+        const specValues = Array.isArray(specs[specName]) ? specs[specName] : [specs[specName]];
+        if (specValues.length > 0) {
+          filter.$and = filter.$and || [];
+          filter.$and.push({
+            specifications: {
+              $elemMatch: {
+                name: { $regex: new RegExp(specName, 'i') },
+                value: { $in: specValues.map(v => new RegExp(v, 'i')) }
+              }
+            }
+          });
+        }
+      });
     }
     
     // Sorting
@@ -99,14 +192,19 @@ exports.getProducts = async (req, res) => {
         case 'bestseller':
           sort = { sold: -1 };
           break;
+        case 'discount':
+          // Sắp xếp theo % giảm giá
+          sort = { discountPercent: -1 };
+          break;
       }
     }
     
-    // Get products
+    // Get products với lean() cho performance
     const products = await Product.find(filter)
       .sort(sort)
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
     
     // Get total products count
     const totalProducts = await Product.countDocuments(filter);

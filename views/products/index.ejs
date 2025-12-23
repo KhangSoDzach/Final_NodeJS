@@ -4,9 +4,54 @@
         <p>Tìm thấy <%= totalProducts %> sản phẩm</p>
     </div>
     
+    <!-- Active Filters Bar -->
+    <% 
+    const activeFilters = [];
+    if (filter.search) activeFilters.push({ type: 'search', label: 'Tìm kiếm: ' + filter.search, value: filter.search });
+    if (filter.category) activeFilters.push({ type: 'category', label: 'Danh mục: ' + filter.category, value: filter.category });
+    if (filter.subcategory) activeFilters.push({ type: 'subcategory', label: 'Phụ mục: ' + filter.subcategory, value: filter.subcategory });
+    if (filter.brand) {
+      const brands = Array.isArray(filter.brand) ? filter.brand : [filter.brand];
+      brands.forEach(b => activeFilters.push({ type: 'brand', label: 'Thương hiệu: ' + b, value: b }));
+    }
+    if (filter.minPrice || filter.maxPrice) {
+      let priceLabel = 'Giá: ';
+      if (filter.minPrice) priceLabel += parseInt(filter.minPrice).toLocaleString('vi-VN') + '₫';
+      priceLabel += ' - ';
+      if (filter.maxPrice) priceLabel += parseInt(filter.maxPrice).toLocaleString('vi-VN') + '₫';
+      activeFilters.push({ type: 'price', label: priceLabel, value: 'price' });
+    }
+    if (filter.rating) activeFilters.push({ type: 'rating', label: filter.rating + ' sao trở lên', value: filter.rating });
+    if (filter.stock) {
+      const stockLabels = { 'in-stock': 'Còn hàng', 'out-of-stock': 'Hết hàng', 'pre-order': 'Đặt trước' };
+      activeFilters.push({ type: 'stock', label: stockLabels[filter.stock] || filter.stock, value: filter.stock });
+    }
+    if (filter.discount === 'has-discount') activeFilters.push({ type: 'discount', label: 'Đang giảm giá', value: filter.discount });
+    %>
+    
+    <% if (activeFilters.length > 0) { %>
+    <div class="active-filters-bar">
+        <span class="label"><i class="fas fa-filter"></i> Đang lọc:</span>
+        <% activeFilters.forEach(af => { %>
+            <span class="active-filter-tag" data-type="<%= af.type %>" data-value="<%= af.value %>">
+                <%= af.label %>
+                <i class="fas fa-times remove-filter"></i>
+            </span>
+        <% }) %>
+        <span class="clear-all-filters" onclick="window.location.href='/products'">
+            <i class="fas fa-trash-alt"></i> Xóa tất cả
+        </span>
+    </div>
+    <% } %>
+    
+    <!-- Mobile Filter Button -->
+    <button class="mobile-filter-btn" id="mobileFilterBtn">
+        <i class="fas fa-sliders-h"></i> Bộ lọc nâng cao
+    </button>
+    
     <div class="product-container">
         <!-- Sidebar filters -->
-        <div class="product-filters">
+        <div class="product-filters" id="filtersSidebar">
             <form action="/products" method="GET" id="filterForm">
                 <!-- Hidden inputs for maintaining pagination and sort -->
                 <% if(filter.page) { %>
@@ -15,9 +60,12 @@
                 <% if(filter.sort) { %>
                     <input type="hidden" name="sort" value="<%= filter.sort %>">
                 <% } %>
+                <% if(filter.search) { %>
+                    <input type="hidden" name="search" value="<%= filter.search %>">
+                <% } %>
                 
                 <div class="filter-section">
-                    <h3>Danh mục</h3>
+                    <h3><i class="fas fa-folder"></i> Danh mục</h3>
                     <div class="filter-options">
                         <% categories.forEach(category => { %>
                             <div class="filter-option">
@@ -33,7 +81,7 @@
                 
                 <% if(subcategories && subcategories.length > 0) { %>
                 <div class="filter-section">
-                    <h3>Phụ mục</h3>
+                    <h3><i class="fas fa-tags"></i> Phụ mục</h3>
                     <div class="filter-options">
                         <% subcategories.forEach(subcategory => { %>
                             <div class="filter-option">
@@ -49,7 +97,7 @@
                 <% } %>
                 
                 <div class="filter-section">
-                    <h3>Thương hiệu</h3>
+                    <h3><i class="fas fa-building"></i> Thương hiệu</h3>
                     <div class="filter-options">
                         <% brands.forEach(brand => { %>
                             <div class="filter-option">
@@ -64,7 +112,7 @@
                 </div>
                 
                 <div class="filter-section">
-                    <h3>Giá (VNĐ)</h3>
+                    <h3><i class="fas fa-dollar-sign"></i> Giá (VNĐ)</h3>
                     <div class="price-filter">
                         <input type="number" name="minPrice" placeholder="Giá thấp nhất" 
                                value="<%= filter.minPrice || '' %>" min="0" step="100000">
@@ -75,8 +123,80 @@
                     </div>
                 </div>
                 
+                <!-- Rating Filter -->
                 <div class="filter-section">
-                    <button type="button" class="btn btn-outline-danger" id="clearFilters">Xóa bộ lọc</button>
+                    <h3><i class="fas fa-star"></i> Đánh giá</h3>
+                    <div class="rating-filter">
+                        <% for (let r = 5; r >= 1; r--) { %>
+                        <label class="rating-option">
+                            <input type="radio" name="rating" value="<%= r %>" 
+                                   <%= filter.rating == r ? 'checked' : '' %>
+                                   onchange="document.getElementById('filterForm').submit()">
+                            <span class="stars">
+                                <% for (let s = 1; s <= 5; s++) { %>
+                                    <i class="<%= s <= r ? 'fas' : 'far' %> fa-star"></i>
+                                <% } %>
+                            </span>
+                            <span><%= r %> sao trở lên</span>
+                        </label>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <!-- Stock Filter -->
+                <div class="filter-section">
+                    <h3><i class="fas fa-box"></i> Tình trạng</h3>
+                    <div class="stock-filter">
+                        <label class="stock-option <%= !filter.stock || filter.stock === 'all' ? 'active' : '' %>">
+                            <input type="radio" name="stock" value="" 
+                                   <%= !filter.stock ? 'checked' : '' %>
+                                   onchange="document.getElementById('filterForm').submit()">
+                            <span>Tất cả</span>
+                        </label>
+                        <label class="stock-option <%= filter.stock === 'in-stock' ? 'active' : '' %>">
+                            <input type="radio" name="stock" value="in-stock" 
+                                   <%= filter.stock === 'in-stock' ? 'checked' : '' %>
+                                   onchange="document.getElementById('filterForm').submit()">
+                            <span><i class="fas fa-check-circle text-success"></i> Còn hàng</span>
+                        </label>
+                        <label class="stock-option <%= filter.stock === 'out-of-stock' ? 'active' : '' %>">
+                            <input type="radio" name="stock" value="out-of-stock" 
+                                   <%= filter.stock === 'out-of-stock' ? 'checked' : '' %>
+                                   onchange="document.getElementById('filterForm').submit()">
+                            <span><i class="fas fa-times-circle text-danger"></i> Hết hàng</span>
+                        </label>
+                        <label class="stock-option <%= filter.stock === 'pre-order' ? 'active' : '' %>">
+                            <input type="radio" name="stock" value="pre-order" 
+                                   <%= filter.stock === 'pre-order' ? 'checked' : '' %>
+                                   onchange="document.getElementById('filterForm').submit()">
+                            <span><i class="fas fa-clock text-warning"></i> Đặt trước</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Discount Filter -->
+                <div class="filter-section">
+                    <h3><i class="fas fa-percent"></i> Khuyến mãi</h3>
+                    <div class="discount-filter">
+                        <label class="discount-option <%= !filter.discount || filter.discount === 'all' ? 'active' : '' %>">
+                            <input type="radio" name="discount" value="" 
+                                   <%= !filter.discount ? 'checked' : '' %>
+                                   onchange="document.getElementById('filterForm').submit()">
+                            <span>Tất cả</span>
+                        </label>
+                        <label class="discount-option has-discount <%= filter.discount === 'has-discount' ? 'active' : '' %>">
+                            <input type="radio" name="discount" value="has-discount" 
+                                   <%= filter.discount === 'has-discount' ? 'checked' : '' %>
+                                   onchange="document.getElementById('filterForm').submit()">
+                            <span><i class="fas fa-fire"></i> Đang giảm giá</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <button type="button" class="btn btn-outline-danger w-100" id="clearFilters">
+                        <i class="fas fa-times"></i> Xóa bộ lọc
+                    </button>
                 </div>
             </form>
         </div>
@@ -93,6 +213,8 @@
                         <option value="name-asc" <%= filter.sort === 'name-asc' ? 'selected' : '' %>>Tên A-Z</option>
                         <option value="name-desc" <%= filter.sort === 'name-desc' ? 'selected' : '' %>>Tên Z-A</option>
                         <option value="rating-desc" <%= filter.sort === 'rating-desc' ? 'selected' : '' %>>Đánh giá cao nhất</option>
+                        <option value="bestseller" <%= filter.sort === 'bestseller' ? 'selected' : '' %>>Bán chạy nhất</option>
+                        <option value="discount" <%= filter.sort === 'discount' ? 'selected' : '' %>>Giảm giá nhiều nhất</option>
                     </select>
                 </div>
                 
@@ -253,5 +375,70 @@
         document.getElementById('clearFilters').addEventListener('click', function() {
             window.location.href = '/products';
         });
+        
+        // Remove individual filter
+        document.querySelectorAll('.remove-filter').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const tag = this.closest('.active-filter-tag');
+                const type = tag.dataset.type;
+                const value = tag.dataset.value;
+                const url = new URL(window.location.href);
+                
+                switch(type) {
+                    case 'search':
+                        url.searchParams.delete('search');
+                        break;
+                    case 'category':
+                        url.searchParams.delete('category');
+                        url.searchParams.delete('subcategory');
+                        break;
+                    case 'subcategory':
+                        url.searchParams.delete('subcategory');
+                        break;
+                    case 'brand':
+                        // Handle multiple brands
+                        const brands = url.searchParams.getAll('brand');
+                        url.searchParams.delete('brand');
+                        brands.filter(b => b !== value).forEach(b => url.searchParams.append('brand', b));
+                        break;
+                    case 'price':
+                        url.searchParams.delete('minPrice');
+                        url.searchParams.delete('maxPrice');
+                        break;
+                    case 'rating':
+                        url.searchParams.delete('rating');
+                        break;
+                    case 'stock':
+                        url.searchParams.delete('stock');
+                        break;
+                    case 'discount':
+                        url.searchParams.delete('discount');
+                        break;
+                }
+                
+                url.searchParams.delete('page');
+                window.location.href = url.href;
+            });
+        });
+        
+        // Mobile filter toggle
+        const mobileFilterBtn = document.getElementById('mobileFilterBtn');
+        const filtersSidebar = document.getElementById('filtersSidebar');
+        
+        if (mobileFilterBtn && filtersSidebar) {
+            mobileFilterBtn.addEventListener('click', function() {
+                filtersSidebar.classList.toggle('mobile-open');
+                document.body.classList.toggle('filter-open');
+            });
+            
+            // Close filter on overlay click (mobile)
+            filtersSidebar.addEventListener('click', function(e) {
+                if (e.target === filtersSidebar) {
+                    filtersSidebar.classList.remove('mobile-open');
+                    document.body.classList.remove('filter-open');
+                }
+            });
+        }
     });
 </script>

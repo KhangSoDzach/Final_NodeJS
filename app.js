@@ -190,6 +190,7 @@ const adminInventoryRoutes = require('./routes/admin/inventory');
 const compareRoutes = require('./routes/compare');
 const questionRoutes = require('./routes/questions');
 const wishlistRoutes = require('./routes/wishlist');
+const searchRoutes = require('./routes/search');
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
@@ -203,6 +204,7 @@ app.use('/admin/inventory', adminInventoryRoutes);
 app.use('/compare', compareRoutes);
 app.use('/questions', questionRoutes);
 app.use('/user/wishlist', wishlistRoutes);
+app.use('/search', searchRoutes);
 
 // Error handling
 app.use((req, res, next) => {

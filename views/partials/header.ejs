@@ -14,10 +14,16 @@
             </div> -->
             
             <div class="search-bar">
-                <form action="/products" method="GET">
-                    <input type="text" name="search" placeholder="Tìm kiếm sản phẩm..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>">
+                <form action="/products" method="GET" id="search-form">
+                    <input type="text" 
+                           name="search" 
+                           id="search-input"
+                           placeholder="Tìm kiếm sản phẩm..." 
+                           value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
+                           autocomplete="off">
                     <button type="submit"><i class="fas fa-search"></i></button>
                 </form>
+                <div id="search-suggestions" class="search-suggestions" style="display: none;"></div>
             </div>
               <div class="user-actions">
                 <!-- Compare Button -->
