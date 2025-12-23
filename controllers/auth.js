@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const crypto = require('crypto');
 const { validationResult } = require('express-validator');
+const { mergeGuestCart } = require('../middleware/guestCart');
 
 // Import our email service
 const mailer = require('../utils/emailService');
@@ -55,9 +56,16 @@ exports.postLogin = (req, res, next) => {
     }
     
     // If user is valid and not banned, log them in
-    req.login(user, (err) => {
+    req.login(user, async (err) => {
       if (err) {
         return next(err);
+      }
+      
+      // Merge guest cart vào user cart sau khi đăng nhập
+      try {
+        await mergeGuestCart(req, user._id);
+      } catch (mergeErr) {
+        console.error('Error merging guest cart:', mergeErr);
       }
       
       return res.redirect(returnTo);

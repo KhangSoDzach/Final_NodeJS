@@ -8,15 +8,37 @@ exports.getCart = async (req, res) => {
   try {
     // Find cart based on user or session ID
     let cart;
+    let isGuest = false;
+    
     if (req.user) {
       cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+    } else if (req.session.guestCart && req.session.guestCart.items.length > 0) {
+      // Guest cart from session
+      isGuest = true;
+      // Populate product info for guest cart items
+      const populatedItems = [];
+      for (const item of req.session.guestCart.items) {
+        const product = await Product.findById(item.product);
+        if (product) {
+          populatedItems.push({
+            ...item,
+            product: product
+          });
+        }
+      }
+      cart = {
+        items: populatedItems,
+        calculateTotal: () => populatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        coupon: null
+      };
     } else if (req.session.cartId) {
       cart = await Cart.findOne({ sessionId: req.session.cartId }).populate('items.product');
     }
     
     res.render('cart/cart', {
       title: 'Giỏ hàng',
-      cart
+      cart,
+      isGuest
     });
   } catch (err) {
     console.error(err);

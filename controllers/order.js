@@ -1,8 +1,11 @@
 const Order = require('../models/order');
 const Cart = require('../models/cart');
 const User = require('../models/user');
+const Product = require('../models/product');
 const nodemailer = require('nodemailer');
 const emailService = require('../utils/emailService');
+const vatCalculator = require('../utils/vatCalculator');
+const invoiceGenerator = require('../utils/invoiceGenerator');
 
 // BUG-006 FIX: Function này đã deprecated, sử dụng postCheckout thay thế
 // Để tránh trừ stock 2 lần, route /orders/create sẽ redirect tới /orders/checkout
@@ -241,5 +244,590 @@ exports.getCheckout = async (req, res) => {  try {
   } catch (err) {
     console.error('Lỗi khi tải trang thanh toán:', err);
     res.status(500).send('Đã xảy ra lỗi khi tải trang thanh toán.');
+  }
+};
+
+/**
+ * Guest Checkout - GET
+ * Hiển thị form checkout cho khách không đăng nhập
+ */
+exports.getGuestCheckout = async (req, res) => {
+  try {
+    // Kiểm tra guest cart từ session
+    if (!req.session.guestCart || req.session.guestCart.items.length === 0) {
+      req.flash('error', 'Giỏ hàng của bạn đang trống.');
+      return res.redirect('/cart');
+    }
+
+    const guestCart = req.session.guestCart;
+    
+    // Validate cart items (kiểm tra stock, giá)
+    if (req.guestCart) {
+      const { errors, validItems } = await req.guestCart.validate();
+      if (errors.length > 0) {
+        req.flash('warning', errors.map(e => e.message).join('. '));
+      }
+    }
+
+    // Tính tổng tiền
+    const subtotal = guestCart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shippingCost = subtotal >= 500000 ? 0 : 30000; // Free ship từ 500k
+    const totalAmount = subtotal + shippingCost;
+
+    res.render('orders/guest-checkout', {
+      title: 'Thanh toán - Khách',
+      cart: guestCart,
+      subtotal,
+      shippingCost,
+      totalAmount,
+      vatRate: vatCalculator.VAT_RATE,
+      vatInfo: vatCalculator.calculateVatFromInclusivePrice(totalAmount)
+    });
+  } catch (err) {
+    console.error('Lỗi khi tải trang guest checkout:', err);
+    res.status(500).send('Đã xảy ra lỗi.');
+  }
+};
+
+/**
+ * Guest Checkout - POST
+ * Xử lý đặt hàng cho khách không đăng nhập
+ */
+exports.postGuestCheckout = async (req, res) => {
+  try {
+    const { 
+      guestName, guestEmail, guestPhone,
+      address, district, province, ward,
+      paymentMethod, note,
+      vatInvoice, vatCompanyName, vatTaxCode, vatAddress, vatEmail
+    } = req.body;
+
+    // Validate required fields
+    if (!guestName || !guestEmail || !guestPhone || !address || !district || !province) {
+      req.flash('error', 'Vui lòng điền đầy đủ thông tin.');
+      return res.redirect('/orders/guest-checkout');
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(guestEmail)) {
+      req.flash('error', 'Email không hợp lệ.');
+      return res.redirect('/orders/guest-checkout');
+    }
+
+    // Kiểm tra guest cart
+    if (!req.session.guestCart || req.session.guestCart.items.length === 0) {
+      req.flash('error', 'Giỏ hàng của bạn đang trống.');
+      return res.redirect('/cart');
+    }
+
+    const guestCart = req.session.guestCart;
+
+    // Validate và update cart items
+    const orderItems = [];
+    for (const item of guestCart.items) {
+      const product = await Product.findById(item.product);
+      if (!product) continue;
+
+      // Kiểm tra stock
+      let availableStock = product.stock;
+      if (item.variant && product.variants) {
+        const variant = product.variants.find(v => 
+          v.name === item.variant.name && v.value === item.variant.value
+        );
+        if (variant) availableStock = variant.stock;
+      }
+
+      if (item.quantity > availableStock) {
+        req.flash('error', `Sản phẩm "${product.name}" không đủ số lượng trong kho.`);
+        return res.redirect('/orders/guest-checkout');
+      }
+
+      orderItems.push({
+        product: product._id,
+        quantity: item.quantity,
+        price: item.price,
+        variants: item.variant ? { [item.variant.name]: item.variant.value } : {}
+      });
+    }
+
+    // Tính tổng tiền
+    const subtotal = guestCart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shippingCost = subtotal >= 500000 ? 0 : 30000;
+    const totalAmount = subtotal + shippingCost;
+
+    // Generate guest token
+    const guestToken = Order.generateGuestToken();
+
+    // Tạo order number
+    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+    // Validate VAT info nếu cần
+    let vatInfoData = null;
+    if (vatInvoice === 'on' || vatInvoice === true) {
+      const vatValidation = vatCalculator.validateVatInfo({
+        companyName: vatCompanyName,
+        taxCode: vatTaxCode,
+        address: vatAddress,
+        email: vatEmail
+      });
+
+      if (!vatValidation.isValid) {
+        req.flash('error', vatValidation.errors.join('. '));
+        return res.redirect('/orders/guest-checkout');
+      }
+
+      vatInfoData = {
+        companyName: vatCompanyName,
+        taxCode: vatTaxCode,
+        address: vatAddress,
+        email: vatEmail
+      };
+    }
+
+    // Tạo đơn hàng
+    const order = new Order({
+      orderNumber,
+      user: null, // Guest order không có user
+      isGuestOrder: true,
+      guestInfo: {
+        name: guestName,
+        email: guestEmail.toLowerCase(),
+        phone: guestPhone,
+        guestToken
+      },
+      items: orderItems,
+      totalAmount,
+      shippingCost,
+      shippingAddress: {
+        name: guestName,
+        street: address,
+        ward: ward || '',
+        district,
+        province,
+        phone: guestPhone
+      },
+      paymentDetails: { method: paymentMethod || 'cod' },
+      status: 'pending',
+      statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo (Guest)' }],
+      note,
+      vatInvoice: vatInvoice === 'on' || vatInvoice === true,
+      vatInfo: vatInfoData,
+      invoiceNumber: vatInfoData ? vatCalculator.generateInvoiceNumber() : null
+    });
+
+    // Bỏ required user validation cho guest order
+    order.$locals = { skipUserValidation: true };
+    
+    await order.save();
+
+    // Cập nhật tồn kho
+    for (const item of guestCart.items) {
+      const product = await Product.findById(item.product);
+      if (product) {
+        if (item.variant) {
+          product.updateStock(item.quantity, true, item.variant.name, item.variant.value);
+        } else {
+          product.updateStock(item.quantity);
+        }
+        await product.save();
+      }
+    }
+
+    // Xóa guest cart
+    delete req.session.guestCart;
+
+    // Gửi email xác nhận
+    try {
+      const populatedOrder = await Order.findById(order._id).populate('items.product');
+      await emailService.sendOrderConfirmationEmail(guestEmail, populatedOrder, guestToken);
+      console.log(`Guest order confirmation email sent to ${guestEmail}`);
+    } catch (emailError) {
+      console.error('Error sending guest order email:', emailError);
+    }
+
+    // Redirect đến trang success với guest token
+    res.redirect(`/orders/guest-success/${order._id}?token=${guestToken}`);
+  } catch (err) {
+    console.error('Lỗi khi xử lý guest checkout:', err);
+    req.flash('error', 'Đã xảy ra lỗi khi xử lý đơn hàng.');
+    res.redirect('/orders/guest-checkout');
+  }
+};
+
+/**
+ * Guest Order Success
+ */
+exports.getGuestSuccess = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { token } = req.query;
+
+    const order = await Order.findById(orderId).populate('items.product');
+    
+    if (!order || !order.isGuestOrder || order.guestInfo.guestToken !== token) {
+      req.flash('error', 'Không tìm thấy đơn hàng.');
+      return res.redirect('/');
+    }
+
+    res.render('orders/success', {
+      title: 'Đặt hàng thành công',
+      order,
+      isGuest: true,
+      guestToken: token
+    });
+  } catch (err) {
+    console.error('Error loading guest success page:', err);
+    res.redirect('/');
+  }
+};
+
+/**
+ * Track Guest Order
+ */
+exports.trackGuestOrder = async (req, res) => {
+  try {
+    const { token } = req.params;
+    
+    const order = await Order.findByGuestToken(token);
+    
+    if (!order) {
+      req.flash('error', 'Không tìm thấy đơn hàng với mã theo dõi này.');
+      return res.redirect('/orders/track');
+    }
+
+    res.render('orders/track', {
+      title: `Theo dõi đơn hàng #${order.orderNumber}`,
+      order,
+      isGuest: true
+    });
+  } catch (err) {
+    console.error('Error tracking guest order:', err);
+    req.flash('error', 'Đã xảy ra lỗi.');
+    res.redirect('/');
+  }
+};
+
+/**
+ * One-Click Checkout - POST
+ * Đặt hàng nhanh với địa chỉ mặc định
+ */
+exports.oneClickCheckout = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Vui lòng đăng nhập' });
+    }
+
+    const { paymentMethod, vatInvoice, vatInfo } = req.body;
+
+    // Lấy giỏ hàng
+    const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ success: false, message: 'Giỏ hàng trống' });
+    }
+
+    // Lấy địa chỉ mặc định
+    const user = await User.findById(req.user._id);
+    const defaultAddress = user.addresses?.find(addr => addr.default === true);
+    
+    if (!defaultAddress) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Bạn chưa có địa chỉ mặc định. Vui lòng thêm địa chỉ trong trang cá nhân.' 
+      });
+    }
+
+    // Tính tổng tiền
+    let totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
+    
+    // Auto-apply loyalty points
+    let loyaltyPointsUsed = 0;
+    if (user.loyaltyPoints > 0) {
+      const maxPointsForOrder = Math.floor(totalAmount / 1000);
+      loyaltyPointsUsed = Math.min(user.loyaltyPoints, maxPointsForOrder);
+      
+      if (loyaltyPointsUsed > 0) {
+        const loyaltyDiscount = loyaltyPointsUsed * 1000;
+        totalAmount = Math.max(0, totalAmount - loyaltyDiscount);
+        user.loyaltyPoints -= loyaltyPointsUsed;
+        await user.save();
+      }
+    }
+
+    const loyaltyPointsEarned = Math.floor(totalAmount * 0.0001);
+
+    // Tạo order
+    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    
+    // VAT validation
+    let vatInfoData = null;
+    if (vatInvoice && vatInfo) {
+      const vatValidation = vatCalculator.validateVatInfo(vatInfo);
+      if (!vatValidation.isValid) {
+        return res.status(400).json({ success: false, message: vatValidation.errors.join('. ') });
+      }
+      vatInfoData = vatInfo;
+    }
+
+    const order = new Order({
+      orderNumber,
+      user: user._id,
+      items: cart.items,
+      totalAmount,
+      shippingAddress: {
+        name: defaultAddress.fullName || user.name,
+        street: defaultAddress.street,
+        ward: defaultAddress.ward || '',
+        district: defaultAddress.district,
+        province: defaultAddress.city || defaultAddress.province,
+        phone: defaultAddress.phone || user.phone
+      },
+      paymentDetails: { method: paymentMethod || 'cod' },
+      status: 'pending',
+      statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng One-click checkout' }],
+      loyaltyPointsUsed,
+      loyaltyPointsEarned,
+      usedDefaultAddress: true,
+      vatInvoice: !!vatInvoice,
+      vatInfo: vatInfoData,
+      invoiceNumber: vatInfoData ? vatCalculator.generateInvoiceNumber() : null
+    });
+
+    // Coupon
+    if (cart.coupon && cart.coupon.code) {
+      order.couponCode = cart.coupon.code;
+      order.discount = cart.coupon.discount;
+      
+      const Coupon = require('../models/coupon');
+      await Coupon.findOneAndUpdate(
+        { code: cart.coupon.code },
+        { $inc: { usedCount: 1 } }
+      );
+    }
+
+    await order.save();
+
+    // Update stock
+    for (const item of cart.items) {
+      const product = item.product;
+      if (product) {
+        if (item.variants && Object.keys(item.variants).length > 0) {
+          for (const [variantName, variantValue] of Object.entries(item.variants)) {
+            product.updateStock(item.quantity, true, variantName, variantValue);
+          }
+        } else {
+          product.updateStock(item.quantity);
+        }
+        await product.save();
+      }
+    }
+
+    // Clear cart
+    cart.items = [];
+    cart.coupon = null;
+    await cart.save();
+
+    // Send email
+    try {
+      const populatedOrder = await Order.findById(order._id).populate('items.product');
+      await emailService.sendOrderConfirmationEmail(user.email, populatedOrder);
+    } catch (emailError) {
+      console.error('Error sending email:', emailError);
+    }
+
+    res.json({
+      success: true,
+      message: 'Đặt hàng thành công!',
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      redirectUrl: `/orders/success/${order._id}`
+    });
+  } catch (err) {
+    console.error('One-click checkout error:', err);
+    res.status(500).json({ success: false, message: 'Đã xảy ra lỗi' });
+  }
+};
+
+/**
+ * Get Invoice - HTML view
+ */
+exports.getInvoice = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { token } = req.query; // For guest orders
+    
+    let order;
+    
+    if (token) {
+      // Guest order
+      order = await Order.findById(orderId).populate('items.product').populate('user');
+      if (!order || !order.isGuestOrder || order.guestInfo.guestToken !== token) {
+        req.flash('error', 'Không tìm thấy đơn hàng.');
+        return res.redirect('/');
+      }
+    } else {
+      // Logged in user
+      if (!req.user) {
+        req.flash('error', 'Vui lòng đăng nhập.');
+        return res.redirect('/auth/login');
+      }
+      
+      order = await Order.findById(orderId).populate('items.product').populate('user');
+      
+      if (!order || (order.user && order.user._id.toString() !== req.user._id.toString())) {
+        req.flash('error', 'Không tìm thấy đơn hàng.');
+        return res.redirect('/orders/history');
+      }
+    }
+
+    // Generate invoice HTML
+    const invoiceHTML = invoiceGenerator.generateInvoiceHTML(order);
+    
+    res.send(invoiceHTML);
+  } catch (err) {
+    console.error('Error generating invoice:', err);
+    res.status(500).send('Đã xảy ra lỗi khi tạo hóa đơn.');
+  }
+};
+
+/**
+ * Download Invoice PDF
+ */
+exports.downloadInvoicePDF = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { token } = req.query;
+    
+    let order;
+    
+    if (token) {
+      order = await Order.findById(orderId).populate('items.product').populate('user');
+      if (!order || !order.isGuestOrder || order.guestInfo.guestToken !== token) {
+        return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
+      }
+    } else {
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'Vui lòng đăng nhập' });
+      }
+      
+      order = await Order.findById(orderId).populate('items.product').populate('user');
+      
+      if (!order || (order.user && order.user._id.toString() !== req.user._id.toString())) {
+        return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
+      }
+    }
+
+    // Generate PDF
+    const pdfBuffer = await invoiceGenerator.generateInvoicePDF(order);
+    
+    // Set headers
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=invoice-${order.orderNumber}.pdf`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error('Error generating PDF invoice:', err);
+    res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi tạo PDF' });
+  }
+};
+
+/**
+ * Request VAT Invoice
+ * Cho phép user yêu cầu xuất hóa đơn VAT sau khi đã đặt hàng
+ */
+exports.requestVatInvoice = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { companyName, taxCode, address, email } = req.body;
+    
+    // Validate VAT info
+    const vatValidation = vatCalculator.validateVatInfo({ companyName, taxCode, address, email });
+    if (!vatValidation.isValid) {
+      return res.status(400).json({ success: false, message: vatValidation.errors.join('. ') });
+    }
+
+    // Check minimum amount
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
+    }
+
+    // Authorization check
+    if (req.user && order.user && order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Không có quyền truy cập' });
+    }
+
+    if (!vatCalculator.isEligibleForVatInvoice(order.totalAmount)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Đơn hàng phải có giá trị tối thiểu 200,000đ để xuất hóa đơn VAT' 
+      });
+    }
+
+    // Update order
+    order.vatInvoice = true;
+    order.vatInfo = { companyName, taxCode, address, email };
+    order.invoiceNumber = vatCalculator.generateInvoiceNumber();
+    order.invoiceGeneratedAt = new Date();
+    await order.save();
+
+    res.json({
+      success: true,
+      message: 'Yêu cầu xuất hóa đơn VAT đã được ghi nhận',
+      invoiceNumber: order.invoiceNumber
+    });
+  } catch (err) {
+    console.error('Error requesting VAT invoice:', err);
+    res.status(500).json({ success: false, message: 'Đã xảy ra lỗi' });
+  }
+};
+
+/**
+ * Calculate VAT Preview
+ * API để preview VAT breakdown trước khi checkout
+ */
+exports.calculateVatPreview = async (req, res) => {
+  try {
+    const { subtotal, shippingCost = 0, discount = 0 } = req.body;
+    
+    const mockOrder = {
+      items: [{ price: subtotal, quantity: 1 }],
+      shippingCost,
+      discount
+    };
+    
+    const vatData = vatCalculator.calculateOrderVat(mockOrder);
+    
+    res.json({
+      success: true,
+      vat: vatData
+    });
+  } catch (err) {
+    console.error('Error calculating VAT preview:', err);
+    res.status(500).json({ success: false, message: 'Đã xảy ra lỗi' });
+  }
+};
+
+/**
+ * Get User Addresses for Autofill
+ */
+exports.getUserAddresses = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Vui lòng đăng nhập' });
+    }
+
+    const user = await User.findById(req.user._id).select('addresses name phone');
+    
+    res.json({
+      success: true,
+      addresses: user.addresses || [],
+      defaultName: user.name,
+      defaultPhone: user.phone
+    });
+  } catch (err) {
+    console.error('Error fetching addresses:', err);
+    res.status(500).json({ success: false, message: 'Đã xảy ra lỗi' });
   }
 };

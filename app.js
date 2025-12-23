@@ -149,6 +149,9 @@ app.use((req, res, next) => {
 });
 
 // Cart middleware
+const { initGuestCart, getCartCount } = require('./middleware/guestCart');
+app.use(initGuestCart);
+
 app.use(async (req, res, next) => {
   try {
     // Kiểm tra nếu user đã đăng nhập
@@ -160,13 +163,19 @@ app.use(async (req, res, next) => {
         await cart.save();
       }
       res.locals.cart = cart;
+      res.locals.cartCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
     } else {
-      // Xử lý cart cho khách không đăng nhập (nếu cần)
-      if (req.session.cartId) {
+      // Xử lý cart cho khách không đăng nhập (guest cart từ session)
+      if (req.session.guestCart && req.session.guestCart.items) {
+        res.locals.cart = req.session.guestCart;
+        res.locals.cartCount = getCartCount(req);
+        res.locals.isGuestCart = true;
+      } else if (req.session.cartId) {
         const Cart = require('./models/cart');
         let cart = await Cart.findOne({ sessionId: req.session.cartId });
         if (cart) {
           res.locals.cart = cart;
+          res.locals.cartCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
         }
       }
     }

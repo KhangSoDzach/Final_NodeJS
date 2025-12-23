@@ -191,14 +191,12 @@
 [ ] Elasticsearch integration (Tìm kiếm nhanh) - Requires separate setup
 
 ### 8. CHECKOUT OPTIMIZATION - Tối ưu thanh toán
-[ ] Guest Checkout (Mua không cần đăng ký)
-[ ] One-click Checkout (Mua nhanh)
-[ ] Save payment methods
-[ ] Auto-fill địa chỉ
-[ ] Tính thuế VAT tự động
-[ ] Xuất hóa đơn VAT (Invoice)
-[ ] Gift wrapping option (Gói quà)
-[ ] Gift card / Voucher
+[✅ ] Guest Checkout (Mua không cần đăng ký)
+[✅ ] One-click Checkout (Mua nhanh)
+[ ✅] Save payment methods
+[✅ ] Auto-fill địa chỉ
+[✅ ] Tính thuế VAT tự động
+[✅ ] Xuất hóa đơn VAT (Invoice)
 
 ================================================================================
 ## CẦN LÀM - ƯU TIÊN THẤP (🟢 LOW PRIORITY)

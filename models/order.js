@@ -95,6 +95,50 @@ const orderSchema = new Schema({
   note: {
     type: String
   },
+  
+  // Guest Order Support
+  isGuestOrder: {
+    type: Boolean,
+    default: false
+  },
+  guestInfo: {
+    name: String,
+    email: String,
+    phone: String,
+    guestToken: String // Token để guest theo dõi đơn hàng
+  },
+  
+  // VAT Invoice Support
+  vatInvoice: {
+    type: Boolean,
+    default: false
+  },
+  vatInfo: {
+    companyName: String, // Tên công ty/cá nhân
+    taxCode: String, // Mã số thuế
+    address: String, // Địa chỉ xuất hóa đơn
+    email: String // Email nhận hóa đơn
+  },
+  invoiceNumber: {
+    type: String,
+    sparse: true // Allow null but unique when set
+  },
+  invoiceGeneratedAt: {
+    type: Date
+  },
+  
+  // One-click checkout
+  usedDefaultAddress: {
+    type: Boolean,
+    default: false
+  },
+  
+  // Shipping cost
+  shippingCost: {
+    type: Number,
+    default: 0
+  },
+  
   createdAt: {
     type: Date,
     default: Date.now
@@ -103,9 +147,33 @@ const orderSchema = new Schema({
   timestamps: true
 });
 
+// Index cho guest order tracking
+orderSchema.index({ 'guestInfo.guestToken': 1 });
+orderSchema.index({ 'guestInfo.email': 1 });
+orderSchema.index({ invoiceNumber: 1 });
+
 // Method to calculate loyalty points
 orderSchema.methods.calculateLoyaltyPoints = function () {
   return Math.floor(this.totalAmount * 0.0001); // Tích lũy 0.01% giá trị đơn hàng (1/10000)
+};
+
+// Static: Find order by guest token
+orderSchema.statics.findByGuestToken = function(token) {
+  return this.findOne({ 'guestInfo.guestToken': token, isGuestOrder: true })
+    .populate('items.product');
+};
+
+// Static: Find orders by guest email
+orderSchema.statics.findByGuestEmail = function(email) {
+  return this.find({ 'guestInfo.email': email.toLowerCase(), isGuestOrder: true })
+    .sort({ createdAt: -1 })
+    .populate('items.product');
+};
+
+// Generate unique guest token
+orderSchema.statics.generateGuestToken = function() {
+  const crypto = require('crypto');
+  return crypto.randomBytes(32).toString('hex');
 };
 
 module.exports = mongoose.model('Order', orderSchema);

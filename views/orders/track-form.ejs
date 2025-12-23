@@ -1,0 +1,100 @@
+<%- include('../layouts/main', { body: ` 
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+      <div class="card shadow">
+        <div class="card-header bg-success text-white text-center">
+          <h3 class="mb-0">
+            <i class="fas fa-search me-2"></i>
+            Tra cứu đơn hàng
+          </h3>
+        </div>
+        <div class="card-body p-4">
+          <p class="text-muted text-center mb-4">
+            Nhập mã theo dõi đơn hàng bạn đã nhận qua email để kiểm tra trạng thái đơn hàng.
+          </p>
+          
+          <form action="/orders/track" method="GET" id="track-form">
+            <div class="mb-4">
+              <label for="token" class="form-label">Mã theo dõi đơn hàng</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light">
+                  <i class="fas fa-barcode"></i>
+                </span>
+                <input type="text" class="form-control form-control-lg" id="token" name="token" 
+                       placeholder="Nhập mã theo dõi..." required
+                       value="<%= typeof token !== 'undefined' ? token : '' %>">
+              </div>
+              <small class="text-muted">
+                Mã theo dõi được gửi đến email của bạn sau khi đặt hàng thành công.
+              </small>
+            </div>
+            
+            <div class="mb-4">
+              <label for="email" class="form-label">Email đặt hàng</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light">
+                  <i class="fas fa-envelope"></i>
+                </span>
+                <input type="email" class="form-control" id="email" name="email" 
+                       placeholder="email@example.com"
+                       value="<%= typeof email !== 'undefined' ? email : '' %>">
+              </div>
+              <small class="text-muted">
+                Nhập email để xác minh quyền tra cứu (không bắt buộc).
+              </small>
+            </div>
+            
+            <button type="submit" class="btn btn-success btn-lg w-100">
+              <i class="fas fa-search me-2"></i>
+              Tra cứu đơn hàng
+            </button>
+          </form>
+          
+          <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-danger mt-4">
+              <i class="fas fa-exclamation-circle me-2"></i>
+              <%= error %>
+            </div>
+          <% } %>
+          
+          <hr class="my-4">
+          
+          <div class="text-center">
+            <p class="text-muted mb-2">Bạn đã có tài khoản?</p>
+            <a href="/auth/login" class="btn btn-outline-primary">
+              <i class="fas fa-sign-in-alt me-2"></i>
+              Đăng nhập để xem lịch sử đơn hàng
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Help section -->
+      <div class="card mt-4 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="fas fa-question-circle text-info me-2"></i>
+            Không tìm thấy mã theo dõi?
+          </h5>
+          <ul class="mb-0 text-muted">
+            <li>Kiểm tra hộp thư spam/rác trong email</li>
+            <li>Mã theo dõi được gửi ngay sau khi bạn đặt hàng thành công</li>
+            <li>Nếu vẫn không nhận được, vui lòng liên hệ hotline: <strong>1900-xxxx</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+  }
+  .input-group-text {
+    border-color: #ced4da;
+  }
+</style>
+` }) %>
