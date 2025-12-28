@@ -2,6 +2,8 @@ const User = require('../models/user');
 const Order = require('../models/order');
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
+const { SUPPORTED_LOCALES } = require('../utils/localeFormatter');
+const { isSupportedCurrency } = require('../config/currencies');
 
 exports.getProfile = async (req, res) => {
   try {
@@ -357,5 +359,78 @@ exports.cancelOrder = async (req, res) => {
     console.error(err);
     req.flash('error', 'Đã xảy ra lỗi khi hủy đơn hàng.');
     res.redirect('/user/orders');
+  }
+};
+
+/**
+ * Update user locale preferences (language and currency)
+ * POST /api/user/locale
+ */
+exports.updateLocalePreference = async (req, res) => {
+  try {
+    const { locale, currency } = req.body;
+    const updates = {};
+    
+    // Validate and set language preference
+    if (locale && SUPPORTED_LOCALES[locale]) {
+      updates.preferredLanguage = locale;
+      res.cookie('locale', locale, {
+        maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+        httpOnly: true,
+        sameSite: 'lax'
+      });
+    }
+    
+    // Validate and set currency preference
+    if (currency && isSupportedCurrency(currency)) {
+      updates.preferredCurrency = currency.toUpperCase();
+      res.cookie('currency', currency.toUpperCase(), {
+        maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+        httpOnly: true,
+        sameSite: 'lax'
+      });
+    }
+    
+    // Update user in database if logged in
+    if (req.user && Object.keys(updates).length > 0) {
+      await User.findByIdAndUpdate(req.user._id, updates);
+    }
+    
+    res.json({
+      success: true,
+      locale: updates.preferredLanguage || req.locale,
+      currency: updates.preferredCurrency || req.currency,
+      message: 'Cập nhật tùy chọn ngôn ngữ thành công'
+    });
+  } catch (error) {
+    console.error('Error updating locale preference:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Đã xảy ra lỗi khi cập nhật tùy chọn ngôn ngữ'
+    });
+  }
+};
+
+/**
+ * Get user locale preferences
+ * GET /api/user/locale
+ */
+exports.getLocalePreference = async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      locale: req.locale,
+      currency: req.currency,
+      user: req.user ? {
+        preferredLanguage: req.user.preferredLanguage,
+        preferredCurrency: req.user.preferredCurrency
+      } : null
+    });
+  } catch (error) {
+    console.error('Error getting locale preference:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Đã xảy ra lỗi khi lấy tùy chọn ngôn ngữ'
+    });
   }
 };

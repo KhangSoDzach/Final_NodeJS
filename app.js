@@ -12,6 +12,7 @@ const compression = require('compression');
 const WebSocket = require('ws');
 const http = require('http');
 const fs = require('fs');
+const cookieParser = require('cookie-parser');
 
 require('dotenv').config();
 
@@ -75,6 +76,7 @@ app.set('layout', 'layouts/main');
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Thêm dòng này để phục vụ thư mục uploads
@@ -126,6 +128,10 @@ app.use(flash());
 const bannedCheck = require('./middleware/bannedCheck');
 app.use(bannedCheck);
 
+// i18n middleware for multi-language and currency support
+const { i18nMiddleware, syncUserPreferences } = require('./middleware/i18n');
+app.use(i18nMiddleware);
+
 // Flash and User Middleware - setting up global variables for templates
 app.use((req, res, next) => {
   // User authentication data
@@ -147,6 +153,9 @@ app.use((req, res, next) => {
   
   next();
 });
+
+// Sync user locale preferences after authentication
+app.use(syncUserPreferences);
 
 // Cart middleware
 const { initGuestCart, getCartCount } = require('./middleware/guestCart');

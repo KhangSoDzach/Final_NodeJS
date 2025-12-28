@@ -1,0 +1,226 @@
+<!-- Language and Currency Switcher Component -->
+<div class="locale-switcher-container">
+  <!-- Language Switcher -->
+  <div class="dropdown locale-dropdown">
+    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="fas fa-globe me-1"></i>
+      <span class="locale-name"><%= currentLocale.name %></span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+      <li class="dropdown-header"><%= __('common.language') %></li>
+      <% availableLocales.forEach(function(loc) { %>
+        <li>
+          <a class="dropdown-item <%= loc.code === locale ? 'active' : '' %>" href="<%= localeUrl(loc.code) %>">
+            <span class="locale-flag"><%= loc.code === 'vi' ? '🇻🇳' : '🇺🇸' %></span>
+            <%= loc.name %>
+            <% if (loc.code === locale) { %>
+              <i class="fas fa-check ms-2"></i>
+            <% } %>
+          </a>
+        </li>
+      <% }); %>
+    </ul>
+  </div>
+
+  <!-- Currency Switcher -->
+  <div class="dropdown currency-dropdown ms-2">
+    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="currencyDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      <span class="currency-symbol"><%= currentCurrency.symbol %></span>
+      <span class="currency-code"><%= currency %></span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="currencyDropdown">
+      <li class="dropdown-header"><%= __('common.currency') %></li>
+      <% availableCurrencies.forEach(function(curr) { %>
+        <li>
+          <a class="dropdown-item <%= curr.code === currency ? 'active' : '' %>" href="<%= currencyUrl(curr.code) %>">
+            <span class="currency-symbol me-2"><%= curr.symbol %></span>
+            <span class="currency-name"><%= locale === 'vi' ? curr.name : curr.nameEn %></span>
+            (<%= curr.code %>)
+            <% if (curr.code === currency) { %>
+              <i class="fas fa-check ms-2"></i>
+            <% } %>
+          </a>
+        </li>
+      <% }); %>
+    </ul>
+  </div>
+</div>
+
+<style>
+.locale-switcher-container {
+  display: flex;
+  align-items: center;
+}
+
+.locale-dropdown .dropdown-toggle,
+.currency-dropdown .dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  background-color: transparent;
+  border-color: #dee2e6;
+  color: #212529;
+  transition: all 0.2s ease;
+}
+
+.locale-dropdown .dropdown-toggle:hover,
+.currency-dropdown .dropdown-toggle:hover {
+  background-color: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.locale-dropdown .dropdown-menu,
+.currency-dropdown .dropdown-menu {
+  min-width: 180px;
+  padding: 0.5rem 0;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.locale-dropdown .dropdown-header,
+.currency-dropdown .dropdown-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+}
+
+.locale-dropdown .dropdown-item,
+.currency-dropdown .dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
+}
+
+.locale-dropdown .dropdown-item:hover,
+.currency-dropdown .dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.locale-dropdown .dropdown-item.active,
+.currency-dropdown .dropdown-item.active {
+  background-color: #e9f5ff;
+  color: #0d6efd;
+}
+
+.locale-flag {
+  margin-right: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.currency-symbol {
+  font-weight: 600;
+}
+
+/* Mobile responsive */
+@media (max-width: 576px) {
+  .locale-switcher-container {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .currency-dropdown {
+    margin-left: 0 !important;
+  }
+  
+  .locale-name {
+    display: none;
+  }
+  
+  .currency-code {
+    display: none;
+  }
+}
+
+/* Compact mode for header */
+.locale-switcher-compact .locale-dropdown .dropdown-toggle,
+.locale-switcher-compact .currency-dropdown .dropdown-toggle {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.locale-switcher-compact .locale-name,
+.locale-switcher-compact .currency-code {
+  display: none;
+}
+
+/* Dark mode support */
+[data-bs-theme="dark"] .locale-dropdown .dropdown-toggle,
+[data-bs-theme="dark"] .currency-dropdown .dropdown-toggle {
+  color: #f8f9fa;
+  border-color: #495057;
+}
+
+[data-bs-theme="dark"] .locale-dropdown .dropdown-toggle:hover,
+[data-bs-theme="dark"] .currency-dropdown .dropdown-toggle:hover {
+  background-color: #343a40;
+  border-color: #6c757d;
+}
+
+[data-bs-theme="dark"] .locale-dropdown .dropdown-menu,
+[data-bs-theme="dark"] .currency-dropdown .dropdown-menu {
+  background-color: #212529;
+  border-color: #495057;
+}
+
+[data-bs-theme="dark"] .locale-dropdown .dropdown-item,
+[data-bs-theme="dark"] .currency-dropdown .dropdown-item {
+  color: #f8f9fa;
+}
+
+[data-bs-theme="dark"] .locale-dropdown .dropdown-item:hover,
+[data-bs-theme="dark"] .currency-dropdown .dropdown-item:hover {
+  background-color: #343a40;
+}
+
+[data-bs-theme="dark"] .locale-dropdown .dropdown-item.active,
+[data-bs-theme="dark"] .currency-dropdown .dropdown-item.active {
+  background-color: #1a3a5c;
+}
+</style>
+
+<script>
+// AJAX-based locale switching (optional - for SPA-like experience)
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize tooltips if Bootstrap tooltips are available
+  if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+    const tooltipTriggerList = document.querySelectorAll('.locale-switcher-container [data-bs-toggle="tooltip"]');
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }
+  
+  // Optional: AJAX locale switching without page reload
+  const localeLinks = document.querySelectorAll('.locale-dropdown .dropdown-item:not(.active)');
+  const currencyLinks = document.querySelectorAll('.currency-dropdown .dropdown-item:not(.active)');
+  
+  // For now, use regular navigation
+  // Can be enhanced with AJAX if needed for SPA experience
+});
+
+// Helper function for AJAX locale update (can be called from other scripts)
+window.updateLocalePreference = async function(locale, currency) {
+  try {
+    const response = await fetch('/api/user/locale', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ locale, currency })
+    });
+    
+    if (response.ok) {
+      // Reload page to apply new locale
+      window.location.reload();
+    }
+  } catch (error) {
+    console.error('Failed to update locale preference:', error);
+  }
+};
+</script>

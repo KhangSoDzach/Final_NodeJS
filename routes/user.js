@@ -49,4 +49,8 @@ router.get('/pre-orders', isAuth, productsController.getUserPreOrders);
 // Stock notifications management
 router.get('/stock-notifications', isAuth, productsController.getUserNotifications);
 
+// Locale preference API (language & currency)
+router.post('/api/locale', userController.updateLocalePreference);
+router.get('/api/locale', userController.getLocalePreference);
+
 module.exports = router;

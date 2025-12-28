@@ -194,9 +194,9 @@
 [✅ ] Guest Checkout (Mua không cần đăng ký)
 [✅ ] One-click Checkout (Mua nhanh)
 [ ✅] Save payment methods
-[✅ ] Auto-fill địa chỉ
-[✅ ] Tính thuế VAT tự động
-[✅ ] Xuất hóa đơn VAT (Invoice)
+[✅] Auto-fill địa chỉ
+[✅] Tính thuế VAT tự động
+[✅] Xuất hóa đơn VAT (Invoice)
 
 ================================================================================
 ## CẦN LÀM - ƯU TIÊN THẤP (🟢 LOW PRIORITY)

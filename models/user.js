@@ -69,6 +69,17 @@ const userSchema = new Schema({
   resetTokenExpiration: {
     type: Date
   },
+  // Locale preferences for i18n
+  preferredLanguage: {
+    type: String,
+    enum: ['vi', 'en'],
+    default: 'vi'
+  },
+  preferredCurrency: {
+    type: String,
+    enum: ['VND', 'USD', 'EUR'],
+    default: 'VND'
+  },
   createdAt: {
     type: Date,
     default: Date.now
