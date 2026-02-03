@@ -1,0 +1,19 @@
+{
+  "project": "Final_NodeJS",
+  "allowedSkills": [
+    "backend-architecture",
+    "api-design-principles",
+    "database-design",
+    "auth-implementation-patterns",
+    "api-security-best-practices",
+    "backend-development-feature-development",
+    "testing-patterns",
+    "react-migration",
+    "api-documentation-generator"
+  ],
+  "rules": {
+    "autoMatch": true,
+    "allowFallback": false,
+    "useActiveSkillsFolder": true
+  }
+}
