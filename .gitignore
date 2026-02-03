@@ -1,3 +1,4 @@
 node_modules
 /system-prompts-and-models-of-ai-tools
 /.agent/active-skills
+.agent/skills/

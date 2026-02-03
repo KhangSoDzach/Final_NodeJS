@@ -2,22 +2,39 @@
 
 Agent MUST prioritize and only use the following skills unless explicitly instructed otherwise.
 
-## Core Architecture
-- backend-architecture
+## Core Architecture & Backend
+- backend-architect
+- nodejs-backend-patterns
 - api-design-principles
+- backend-development-feature-development
+- error-handling-patterns
+
+## Database (MongoDB)
 - database-design
+- nosql-expert
 
 ## Security & Auth
 - auth-implementation-patterns
 - api-security-best-practices
+- secrets-management
 
-## Development & Testing
-- backend-development-feature-development
+## Testing
 - testing-patterns
 
+## Business Features
+- email-systems
+- payment-integration
+
 ## Migration & Frontend
-- react-migration
+- react-modernization
+- react-best-practices
 - api-documentation-generator
+
+## Deployment & DevOps
+- docker-expert
+- deployment-engineer
+- cicd-automation-workflow-automate
+- observability-monitoring-monitor-setup
 
 
 Rules:

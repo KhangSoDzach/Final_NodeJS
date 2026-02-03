@@ -1,15 +1,26 @@
 {
   "project": "Final_NodeJS",
   "allowedSkills": [
-    "backend-architecture",
+    "backend-architect",
+    "nodejs-backend-patterns",
     "api-design-principles",
     "database-design",
+    "nosql-expert",
     "auth-implementation-patterns",
     "api-security-best-practices",
     "backend-development-feature-development",
     "testing-patterns",
-    "react-migration",
-    "api-documentation-generator"
+    "error-handling-patterns",
+    "email-systems",
+    "payment-integration",
+    "react-modernization",
+    "react-best-practices",
+    "api-documentation-generator",
+    "docker-expert",
+    "deployment-engineer",
+    "cicd-automation-workflow-automate",
+    "observability-monitoring-monitor-setup",
+    "secrets-management"
   ],
   "rules": {
     "autoMatch": true,
