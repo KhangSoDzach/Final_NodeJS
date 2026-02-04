@@ -8,6 +8,13 @@ const User = require('../../models/user');
 const Cart = require('../../models/cart');
 const authController = require('../../controllers/auth');
 
+// Mock email service to prevent actual email sending during tests
+jest.mock('../../utils/emailService', () => ({
+    sendEmail: jest.fn().mockResolvedValue(true),
+    sendPasswordResetEmail: jest.fn().mockResolvedValue(true),
+    sendWelcomeEmail: jest.fn().mockResolvedValue(true)
+}));
+
 describe('Authentication Controller', () => {
     // Helper to create mock request/response
     const createMockReq = (overrides = {}) => ({
@@ -18,6 +25,11 @@ describe('Authentication Controller', () => {
         login: jest.fn((user, callback) => callback(null)),
         logout: jest.fn((callback) => callback(null)),
         isAuthenticated: jest.fn(() => false),
+        get: jest.fn((header) => {
+            if (header === 'host') return 'localhost:3000';
+            return null;
+        }),
+        protocol: 'http',
         ...overrides
     });
 
@@ -43,12 +55,6 @@ describe('Authentication Controller', () => {
                 }
             });
             const res = createMockRes();
-
-            // Mock validation result
-            const validationResult = jest.fn(() => ({ isEmpty: () => true }));
-            jest.mock('express-validator', () => ({
-                validationResult
-            }));
 
             await authController.postRegister(req, res);
 

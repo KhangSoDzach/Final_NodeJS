@@ -3,6 +3,7 @@
  * Coverage: Profile management, addresses, password change, orders
  */
 
+const mongoose = require('mongoose');
 const User = require('../../models/user');
 const Order = require('../../models/order');
 const bcrypt = require('bcryptjs');
@@ -10,9 +11,11 @@ const userController = require('../../controllers/user');
 
 // Test data factories
 const getMockUser = (overrides = {}) => ({
+    _id: new mongoose.Types.ObjectId(),
     email: 'test@example.com',
     name: 'Test User',
     password: 'hashedPassword123',
+    role: 'customer',
     addresses: [],
     loyaltyPoints: 0,
     ...overrides
@@ -263,7 +266,7 @@ describe('User Controller', () => {
                 const user = await User.create(getMockUser());
                 req.user = user;
                 req.isAuthenticated = jest.fn(() => true);
-                req.params = { addressId: 'nonexistent123' };
+                req.params = { addressId: new mongoose.Types.ObjectId().toString() };
                 req.body = getMockAddress();
 
                 await userController.updateAddress(req, res);
@@ -526,7 +529,7 @@ describe('User Controller', () => {
                 const user = await User.create(getMockUser());
                 req.user = user;
                 req.isAuthenticated = jest.fn(() => true);
-                req.params = { orderId: 'nonexistent123' };
+                req.params = { orderId: new mongoose.Types.ObjectId().toString() };
 
                 await userController.getOrderDetail(req, res);
 

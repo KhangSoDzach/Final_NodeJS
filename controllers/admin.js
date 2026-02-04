@@ -1,5 +1,5 @@
 const Product = require('../models/product');
-const Order = require('../models/order');
+const Order = require('../models/Order');
 const User = require('../models/user');
 const Coupon = require('../models/coupon');
 const { validationResult } = require('express-validator');
@@ -12,41 +12,41 @@ exports.getDashboard = async (req, res) => {
     const orders = await Order.find({
       status: { $ne: 'cancelled' }
     });
-    
+
     const totalRevenue = orders.reduce((total, order) => total + order.totalAmount, 0);
-    
+
     // Get total orders
     const totalOrders = orders.length;
-    
+
     // Get pending orders - BUG-008 FIX: Đổi từ 'processing' thành 'pending'
     const pendingOrders = await Order.countDocuments({
       status: 'pending'
     });
-    
+
     // Get total users
     const totalUsers = await User.countDocuments();
-    
+
     // Get total products
     const totalProducts = await Product.countDocuments();
-    
+
     // Get low stock products (less than 10)
     const lowStockProducts = await Product.countDocuments({
       stock: { $lt: 10 }
     });
-    
+
     // Get recent orders
     const recentOrders = await Order.find()
       .sort({ createdAt: -1 })
       .limit(5)
       .populate('user', 'name email');
-    
+
     // Get best selling products
     const bestSellers = await Product.find()
       .sort({ sold: -1 })
       .limit(5);
-    
+
     res.render('admin/dashboard', {
-      title: 'Quản trị',
+      title: 'Admin Dashboard',
       totalRevenue,
       totalOrders,
       pendingOrders,
@@ -68,89 +68,89 @@ exports.getDashboard = async (req, res) => {
 exports.getDashboardData = async (req, res) => {
   try {
     const { dateRange, startDate, endDate } = req.query;
-    
+
     // Xác định thời gian bắt đầu và kết thúc dựa trên dateRange
     let startDateTime, endDateTime;
     const now = new Date();
-    
-    switch(dateRange) {
+
+    switch (dateRange) {
       case 'today':
         startDateTime = new Date(now.setHours(0, 0, 0, 0));
         endDateTime = new Date();
         break;
-        
+
       case 'week':
         startDateTime = new Date(now);
         startDateTime.setDate(now.getDate() - now.getDay()); // Đầu tuần (Chủ Nhật)
         startDateTime.setHours(0, 0, 0, 0);
         endDateTime = new Date();
         break;
-        
+
       case 'month':
         startDateTime = new Date(now.getFullYear(), now.getMonth(), 1);
         endDateTime = new Date();
         break;
-        
+
       case 'year':
         startDateTime = new Date(now.getFullYear(), 0, 1);
         endDateTime = new Date();
         break;
-        
+
       case 'custom':
         startDateTime = new Date(startDate);
         startDateTime.setHours(0, 0, 0, 0);
         endDateTime = new Date(endDate);
         endDateTime.setHours(23, 59, 59, 999);
         break;
-        
+
       default:
         startDateTime = new Date(now.getFullYear(), now.getMonth(), 1);
         endDateTime = new Date();
     }
-    
+
     // Lấy dữ liệu doanh thu trong khoảng thời gian
     const orders = await Order.find({
-      createdAt: { 
+      createdAt: {
         $gte: startDateTime,
         $lte: endDateTime
       },
       status: { $ne: 'cancelled' }
     });
-    
+
     const totalRevenue = orders.reduce((total, order) => total + order.totalAmount, 0);
     const totalOrders = orders.length;
-    
+
     // Lấy số đơn hàng đang chờ xử lý
     const pendingOrders = await Order.countDocuments({
       status: 'processing',
-      createdAt: { 
+      createdAt: {
         $gte: startDateTime,
         $lte: endDateTime
       }
     });
-    
+
     // Lấy số người dùng đăng ký mới trong khoảng thời gian
     const totalUsers = await User.countDocuments({
-      createdAt: { 
+      createdAt: {
         $gte: startDateTime,
         $lte: endDateTime
       }
     });
-    
+
     // Tính doanh thu theo thời gian cho biểu đồ
     // Nếu là hàng tháng trong năm
     const revenueByMonth = Array(12).fill(0);
-    
+
     orders.forEach(order => {
       const orderMonth = new Date(order.createdAt).getMonth();
       revenueByMonth[orderMonth] += order.totalAmount / 1000000; // Đổi sang đơn vị triệu đồng
     });
-    
+
     // Thống kê sản phẩm theo danh mục
     const categories = await Product.aggregate([
       {
         $match: {
-          createdAt: { 
+          createdAt: {
             $gte: startDateTime,
             $lte: endDateTime
           }
@@ -163,18 +163,19 @@ exports.getDashboardData = async (req, res) => {
         }
       }
     ]);
-    
+
     // Xử lý dữ liệu cho biểu đồ danh mục
     const categoryLabels = [];
     const categoryData = [];
-    
+
     categories.forEach(cat => {
       categoryLabels.push(cat._id);
       categoryData.push(cat.count);
     });
-    
+
     // Trả về dữ liệu
     res.json({
+      success: true,
       totalRevenue,
       totalOrders,
       pendingOrders,
@@ -185,9 +186,9 @@ exports.getDashboardData = async (req, res) => {
     });
   } catch (err) {
     console.error('Dashboard data error:', err);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Đã xảy ra lỗi khi tải dữ liệu dashboard.' 
+    res.status(500).json({
+      success: false,
+      message: 'Đã xảy ra lỗi khi tải dữ liệu dashboard.'
     });
   }
 };
@@ -198,30 +199,30 @@ exports.getProducts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 20;
     const skip = (page - 1) * limit;
-    
+
     // Build filter
     const filter = {};
-    
+
     if (req.query.search) {
       filter.name = { $regex: req.query.search, $options: 'i' };
     }
-    
+
     if (req.query.category) {
       filter.category = req.query.category;
     }
-    
+
     // Get products
     const products = await Product.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
-    
+
     // Get total products count
     const total = await Product.countDocuments(filter);
-    
+
     // Get categories for filter
     const categories = await Product.distinct('category');
-    
+
     res.render('admin/products/index', {
       title: 'Quản lý sản phẩm',
       products,
@@ -244,10 +245,10 @@ exports.getAddProduct = async (req, res) => {
     // Lấy danh mục từ database
     let categories = await Product.distinct('category');
     let brands = await Product.distinct('brand');
-    
+
     // Thêm các danh mục mặc định nếu chưa có
     const defaultCategories = ['Laptop', 'PC', 'Màn hình', 'Linh kiện', 'Phụ kiện'];
-    
+
     // Nếu không có danh mục trong database hoặc ít hơn danh sách mặc định
     if (!categories.length) {
       categories = defaultCategories;
@@ -259,10 +260,10 @@ exports.getAddProduct = async (req, res) => {
         }
       });
     }
-    
+
     // Thêm các thương hiệu mặc định nếu chưa có
     const defaultBrands = ['Acer', 'Asus', 'Dell', 'HP', 'Lenovo', 'MSI', 'Apple', 'Samsung', 'LG', 'AMD', 'Intel', 'Gigabyte'];
-    
+
     // Nếu không có thương hiệu trong database hoặc ít hơn danh sách mặc định
     if (!brands.length) {
       brands = defaultBrands;
@@ -274,11 +275,11 @@ exports.getAddProduct = async (req, res) => {
         }
       });
     }
-    
+
     // Sắp xếp theo alphabet
     categories.sort();
     brands.sort();
-    
+
     res.render('admin/products/add', {
       title: 'Thêm sản phẩm mới',
       categories,
@@ -306,20 +307,20 @@ exports.postAddProduct = async (req, res) => {
       specifications,
       variants
     } = req.body;
-    
+
     // Generate slug
     const slug = name
       .toLowerCase()
       .replace(/[^\w ]+/g, '')
       .replace(/ +/g, '-');
-    
+
     // Check if slug exists
     const existingProduct = await Product.findOne({ slug });
     if (existingProduct) {
       req.flash('error', 'Sản phẩm với tên tương tự đã tồn tại.');
       return res.redirect('/admin/products/add');
     }
-    
+
     // Process uploaded images
     const images = [];
     if (req.files && req.files.length > 0) {
@@ -327,13 +328,13 @@ exports.postAddProduct = async (req, res) => {
         images.push(file.filename);
       });
     }
-    
+
     // Process specifications
     const parsedSpecs = [];
     if (specifications) {
       const specNames = Array.isArray(specifications.name) ? specifications.name : [specifications.name];
       const specValues = Array.isArray(specifications.value) ? specifications.value : [specifications.value];
-      
+
       for (let i = 0; i < specNames.length; i++) {
         if (specNames[i] && specValues[i]) {
           parsedSpecs.push({
@@ -343,20 +344,20 @@ exports.postAddProduct = async (req, res) => {
         }
       }
     }
-    
+
     // Process variants
     const parsedVariants = [];
     if (variants) {
       const variantNames = Array.isArray(variants.name) ? variants.name : [variants.name];
       const variantValues = Array.isArray(variants.value) ? variants.value : [variants.value];
-      const additionalPrices = Array.isArray(variants.additionalPrice) 
-        ? variants.additionalPrice 
+      const additionalPrices = Array.isArray(variants.additionalPrice)
+        ? variants.additionalPrice
         : [variants.additionalPrice];
       const variantStocks = Array.isArray(variants.stock) ? variants.stock : [variants.stock];
-      
+
       // Group by variant name
       const variantGroups = {};
-      
+
       for (let i = 0; i < variantNames.length; i++) {
         if (variantNames[i] && variantValues[i]) {
           if (!variantGroups[variantNames[i]]) {
@@ -365,7 +366,7 @@ exports.postAddProduct = async (req, res) => {
               options: []
             };
           }
-          
+
           variantGroups[variantNames[i]].options.push({
             value: variantValues[i],
             additionalPrice: additionalPrices[i] ? parseFloat(additionalPrices[i]) : 0,
@@ -373,12 +374,12 @@ exports.postAddProduct = async (req, res) => {
           });
         }
       }
-      
+
       Object.values(variantGroups).forEach(group => {
         parsedVariants.push(group);
       });
     }
-    
+
     // Create product
     const product = new Product({
       name,
@@ -394,9 +395,9 @@ exports.postAddProduct = async (req, res) => {
       specifications: parsedSpecs,
       variants: parsedVariants
     });
-    
+
     await product.save();
-    
+
     req.flash('success', 'Sản phẩm đã được thêm thành công.');
     res.redirect('/admin/products');
   } catch (err) {
@@ -409,16 +410,16 @@ exports.postAddProduct = async (req, res) => {
 exports.getEditProduct = async (req, res) => {
   try {
     const { productId } = req.params;
-    
+
     const product = await Product.findById(productId);
     if (!product) {
       req.flash('error', 'Không tìm thấy sản phẩm.');
       return res.redirect('/admin/products');
     }
-    
+
     const categories = await Product.distinct('category');
     const brands = await Product.distinct('brand');
-    
+
     res.render('admin/products/edit', {
       title: `Chỉnh sửa: ${product.name}`,
       product,
@@ -449,13 +450,13 @@ exports.postUpdateProduct = async (req, res) => {
       variants,
       removeImages
     } = req.body;
-    
+
     const product = await Product.findById(productId);
     if (!product) {
       req.flash('error', 'Không tìm thấy sản phẩm.');
       return res.redirect('/admin/products');
     }
-    
+
     // Process uploaded images
     const newImages = [];
     if (req.files && req.files.length > 0) {
@@ -463,12 +464,12 @@ exports.postUpdateProduct = async (req, res) => {
         newImages.push(file.filename);
       });
     }
-    
+
     // Process existing images (remove selected images)
     const existingImages = [...product.images];
     if (removeImages) {
       const imagesToRemove = Array.isArray(removeImages) ? removeImages : [removeImages];
-      
+
       // Delete image files
       imagesToRemove.forEach(img => {
         const imagePath = path.join(__dirname, '../public/uploads/products', img);
@@ -476,20 +477,20 @@ exports.postUpdateProduct = async (req, res) => {
           fs.unlinkSync(imagePath);
         }
       });
-      
+
       // Filter out removed images
       product.images = existingImages.filter(img => !imagesToRemove.includes(img));
     }
-    
+
     // Add new images
     product.images = [...product.images, ...newImages];
-    
+
     // Process specifications
     const parsedSpecs = [];
     if (specifications) {
       const specNames = Array.isArray(specifications.name) ? specifications.name : [specifications.name];
       const specValues = Array.isArray(specifications.value) ? specifications.value : [specifications.value];
-      
+
       for (let i = 0; i < specNames.length; i++) {
         if (specNames[i] && specValues[i]) {
           parsedSpecs.push({
@@ -499,20 +500,20 @@ exports.postUpdateProduct = async (req, res) => {
         }
       }
     }
-    
+
     // Process variants
     const parsedVariants = [];
     if (variants) {
       const variantNames = Array.isArray(variants.name) ? variants.name : [variants.name];
       const variantValues = Array.isArray(variants.value) ? variants.value : [variants.value];
-      const additionalPrices = Array.isArray(variants.additionalPrice) 
-        ? variants.additionalPrice 
+      const additionalPrices = Array.isArray(variants.additionalPrice)
+        ? variants.additionalPrice
         : [variants.additionalPrice];
       const variantStocks = Array.isArray(variants.stock) ? variants.stock : [variants.stock];
-      
+
       // Group by variant name
       const variantGroups = {};
-      
+
       for (let i = 0; i < variantNames.length; i++) {
         if (variantNames[i] && variantValues[i]) {
           if (!variantGroups[variantNames[i]]) {
@@ -521,7 +522,7 @@ exports.postUpdateProduct = async (req, res) => {
               options: []
             };
           }
-          
+
           variantGroups[variantNames[i]].options.push({
             value: variantValues[i],
             additionalPrice: additionalPrices[i] ? parseFloat(additionalPrices[i]) : 0,
@@ -529,12 +530,12 @@ exports.postUpdateProduct = async (req, res) => {
           });
         }
       }
-      
+
       Object.values(variantGroups).forEach(group => {
         parsedVariants.push(group);
       });
     }
-    
+
     // Update product
     product.name = name;
     product.description = description;
@@ -546,9 +547,9 @@ exports.postUpdateProduct = async (req, res) => {
     product.stock = parseInt(stock);
     product.specifications = parsedSpecs;
     product.variants = parsedVariants;
-    
+
     await product.save();
-    
+
     req.flash('success', 'Sản phẩm đã được cập nhật thành công.');
     res.redirect('/admin/products');
   } catch (err) {
@@ -561,27 +562,28 @@ exports.postUpdateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
   try {
     const { productId } = req.params;
-    
+
     const product = await Product.findById(productId);
     if (!product) {
+      req.flash('error', 'Không tìm thấy sản phẩm.');
       return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm.' });
     }
-    
+
     // Delete product images - BUG-012 FIX: Thống nhất đường dẫn với uploads/products
     product.images.forEach(img => {
       // Kiểm tra cả 2 đường dẫn có thể có
       const uploadPath = path.join(__dirname, '../uploads/products', img);
       const publicPath = path.join(__dirname, '../public/uploads/products', img);
-      
+
       if (fs.existsSync(uploadPath)) {
         fs.unlinkSync(uploadPath);
       } else if (fs.existsSync(publicPath)) {
         fs.unlinkSync(publicPath);
       }
     });
-    
+
     await Product.deleteOne({ _id: productId });
-    
+
     return res.status(200).json({ success: true, message: 'Sản phẩm đã được xóa thành công.' });
   } catch (err) {
     console.error(err);
@@ -595,14 +597,14 @@ exports.getOrders = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 20;
     const skip = (page - 1) * limit;
-    
+
     // Build filter
     const filter = {};
-    
+
     if (req.query.status) {
       filter.status = req.query.status;
     }
-    
+
     if (req.query.search) {
       filter.$or = [
         { orderNumber: { $regex: req.query.search, $options: 'i' } },
@@ -610,17 +612,17 @@ exports.getOrders = async (req, res) => {
         { 'shippingAddress.phone': { $regex: req.query.search, $options: 'i' } }
       ];
     }
-    
+
     // Get orders
     const orders = await Order.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .populate('user', 'name email');
-    
+
     // Get total orders count
     const total = await Order.countDocuments(filter);
-    
+
     res.render('admin/orders/index', {
       title: 'Quản lý đơn hàng',
       orders,
@@ -681,44 +683,45 @@ exports.updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status, note } = req.body;
-    
+
     const order = await Order.findById(orderId);
     if (!order) {
+      req.flash('error', 'Không tìm thấy đơn hàng.');
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng.' });
     }
-    
+
     // Update status
     const previousStatus = order.status;
     order.status = status;
-    
+
     // Add to status history
     order.statusHistory.push({
       status,
       date: Date.now(),
       note: note || `Trạng thái đơn hàng đã được cập nhật thành ${status}`
     });
-    
+
     // Nếu trạng thái được cập nhật thành "delivered" (đã giao hàng) và trạng thái trước đó KHÔNG phải là delivered
     if (status === 'delivered' && previousStatus !== 'delivered') {
       // Lấy thông tin điểm tích lũy từ đơn hàng
       const loyaltyPointsEarned = order.loyaltyPointsEarned || Math.floor(order.totalAmount * 0.0001);
-      
+
       // Cập nhật điểm tích lũy cho người dùng
       const user = await User.findById(order.user);
       if (user && !order.loyaltyPointsApplied) {
         user.loyaltyPoints += loyaltyPointsEarned;
         await user.save();
-        
+
         // Đánh dấu đã cộng điểm tích lũy
         order.loyaltyPointsApplied = true;
         console.log(`Added ${loyaltyPointsEarned} loyalty points to user ${user._id} for order ${order._id}`);
       }
     }
-    
+
     await order.save();
-    
-    return res.status(200).json({ 
-      success: true, 
+
+    return res.status(200).json({
+      success: true,
       message: 'Trạng thái đơn hàng đã được cập nhật.',
       newStatus: status
     });
@@ -769,17 +772,17 @@ exports.postUpdateOrder = async (req, res) => {
       date: Date.now(),
       note: note || `Trạng thái đơn hàng đã được cập nhật thành ${status}`
     });
-    
+
     // Nếu trạng thái được cập nhật thành "delivered" (đã giao hàng) và trạng thái trước đó KHÔNG phải là delivered
     if (status === 'delivered' && previousStatus !== 'delivered') {
       // Lấy thông tin điểm tích lũy từ đơn hàng
       const loyaltyPointsEarned = order.loyaltyPointsEarned || Math.floor(order.totalAmount * 0.0001);
-        // Cập nhật điểm tích lũy cho người dùng
+      // Cập nhật điểm tích lũy cho người dùng
       const user = await User.findById(order.user);
       if (user && !order.loyaltyPointsApplied) {
         user.loyaltyPoints += loyaltyPointsEarned;
         await user.save();
-        
+
         // Đánh dấu đã cộng điểm tích lũy
         order.loyaltyPointsApplied = true;
         console.log(`Added ${loyaltyPointsEarned} loyalty points to user ${user._id} for order ${order._id}`);
@@ -803,20 +806,20 @@ exports.getUsers = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 20;
     const skip = (page - 1) * limit;
-    
+
     // Build filter
     const filter = {};
-    
+
     if (req.query.role) {
       filter.role = req.query.role;
     }
-    
+
     if (req.query.status === 'active') {
       filter.isBanned = false;
     } else if (req.query.status === 'banned') {
       filter.isBanned = true;
     }
-    
+
     if (req.query.search) {
       filter.$or = [
         { name: { $regex: req.query.search, $options: 'i' } },
@@ -824,16 +827,16 @@ exports.getUsers = async (req, res) => {
         { phone: { $regex: req.query.search, $options: 'i' } }
       ];
     }
-    
+
     // Get users
     const users = await User.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
-    
+
     // Get total users count
     const total = await User.countDocuments(filter);
-    
+
     res.render('admin/users/index', {
       title: 'Quản lý người dùng',
       users,
@@ -853,18 +856,18 @@ exports.getUsers = async (req, res) => {
 exports.getUserDetail = async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     const user = await User.findById(userId);
     if (!user) {
       req.flash('error', 'Không tìm thấy người dùng.');
       return res.redirect('/admin/users');
     }
-    
+
     // Get user's orders
     const orders = await Order.find({ user: userId })
       .sort({ createdAt: -1 })
       .limit(10);
-    
+
     res.render('admin/users/detail', {
       title: `Thông tin người dùng: ${user.name}`,
       user,
@@ -882,18 +885,27 @@ exports.updateUserRole = async (req, res) => {
   try {
     const { userId } = req.params;
     const { role } = req.body;
-    
+
+    // Validate role enum
     if (!['customer', 'admin'].includes(role)) {
+      req.flash('error', 'Vai trò không hợp lệ.');
       return res.status(400).json({ success: false, message: 'Vai trò không hợp lệ.' });
     }
-    
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      req.flash('error', 'Không tìm thấy người dùng.');
+      return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng.' });
+    }
+
     await User.updateOne(
       { _id: userId },
       { $set: { role } }
     );
-    
-    return res.status(200).json({ 
-      success: true, 
+
+    return res.status(200).json({
+      success: true,
       message: 'Vai trò người dùng đã được cập nhật thành công.',
       newRole: role
     });
@@ -906,42 +918,51 @@ exports.updateUserRole = async (req, res) => {
 exports.updateUserStatus = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { status, reason } = req.body;
-    
+    const { action, banReason } = req.body;
+
     const user = await User.findById(userId);
     if (!user) {
+      req.flash('error', 'Không tìm thấy người dùng.');
       return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng.' });
     }
-    
+
     // Prevent banning yourself
-    if (userId === req.user._id.toString()) {
+    if (req.user && userId === req.user._id.toString()) {
+      req.flash('error', 'Bạn không thể khóa tài khoản của chính mình.');
       return res.status(400).json({ success: false, message: 'Bạn không thể khóa tài khoản của chính mình.' });
     }
 
-    if (status === 'banned') {
+    if (action === 'ban') {
+      // Validate ban reason is required
+      if (!banReason || banReason.trim() === '') {
+        req.flash('error', 'Vui lòng nhập lý do khóa tài khoản.');
+        return res.status(400).json({ success: false, message: 'Vui lòng nhập lý do khóa tài khoản.' });
+      }
+
       user.isBanned = true;
-      user.banReason = reason || 'Vi phạm điều khoản sử dụng';
+      user.banReason = banReason;
       user.bannedAt = new Date();
       await user.save();
-      
+
       return res.status(200).json({
         success: true,
         message: 'Tài khoản đã được khóa thành công.'
       });
-    } else if (status === 'active') {
+    } else if (action === 'unban') {
       user.isBanned = false;
       user.banReason = undefined;
       user.bannedAt = undefined;
       await user.save();
-      
+
       return res.status(200).json({
         success: true,
         message: 'Tài khoản đã được mở khóa thành công.'
       });
     } else {
+      req.flash('error', 'Hành động không hợp lệ.');
       return res.status(400).json({
         success: false,
-        message: 'Trạng thái không hợp lệ.'
+        message: 'Hành động không hợp lệ.'
       });
     }
   } catch (err) {
@@ -959,32 +980,32 @@ exports.getCoupons = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 20;
     const skip = (page - 1) * limit;
-    
+
     // Build filter
     const filter = {};
-    
+
     if (req.query.active === 'true') {
       filter.active = true;
     } else if (req.query.active === 'false') {
       filter.active = false;
     }
-    
+
     if (req.query.search) {
       filter.$or = [
         { code: { $regex: req.query.search, $options: 'i' } },
         { description: { $regex: req.query.search, $options: 'i' } }
       ];
     }
-    
+
     // Get coupons
     const coupons = await Coupon.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
-    
+
     // Get total coupons count
     const total = await Coupon.countDocuments(filter);
-    
+
     res.render('admin/coupons/index', {
       title: 'Quản lý mã giảm giá',
       coupons,
@@ -1029,16 +1050,24 @@ exports.postAddCoupon = async (req, res) => {
     }
 
     // Tạo coupon mới
-    const coupon = new Coupon({
+    const couponData = {
       code: code.toUpperCase(),
       description,
       discount: parseFloat(discount),
       minAmount: parseFloat(minAmount) || 0,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
-      maxUses: maxUses ? parseInt(maxUses) : null,
+      maxUses: maxUses ? parseInt(maxUses) : 10,
       active: active === 'on' || active === true
-    });
+    };
+
+    // Only add dates if they are provided
+    if (startDate) {
+      couponData.startDate = new Date(startDate);
+    }
+    if (endDate) {
+      couponData.endDate = new Date(endDate);
+    }
+
+    const coupon = new Coupon(couponData);
 
     await coupon.save();
 
@@ -1054,13 +1083,13 @@ exports.postAddCoupon = async (req, res) => {
 exports.getEditCoupon = async (req, res) => {
   try {
     const { couponId } = req.params;
-    
+
     const coupon = await Coupon.findById(couponId);
     if (!coupon) {
       req.flash('error', 'Không tìm thấy mã giảm giá.');
       return res.redirect('/admin/coupons');
     }
-    
+
     res.render('admin/coupons/edit', {
       title: `Chỉnh sửa: ${coupon.code}`,
       coupon,
@@ -1077,6 +1106,7 @@ exports.postUpdateCoupon = async (req, res) => {
   try {
     const { couponId } = req.params;
     const {
+      code,
       description,
       discount,
       minAmount,
@@ -1085,24 +1115,31 @@ exports.postUpdateCoupon = async (req, res) => {
       maxUses,
       active
     } = req.body;
-    
+
     const coupon = await Coupon.findById(couponId);
     if (!coupon) {
       req.flash('error', 'Không tìm thấy mã giảm giá.');
       return res.redirect('/admin/coupons');
     }
-    
-    // Update coupon
+
+    // Update coupon (including code if provided)
+    if (code) {
+      coupon.code = code.toUpperCase();
+    }
     coupon.description = description;
     coupon.discount = parseFloat(discount);
     coupon.minAmount = parseFloat(minAmount) || 0;
-    coupon.startDate = new Date(startDate);
-    coupon.endDate = new Date(endDate);
+    if (startDate) {
+      coupon.startDate = new Date(startDate);
+    }
+    if (endDate) {
+      coupon.endDate = new Date(endDate);
+    }
     coupon.maxUses = maxUses ? parseInt(maxUses) : null;
     coupon.active = active === 'on' || active === true;
-    
+
     await coupon.save();
-    
+
     req.flash('success', 'Mã giảm giá đã được cập nhật thành công.');
     res.redirect('/admin/coupons');
   } catch (err) {

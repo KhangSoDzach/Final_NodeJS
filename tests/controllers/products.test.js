@@ -3,6 +3,7 @@
  * Coverage: Product listing, details, reviews, pre-orders, notifications
  */
 
+const mongoose = require('mongoose');
 const Product = require('../../models/product');
 const User = require('../../models/user');
 const PreOrder = require('../../models/preOrder');
@@ -11,11 +12,13 @@ const productsController = require('../../controllers/products');
 
 // Test data factories
 const getMockProduct = (overrides = {}) => ({
+    _id: new mongoose.Types.ObjectId(),
     name: 'Test Product',
     slug: 'test-product',
     price: 100,
     stock: 10,
     category: 'laptop',
+    brand: 'Test Brand',
     description: 'Test description',
     images: ['image1.jpg'],
     specs: {},
@@ -25,9 +28,11 @@ const getMockProduct = (overrides = {}) => ({
 });
 
 const getMockUser = (overrides = {}) => ({
+    _id: new mongoose.Types.ObjectId(),
     email: 'test@example.com',
     name: 'Test User',
     password: 'hashedPassword123',
+    role: 'customer',
     ...overrides
 });
 
@@ -417,7 +422,8 @@ describe('Products Controller', () => {
                     product: product._id,
                     user: user._id,
                     quantity: 1,
-                    email: user.email,
+                    contactEmail: user.email,
+                    priceAtOrder: product.price,
                     status: 'pending'
                 });
 
@@ -444,7 +450,8 @@ describe('Products Controller', () => {
                     product: product._id,
                     user: user._id,
                     quantity: 1,
-                    email: user.email,
+                    contactEmail: user.email,
+                    priceAtOrder: product.price,
                     status: 'pending'
                 });
 
@@ -490,8 +497,9 @@ describe('Products Controller', () => {
                     product: product._id,
                     user: user._id,
                     quantity: 1,
-                    email: user.email,
-                    status: 'fulfilled'
+                    contactEmail: user.email,
+                    priceAtOrder: product.price,
+                    status: 'converted'
                 });
 
                 req.user = user;
@@ -626,7 +634,8 @@ describe('Products Controller', () => {
                     product: product._id,
                     user: user._id,
                     quantity: 1,
-                    email: user.email,
+                    contactEmail: user.email,
+                    priceAtOrder: product.price,
                     status: 'pending'
                 });
 

@@ -1,6 +1,9 @@
 module.exports = {
   testEnvironment: 'node',
-  testMatch: ['**/tests/**/*.test.js'],
+  testMatch: [
+    '**/tests/**/*.test.js',
+    '!**/.agent/**' // Exclude .agent folder tests
+  ],
   collectCoverageFrom: [
     'controllers/**/*.js',
     'models/**/*.js',

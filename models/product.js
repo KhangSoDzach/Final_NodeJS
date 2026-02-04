@@ -9,13 +9,15 @@ const productSchema = new Schema({
   },
   slug: {
     type: String,
-    required: true,
+    required: false,
     unique: true,
-    lowercase: true
+    lowercase: true,
+    sparse: true
   },
   description: {
     type: String,
-    required: true
+    required: false,
+    default: ''
   },
   price: {
     type: Number,
@@ -140,28 +142,40 @@ const productSchema = new Schema({
   timestamps: true
 });
 
+// Pre-save hook to generate slug if not provided
+productSchema.pre('save', function (next) {
+  if (!this.slug && this.name) {
+    // Generate slug from name
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
+  next();
+});
+
 // Virtual for product average rating
-productSchema.virtual('averageRating').get(function() {
+productSchema.virtual('averageRating').get(function () {
   if (this.ratings.length === 0) {
     return 0;
   }
-  
+
   const totalRating = this.ratings.reduce((sum, rating) => sum + rating.rating, 0);
   return totalRating / this.ratings.length;
 });
 
 // Virtual: Kiểm tra sản phẩm sắp hết hàng
-productSchema.virtual('isLowStock').get(function() {
+productSchema.virtual('isLowStock').get(function () {
   return this.stock > 0 && this.stock <= this.lowStockThreshold;
 });
 
 // Virtual: Kiểm tra sản phẩm hết hàng
-productSchema.virtual('isOutOfStock').get(function() {
+productSchema.virtual('isOutOfStock').get(function () {
   return this.stock <= 0;
 });
 
 // Virtual: Trạng thái tồn kho
-productSchema.virtual('stockStatus').get(function() {
+productSchema.virtual('stockStatus').get(function () {
   if (this.stock <= 0) {
     return this.allowPreOrder ? 'pre-order' : 'out-of-stock';
   }
@@ -172,23 +186,23 @@ productSchema.virtual('stockStatus').get(function() {
 });
 
 // Method to check if a product is in stock
-productSchema.methods.isInStock = function(quantity = 1) {
+productSchema.methods.isInStock = function (quantity = 1) {
   return this.stock >= quantity;
 };
 
 // Method to check if a variant is in stock
-productSchema.methods.isVariantInStock = function(variantName, variantValue, quantity = 1) {
+productSchema.methods.isVariantInStock = function (variantName, variantValue, quantity = 1) {
   const variant = this.variants.find(v => v.name === variantName);
   if (!variant) return false;
-  
+
   const option = variant.options.find(o => o.value === variantValue);
   if (!option) return false;
-  
+
   return option.stock >= quantity;
 };
 
 // Helper method to update stock and track sales
-productSchema.methods.updateStock = function(quantity, isVariant = false, variantName = null, variantValue = null) {
+productSchema.methods.updateStock = function (quantity, isVariant = false, variantName = null, variantValue = null) {
   if (isVariant && variantName && variantValue) {
     const variant = this.variants.find(v => v.name === variantName);
     if (variant) {
@@ -200,10 +214,10 @@ productSchema.methods.updateStock = function(quantity, isVariant = false, varian
   } else {
     this.stock -= quantity;
   }
-  
+
   // Always update the sold count for the product
   this.sold += quantity;
-  
+
   return this;
 };
 

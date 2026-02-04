@@ -3,6 +3,7 @@
  * Coverage: Q&A functionality, admin answers, helpful marking
  */
 
+const mongoose = require('mongoose');
 const ProductQuestion = require('../../models/productQuestion');
 const Product = require('../../models/product');
 const User = require('../../models/user');
@@ -10,19 +11,22 @@ const productQuestionController = require('../../controllers/productQuestion');
 
 // Test data factories
 const getMockUser = (overrides = {}) => ({
+    _id: new mongoose.Types.ObjectId(),
     email: 'test@example.com',
     name: 'Test User',
     password: 'hashedPassword123',
-    role: 'user',
+    role: 'customer',
     ...overrides
 });
 
 const getMockProduct = (overrides = {}) => ({
+    _id: new mongoose.Types.ObjectId(),
     name: 'Test Product',
     slug: 'test-product',
     price: 100,
     stock: 10,
     category: 'laptop',
+    brand: 'Test Brand',
     ...overrides
 });
 
@@ -206,7 +210,7 @@ describe('ProductQuestion Controller', () => {
 
                 req.user = user;
                 req.isAuthenticated = jest.fn(() => true);
-                req.params = { productId: 'nonexistent123' };
+                req.params = { productId: new mongoose.Types.ObjectId().toString() };
                 req.body = {
                     question: 'What is this product about?'
                 };
@@ -348,7 +352,7 @@ describe('ProductQuestion Controller', () => {
 
                 req.user = user;
                 req.isAuthenticated = jest.fn(() => true);
-                req.params = { questionId: 'nonexistent123' };
+                req.params = { questionId: new mongoose.Types.ObjectId().toString() };
                 req.body = {
                     content: 'This is my answer.'
                 };
@@ -404,7 +408,7 @@ describe('ProductQuestion Controller', () => {
                 req.user = user;
                 req.isAuthenticated = jest.fn(() => true);
                 req.params = {
-                    questionId: 'nonexistent123',
+                    questionId: new mongoose.Types.ObjectId().toString(),
                     answerId: 'answer123'
                 };
 
@@ -504,7 +508,7 @@ describe('ProductQuestion Controller', () => {
 
                 req.user = admin;
                 req.isAuthenticated = jest.fn(() => true);
-                req.params = { questionId: 'nonexistent123' };
+                req.params = { questionId: new mongoose.Types.ObjectId().toString() };
 
                 await productQuestionController.closeQuestion(req, res);
 
@@ -593,7 +597,7 @@ describe('ProductQuestion Controller', () => {
 
                 req.user = user;
                 req.isAuthenticated = jest.fn(() => true);
-                req.params = { questionId: 'nonexistent123' };
+                req.params = { questionId: new mongoose.Types.ObjectId().toString() };
 
                 await productQuestionController.deleteQuestion(req, res);
 
@@ -678,7 +682,7 @@ describe('ProductQuestion Controller', () => {
 
                 req.user = admin;
                 req.isAuthenticated = jest.fn(() => true);
-                req.params = { questionId: 'nonexistent123' };
+                req.params = { questionId: new mongoose.Types.ObjectId().toString() };
 
                 await productQuestionController.getAnswerForm(req, res);
 
