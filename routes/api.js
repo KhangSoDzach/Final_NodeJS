@@ -6,12 +6,9 @@ const productsApi = require('../controllers/api/products');
 const searchApi = require('../controllers/api/search');
 
 // Products API
-router.get('/products', productsApi.apiGetProducts);
-router.get('/products/:slug', productsApi.apiGetProductDetail);
-router.get('/products/category/:category', productsApi.apiGetProductsByCategory);
+router.use('/products', productsApi);
 
 // Search API
-router.get('/search', searchApi.apiSearch);
-router.get('/search/suggestions', searchApi.apiSuggestions);
+router.use('/search', searchApi);
 
 module.exports = router;
