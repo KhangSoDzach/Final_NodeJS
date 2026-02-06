@@ -1,6 +1,0 @@
-Agent Prompt Rules (required):
-"Strictly follow .agent/skills.manifest.json and only use folders under .agent/active-skills/ unless the user explicitly approves additional skills."
-"If a task requires skills outside the manifest, list the missing skills and ask for explicit user approval before proceeding."
-
-How to use:
-- Include the above two sentences at the start of any agent prompt to enforce the whitelist.
