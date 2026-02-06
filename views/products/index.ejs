@@ -255,14 +255,16 @@
                                         </div>
                                         
                                         <div class="rating">
+                                            <% const avg = product.averageRating || 0; %>
+                                            <% const ratingsCount = (product.ratings && product.ratings.length) || 0; %>
                                             <% for (let i = 1; i <= 5; i++) { %>
-                                                <% if (i <= Math.round(product.averageRating)) { %>
+                                                <% if (i <= Math.round(avg)) { %>
                                                     <i class="fas fa-star"></i>
                                                 <% } else { %>
                                                     <i class="far fa-star"></i>
                                                 <% } %>
                                             <% } %>
-                                            (<%= product.ratings.length %>)
+                                            (<%= ratingsCount %>)
                                         </div>
                                         
                                         <div class="description">
