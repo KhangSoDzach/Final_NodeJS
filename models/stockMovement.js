@@ -76,7 +76,7 @@ stockMovementSchema.index({ product: 1, createdAt: -1 });
 stockMovementSchema.index({ type: 1, createdAt: -1 });
 
 // Virtual để format hiển thị
-stockMovementSchema.virtual('quantityDisplay').get(function() {
+stockMovementSchema.virtual('quantityDisplay').get(function () {
   if (this.quantity > 0) {
     return `+${this.quantity}`;
   }
@@ -84,25 +84,25 @@ stockMovementSchema.virtual('quantityDisplay').get(function() {
 });
 
 // Static method: Tạo stock movement và cập nhật product stock
-stockMovementSchema.statics.createMovement = async function(data) {
+stockMovementSchema.statics.createMovement = async function (data) {
   const Product = mongoose.model('Product');
-  
+
   // Support cả product và productId để tương thích
   const productId = data.productId || data.product;
   const userId = data.userId || data.createdBy;
-  
+
   const product = await Product.findById(productId);
-  
+
   if (!product) {
     throw new Error('Sản phẩm không tồn tại');
   }
-  
+
   // Tính toán quantity thực tế dựa trên type
   // import, return, cancel: tăng stock (+)
   // export, order: giảm stock (-)
   // adjustment: sử dụng giá trị gốc (có thể + hoặc -)
   let actualQuantity = Math.abs(data.quantity);
-  
+
   switch (data.type) {
     case 'import':
     case 'return':
@@ -122,9 +122,9 @@ stockMovementSchema.statics.createMovement = async function(data) {
     default:
       actualQuantity = data.quantity;
   }
-  
+
   let previousStock, newStock;
-  
+
   // Xử lý variant nếu có
   if (data.variant && data.variant.name && data.variant.value) {
     const variant = product.variants.find(v => v.name === data.variant.name);
@@ -137,26 +137,26 @@ stockMovementSchema.statics.createMovement = async function(data) {
     }
     previousStock = option.stock;
     newStock = previousStock + actualQuantity;
-    
+
     if (newStock < 0) {
       throw new Error('Không đủ tồn kho để thực hiện thao tác này');
     }
-    
+
     option.stock = newStock;
   } else {
     previousStock = product.stock;
     newStock = previousStock + actualQuantity;
-    
+
     if (newStock < 0) {
       throw new Error('Không đủ tồn kho để thực hiện thao tác này');
     }
-    
+
     product.stock = newStock;
   }
-  
+
   // Lưu product
   await product.save();
-  
+
   // Tạo movement record
   const movement = new this({
     product: productId,
@@ -171,51 +171,51 @@ stockMovementSchema.statics.createMovement = async function(data) {
     createdBy: userId,
     notes: data.notes
   });
-  
+
   await movement.save();
-  
+
   // Nếu sản phẩm từ hết hàng thành có hàng, gửi thông báo
   if (previousStock === 0 && newStock > 0) {
     const BackInStockNotification = mongoose.model('BackInStockNotification');
     await BackInStockNotification.notifySubscribers(productId, data.variant);
   }
-  
+
   return movement;
 };
 
 // Static method: Lấy lịch sử stock của sản phẩm
-stockMovementSchema.statics.getProductHistory = async function(productId, options = {}) {
+stockMovementSchema.statics.getProductHistory = async function (productId, options = {}) {
   const { limit = 50, page = 1, type } = options;
   const query = { product: productId };
-  
+
   if (type) {
     query.type = type;
   }
-  
+
   const movements = await this.find(query)
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(limit)
     .populate('createdBy', 'name email')
     .populate('order', 'orderNumber');
-  
+
   // Return array trực tiếp để đơn giản hóa API
   return movements;
 };
 
 // Static method: Tính tổng nhập/xuất trong khoảng thời gian
-stockMovementSchema.statics.getSummary = async function(startDate, endDate, productId = null) {
+stockMovementSchema.statics.getSummary = async function (startDate, endDate, productId = null) {
   const match = {
     createdAt: {
       $gte: new Date(startDate),
       $lte: new Date(endDate)
     }
   };
-  
+
   if (productId) {
     match.product = new mongoose.Types.ObjectId(productId);
   }
-  
+
   const summary = await this.aggregate([
     { $match: match },
     {
@@ -226,8 +226,9 @@ stockMovementSchema.statics.getSummary = async function(startDate, endDate, prod
       }
     }
   ]);
-  
+
   return summary;
 };
 
-module.exports = mongoose.model('StockMovement', stockMovementSchema);
+module.exports = mongoose.models.StockMovement || mongoose.model('StockMovement', stockMovementSchema);
+

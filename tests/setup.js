@@ -16,10 +16,25 @@ beforeAll(async () => {
   // Tạo MongoDB in-memory
   mongoServer = await MongoMemoryServer.create();
   const mongoUri = mongoServer.getUri();
-  
+
   // Kết nối Mongoose
   await mongoose.connect(mongoUri);
+
+  // Register all models
+  require('../models/user');
+  require('../models/product');
+  require('../models/order');
+  require('../models/cart');
+  require('../models/coupon');
+  require('../models/backInStockNotification');
+  require('../models/compareList');
+  require('../models/preOrder');
+  require('../models/productQuestion');
+  require('../models/searchHistory');
+  require('../models/stockMovement');
+  require('../models/wishlist');
 });
+
 
 // Cleanup sau mỗi test
 afterEach(async () => {
@@ -48,7 +63,7 @@ global.testHelpers = {
     isAuthenticated: jest.fn(() => false),
     ...overrides
   }),
-  
+
   // Tạo mock response object
   createMockRes: () => {
     const res = {};
