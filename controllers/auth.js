@@ -314,7 +314,11 @@ exports.postResetPassword = async (req, res) => {
     
     if (!user) {
       req.flash('error', 'Liên kết không hợp lệ hoặc đã hết hạn.');
-      return res.redirect('/auth/forgot-password');
+      return res.render('auth/reset-password', {
+        title: 'Đặt lại mật khẩu',
+        error: 'Liên kết không hợp lệ hoặc đã hết hạn.',
+        token: token
+      });
     }
     
     // Update password
