@@ -44,8 +44,10 @@ const orderSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: function () {
-      // Only require user if it's not a guest order
-      return !this.isGuestOrder;
+      // Only require user if it's not a guest order.
+      // Treat orders with guestEmail or guestInfo.email as guest orders as well.
+      const hasGuestEmail = !!(this.guestEmail || (this.guestInfo && this.guestInfo.email));
+      return !(this.isGuestOrder || hasGuestEmail);
     }
   },
   items: [orderItemSchema],
