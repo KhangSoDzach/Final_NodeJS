@@ -292,6 +292,15 @@ exports.removeItem = async (req, res) => {
       });
     }
 
+    // Check if item exists
+    const itemExists = cart.items.some(item => item._id.toString() === itemId);
+    if (!itemExists) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy sản phẩm trong giỏ hàng.'
+      });
+    }
+
     // Remove item
     cart.items = cart.items.filter(item => item._id.toString() !== itemId);
     await cart.save();
