@@ -45,11 +45,11 @@ const cartSchema = new Schema({
 });
 
 // Cải tiến calculateTotal method với xử lý tốt hơn
-cartSchema.methods.calculateTotal = function() {
+cartSchema.methods.calculateTotal = function () {
   if (!this.items || this.items.length === 0) {
     return 0;
   }
-  
+
   return this.items.reduce((total, item) => {
     if (!item || typeof item.price !== 'number' || typeof item.quantity !== 'number') {
       console.error('Invalid cart item:', JSON.stringify(item));
@@ -60,7 +60,7 @@ cartSchema.methods.calculateTotal = function() {
 };
 
 // Cải tiến calculateTotalWithDiscount với xử lý lỗi toàn diện hơn
-cartSchema.methods.calculateTotalWithDiscount = function() {
+cartSchema.methods.calculateTotalWithDiscount = function () {
   const total = this.calculateTotal();
 
   // Nếu không có coupon, trả về tổng ban đầu
@@ -77,12 +77,12 @@ cartSchema.methods.calculateTotalWithDiscount = function() {
       console.log('Missing coupon code, ignoring discount');
       return total;
     }
-    
+
     if (!this.coupon.discount || typeof this.coupon.discount !== 'number') {
       console.log('Invalid discount value:', this.coupon.discount);
       return total;
     }
-    
+
     if (this.coupon.discount <= 0 || this.coupon.discount > 100) {
       console.log('Discount out of range:', this.coupon.discount);
       return total;
@@ -91,9 +91,9 @@ cartSchema.methods.calculateTotalWithDiscount = function() {
     // Tính toán số tiền giảm giá và tổng sau khi giảm
     const discountAmount = Math.round(total * (this.coupon.discount / 100));
     const finalTotal = total - discountAmount;
-    
+
     console.log(`Original total: ${total}, Discount: ${this.coupon.discount}%, Amount off: ${discountAmount}, Final: ${finalTotal}`);
-    
+
     return finalTotal;
   } catch (error) {
     console.error('Error calculating discount:', error);
@@ -101,4 +101,7 @@ cartSchema.methods.calculateTotalWithDiscount = function() {
   }
 };
 
-module.exports = mongoose.model('Cart', cartSchema);
+const Cart = mongoose.models.Cart || mongoose.model('Cart', cartSchema);
+module.exports = Cart;
+
+

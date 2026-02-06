@@ -825,7 +825,10 @@ describe('Order Controller', () => {
 
             await orderController.downloadInvoicePDF(req, res);
 
-            expect(req.flash).toHaveBeenCalledWith('error', expect.any(String));
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                success: false
+            }));
         });
     });
 
@@ -837,7 +840,9 @@ describe('Order Controller', () => {
             });
             await user.save();
 
-            const order = new Order(getMockOrder(user));
+            const order = new Order(getMockOrder(user, {
+                totalAmount: 300000 // > 200,000 for VAT
+            }));
             await order.save();
 
             const req = global.testHelpers.createMockReq({
@@ -880,7 +885,10 @@ describe('Order Controller', () => {
 
             await orderController.requestVatInvoice(req, res);
 
-            expect(req.flash).toHaveBeenCalledWith('error', expect.any(String));
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                success: false
+            }));
         });
 
         test('should reject duplicate VAT invoice request - 400', async () => {
@@ -909,7 +917,10 @@ describe('Order Controller', () => {
 
             await orderController.requestVatInvoice(req, res);
 
-            expect(req.flash).toHaveBeenCalledWith('error', expect.any(String));
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                success: false
+            }));
         });
     });
 

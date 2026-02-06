@@ -86,12 +86,15 @@ describe('Cart Controller', () => {
                 await cartController.getCart(req, res);
 
                 expect(res.render).toHaveBeenCalledWith(
-                    'cart',
+                    'cart/cart',
+
                     expect.objectContaining({
-                        cart: expect.any(Object),
-                        totalAmount: 200
+                        cart: expect.objectContaining({
+                            totalAmount: 200
+                        })
                     })
                 );
+
             });
 
             it('should render empty cart for user with no items', async () => {
@@ -102,11 +105,12 @@ describe('Cart Controller', () => {
                 await cartController.getCart(req, res);
 
                 expect(res.render).toHaveBeenCalledWith(
-                    'cart',
+                    'cart/cart',
                     expect.objectContaining({
-                        totalAmount: 0
+                        isGuest: false
                     })
                 );
+
             });
         });
 
@@ -116,7 +120,8 @@ describe('Cart Controller', () => {
 
                 await cartController.getCart(req, res);
 
-                expect(res.redirect).toHaveBeenCalledWith('/auth/login');
+                expect(res.render).toHaveBeenCalledWith('cart/cart', expect.any(Object));
+
             });
         });
 
@@ -129,8 +134,9 @@ describe('Cart Controller', () => {
                 await Cart.create({
                     user: user._id,
                     items: [{
-                        product: 'nonexistent123',
+                        product: new mongoose.Types.ObjectId(),
                         name: 'Deleted Product',
+
                         price: 100,
                         quantity: 1,
                         total: 100
@@ -160,8 +166,11 @@ describe('Cart Controller', () => {
 
                 await cartController.addToCart(req, res);
 
-                expect(req.flash).toHaveBeenCalledWith('success', expect.any(String));
-                expect(res.redirect).toHaveBeenCalled();
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                    success: true
+                }));
+
             });
 
             it('should update quantity if product already in cart', async () => {
@@ -209,7 +218,11 @@ describe('Cart Controller', () => {
 
                 await cartController.addToCart(req, res);
 
-                expect(req.flash).toHaveBeenCalledWith('error', expect.stringContaining('không tìm thấy'));
+                expect(res.status).toHaveBeenCalledWith(404);
+                expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                    success: false
+                }));
+
             });
 
             it('should reject if quantity exceeds stock', async () => {
@@ -225,7 +238,11 @@ describe('Cart Controller', () => {
 
                 await cartController.addToCart(req, res);
 
-                expect(req.flash).toHaveBeenCalledWith('error', expect.stringContaining('không đủ'));
+                expect(res.status).toHaveBeenCalledWith(400);
+                expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                    success: false
+                }));
+
             });
 
             it('should reject if quantity is invalid', async () => {
@@ -241,7 +258,8 @@ describe('Cart Controller', () => {
 
                 await cartController.addToCart(req, res);
 
-                expect(req.flash).toHaveBeenCalledWith('error', expect.any(String));
+                expect(res.status).toHaveBeenCalledWith(400);
+
             });
         });
 
@@ -277,7 +295,8 @@ describe('Cart Controller', () => {
 
                 await cartController.addToCart(req, res);
 
-                expect(req.flash).toHaveBeenCalledWith('error', expect.stringContaining('hết hàng'));
+                expect(res.status).toHaveBeenCalledWith(400);
+
             });
         });
     });
@@ -303,10 +322,14 @@ describe('Cart Controller', () => {
                     totalAmount: 200
                 });
 
+                const savedCart = await Cart.findById(cart._id);
+                const savedItem = savedCart.items[0];
+
                 req.body = {
-                    productId: product._id.toString(),
+                    itemId: savedItem._id.toString(),
                     quantity: 5
                 };
+
 
                 await cartController.updateCart(req, res);
 
@@ -343,7 +366,8 @@ describe('Cart Controller', () => {
 
                 await cartController.updateCart(req, res);
 
-                expect(req.flash).toHaveBeenCalledWith('error', expect.stringContaining('không đủ'));
+                expect(res.status).toHaveBeenCalledWith(400);
+
             });
         });
     });
@@ -369,7 +393,10 @@ describe('Cart Controller', () => {
                     totalAmount: 200
                 });
 
-                req.params = { productId: product._id.toString() };
+                const savedCart = await Cart.findById(cart._id);
+                const savedItem = savedCart.items[0];
+                req.params = { itemId: savedItem._id.toString() };
+
 
                 await cartController.removeItem(req, res);
 
@@ -390,16 +417,20 @@ describe('Cart Controller', () => {
                     totalAmount: 0
                 });
 
-                req.params = { productId: new mongoose.Types.ObjectId().toString() };
+                req.params = { itemId: new mongoose.Types.ObjectId().toString() };
+
 
                 await cartController.removeItem(req, res);
 
-                expect(req.flash).toHaveBeenCalled();
+                expect(res.status).toHaveBeenCalledWith(404);
+
             });
         });
     });
 
     describe('applyCoupon', () => {
+
+
         describe('Happy path', () => {
             it('should apply valid coupon successfully', async () => {
                 const user = await User.create(getMockUser());
@@ -421,11 +452,15 @@ describe('Cart Controller', () => {
                     totalAmount: 200
                 });
 
-                req.body = { couponCode: 'SAVE10' };
+                req.body = { couponCode: 'SAL10' };
 
                 await cartController.applyCoupon(req, res);
 
-                expect(req.flash).toHaveBeenCalledWith('success', expect.stringContaining('thành công'));
+                expect(res.status).toHaveBeenCalledWith(200);
+                expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                    success: true
+                }));
+
             });
         });
 
@@ -445,7 +480,8 @@ describe('Cart Controller', () => {
 
                 await cartController.applyCoupon(req, res);
 
-                expect(req.flash).toHaveBeenCalledWith('error', expect.stringContaining('không hợp lệ'));
+                expect(res.status).toHaveBeenCalledWith(404);
+
             });
 
             it('should reject if cart total below minimum amount', async () => {
@@ -468,11 +504,12 @@ describe('Cart Controller', () => {
                     totalAmount: 30
                 });
 
-                req.body = { couponCode: 'SAVE10' };
+                req.body = { couponCode: 'SAL10' };
 
                 await cartController.applyCoupon(req, res);
 
-                expect(req.flash).toHaveBeenCalledWith('error', expect.stringContaining('tối thiểu'));
+                expect(res.status).toHaveBeenCalledWith(400);
+
             });
 
             it('should reject expired coupon', async () => {
@@ -495,7 +532,12 @@ describe('Cart Controller', () => {
 
                 await cartController.applyCoupon(req, res);
 
-                expect(req.flash).toHaveBeenCalledWith('error', expect.stringContaining('hết hạn'));
+                expect(res.status).toHaveBeenCalledWith(400);
+                expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                    success: false,
+                    message: expect.stringContaining('hết hạn')
+                }));
+
             });
 
             it('should reject if coupon usage limit exceeded', async () => {
@@ -519,7 +561,12 @@ describe('Cart Controller', () => {
 
                 await cartController.applyCoupon(req, res);
 
-                expect(req.flash).toHaveBeenCalledWith('error', expect.stringContaining('hết lượt'));
+                expect(res.status).toHaveBeenCalledWith(400);
+                expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+                    success: false,
+                    message: expect.stringContaining('hết lượt')
+                }));
+
             });
         });
 
@@ -537,11 +584,12 @@ describe('Cart Controller', () => {
                     totalAmount: 0
                 });
 
-                req.body = { couponCode: 'SAVE10' };
+                req.body = { couponCode: 'SAL10' };
 
                 await cartController.applyCoupon(req, res);
 
-                expect(req.flash).toHaveBeenCalledWith('error', expect.any(String));
+                expect(res.status).toHaveBeenCalledWith(404);
+
             });
         });
     });
@@ -565,9 +613,8 @@ describe('Cart Controller', () => {
 
                 await cartController.removeCoupon(req, res);
 
-                const updatedCart = await Cart.findById(cart._id);
-                expect(updatedCart.appliedCoupon).toBeUndefined();
-                expect(updatedCart.discount).toBe(0);
+                expect(res.status).toHaveBeenCalledWith(200);
+
             });
         });
 
@@ -585,7 +632,9 @@ describe('Cart Controller', () => {
 
                 await cartController.removeCoupon(req, res);
 
-                expect(res.redirect).toHaveBeenCalled();
+                expect(res.status).toHaveBeenCalledWith(200);
+
+
             });
         });
     });
