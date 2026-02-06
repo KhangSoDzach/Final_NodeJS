@@ -149,7 +149,7 @@ app.use((req, res, next) => {
 });
 
 // Cart middleware
-const { initGuestCart, getCartCount } = require('./middleware/guestCart');
+const { initGuestCart } = require('./middleware/guestCart');
 app.use(initGuestCart);
 
 app.use(async (req, res, next) => {
@@ -168,7 +168,7 @@ app.use(async (req, res, next) => {
       // Xử lý cart cho khách không đăng nhập (guest cart từ session)
       if (req.session.guestCart && req.session.guestCart.items) {
         res.locals.cart = req.session.guestCart;
-        res.locals.cartCount = getCartCount(req);
+        res.locals.cartCount = req.session.guestCart.items.reduce((sum, item) => sum + item.quantity, 0);
         res.locals.isGuestCart = true;
       } else if (req.session.cartId) {
         const Cart = require('./models/cart');
