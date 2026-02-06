@@ -215,8 +215,14 @@ app.use('/questions', questionRoutes);
 app.use('/user/wishlist', wishlistRoutes);
 app.use('/search', searchRoutes);
 
+// API routes (kept parallel to existing EJS routes)
+app.use('/api', require('./routes/api'));
+
 // Error handling
 app.use((req, res, next) => {
+  if (req.originalUrl && req.originalUrl.startsWith('/api')) {
+    return res.status(404).json({ success: false, error: 'Not Found' });
+  }
   res.status(404).render('404', {
     title: 'Page Not Found'
   });
@@ -224,6 +230,9 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
   console.error(err);
+  if (req.originalUrl && req.originalUrl.startsWith('/api')) {
+    return res.status(err.status || 500).json({ success: false, error: process.env.NODE_ENV === 'development' ? err.message : 'Đã xảy ra lỗi trong hệ thống.' });
+  }
   res.status(err.status || 500).render('error', {
     title: 'Error',
     error: process.env.NODE_ENV === 'development' ? err.message : 'Đã xảy ra lỗi trong hệ thống.'
