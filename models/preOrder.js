@@ -99,20 +99,20 @@ preOrderSchema.index({ user: 1, product: 1, 'variant.name': 1, 'variant.value': 
 preOrderSchema.index({ status: 1, createdAt: 1 });
 
 // Virtual: Kiểm tra pre-order đã hết hạn chưa
-preOrderSchema.virtual('isExpired').get(function() {
+preOrderSchema.virtual('isExpired').get(function () {
   if (!this.expiresAt) return false;
   return new Date() > this.expiresAt;
 });
 
 // Static method: Tạo pre-order mới
-preOrderSchema.statics.createPreOrder = async function(data) {
+preOrderSchema.statics.createPreOrder = async function (data) {
   const Product = mongoose.model('Product');
   const product = await Product.findById(data.productId);
-  
+
   if (!product) {
     throw new Error('Sản phẩm không tồn tại');
   }
-  
+
   // Kiểm tra sản phẩm đã hết hàng chưa
   let currentStock = product.stock;
   if (data.variant && data.variant.name && data.variant.value) {
@@ -124,12 +124,12 @@ preOrderSchema.statics.createPreOrder = async function(data) {
       }
     }
   }
-  
+
   // Nếu còn hàng, không cần pre-order
   if (currentStock > 0) {
     throw new Error('Sản phẩm vẫn còn hàng, không cần đặt trước');
   }
-  
+
   // Kiểm tra user đã có pre-order cho sản phẩm này chưa
   const existingPreOrder = await this.findOne({
     user: data.userId,
@@ -138,11 +138,11 @@ preOrderSchema.statics.createPreOrder = async function(data) {
     'variant.value': data.variant?.value,
     status: { $in: ['pending', 'notified'] }
   });
-  
+
   if (existingPreOrder) {
     throw new Error('Bạn đã đặt trước sản phẩm này rồi');
   }
-  
+
   // Tính giá
   let price = product.discountPrice || product.price;
   if (data.variant && data.variant.name && data.variant.value) {
@@ -154,10 +154,10 @@ preOrderSchema.statics.createPreOrder = async function(data) {
       }
     }
   }
-  
+
   const User = mongoose.model('User');
   const user = await User.findById(data.userId);
-  
+
   const preOrder = new this({
     user: data.userId,
     product: data.productId,
@@ -170,88 +170,88 @@ preOrderSchema.statics.createPreOrder = async function(data) {
     customerNotes: data.customerNotes,
     estimatedDate: data.estimatedDate
   });
-  
+
   await preOrder.save();
   return preOrder;
 };
 
 // Static method: Thông báo pre-order khi có hàng
-preOrderSchema.statics.notifyWhenInStock = async function(productId, variant = null) {
+preOrderSchema.statics.notifyWhenInStock = async function (productId, variant = null) {
   const query = {
     product: productId,
     status: 'pending'
   };
-  
+
   if (variant && variant.name && variant.value) {
     query['variant.name'] = variant.name;
     query['variant.value'] = variant.value;
   }
-  
+
   const preOrders = await this.find(query)
     .sort({ priority: -1, createdAt: 1 }) // Ưu tiên cao trước, sau đó theo thời gian
     .populate('user', 'name email')
     .populate('product', 'name slug images');
-  
+
   const emailService = require('../utils/emailService');
   const notifiedIds = [];
-  
+
   for (const preOrder of preOrders) {
     try {
       // Gửi email thông báo
       await emailService.sendPreOrderNotification(preOrder);
-      
+
       // Cập nhật trạng thái
       preOrder.status = 'notified';
       preOrder.notifiedAt = new Date();
       preOrder.expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48 giờ
       await preOrder.save();
-      
+
       notifiedIds.push(preOrder._id);
     } catch (error) {
       console.error(`Lỗi gửi thông báo pre-order ${preOrder._id}:`, error);
     }
   }
-  
+
   return notifiedIds;
 };
 
 // Static method: Chuyển pre-order thành đơn hàng
-preOrderSchema.statics.convertToOrder = async function(preOrderId, orderData) {
+preOrderSchema.statics.convertToOrder = async function (preOrderId, orderData) {
   const preOrder = await this.findById(preOrderId);
-  
+
   if (!preOrder) {
     throw new Error('Pre-order không tồn tại');
   }
-  
+
   if (preOrder.status !== 'notified') {
     throw new Error('Pre-order chưa được thông báo có hàng');
   }
-  
+
   if (preOrder.isExpired) {
     preOrder.status = 'expired';
     await preOrder.save();
     throw new Error('Pre-order đã hết hạn');
   }
-  
+
   // Tạo order từ pre-order
   const Order = mongoose.model('Order');
   const order = new Order({
     ...orderData,
     preOrder: preOrderId
   });
-  
+
   await order.save();
-  
+
   // Cập nhật pre-order
   preOrder.status = 'converted';
   preOrder.convertedOrder = order._id;
   await preOrder.save();
-  
+
   return { preOrder, order };
 };
 
 // Static method: Hủy các pre-order đã hết hạn
-preOrderSchema.statics.expireOldPreOrders = async function() {
+preOrderSchema.statics.expireOldPreOrders = async function () {
   const result = await this.updateMany(
     {
       status: 'notified',
@@ -261,28 +261,29 @@ preOrderSchema.statics.expireOldPreOrders = async function() {
       $set: { status: 'expired' }
     }
   );
-  
+
   return result.modifiedCount;
 };
 
 // Static method: Lấy danh sách pre-order của user
-preOrderSchema.statics.getUserPreOrders = async function(userId, status = null) {
+preOrderSchema.statics.getUserPreOrders = async function (userId, status = null) {
   const query = { user: userId };
   if (status) {
     query.status = status;
   }
-  
+
   return this.find(query)
     .sort({ createdAt: -1 })
     .populate('product', 'name slug images price discountPrice stock');
 };
 
 // Static method: Đếm số pre-order theo sản phẩm
-preOrderSchema.statics.countByProduct = async function(productId) {
+preOrderSchema.statics.countByProduct = async function (productId) {
   return this.countDocuments({
     product: productId,
     status: { $in: ['pending', 'notified'] }
   });
 };
 
-module.exports = mongoose.model('PreOrder', preOrderSchema);
+module.exports = mongoose.models.PreOrder || mongoose.model('PreOrder', preOrderSchema);
+

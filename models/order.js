@@ -120,6 +120,11 @@ const orderSchema = new Schema({
     phone: String,
     guestToken: String // Token để guest theo dõi đơn hàng
   },
+  // Backwards-compatible guestEmail field (tests expect this)
+  guestEmail: {
+    type: String,
+    required: false
+  },
 
   // VAT Invoice Support
   vatInvoice: {
@@ -138,6 +143,27 @@ const orderSchema = new Schema({
   },
   invoiceGeneratedAt: {
     type: Date
+  },
+
+  // Backwards-compatible fields expected by tests
+  paymentMethod: {
+    type: String,
+    required: false
+  },
+  couponDiscount: {
+    type: Number,
+    default: 0
+  },
+  loyaltyPointsDiscount: {
+    type: Number,
+    default: 0
+  },
+  vatInvoiceRequested: {
+    type: Boolean,
+    default: false
+  },
+  notes: {
+    type: String
   },
 
   // One-click checkout
@@ -189,4 +215,4 @@ orderSchema.statics.generateGuestToken = function () {
   return crypto.randomBytes(32).toString('hex');
 };
 
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema);

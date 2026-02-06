@@ -20,8 +20,8 @@ import { useEffect, useRef, useCallback } from 'react';
  *   
  *   return (
  *     <div>
- *       {/* Server-rendered alerts will be handled automatically */}
- * <div className="alert alert-success">
+ *       {/* Server-rendered alerts will be handled automatically */
+ /* <div className="alert alert-success">
     *         <span>Success message</span>
     *         <button className="close-alert">×</button>
     *       </div>

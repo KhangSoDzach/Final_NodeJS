@@ -1,0 +1,155 @@
+---
+trigger: always_on
+---
+
+# SourceComputer E-commerce Project Rules & Coding Standards
+
+## 1. Tech Stack Context
+- **Backend:** Node.js + Express.js,ReactJS, MongoDB (Mongoose ODM), Passport.js (Authentication).
+- **Database:** MongoDB, sử dụng Mongoose để định nghĩa Models và Schemas.
+- **View Engine:** EJS (Embedded JavaScript Templates).
+- **File Upload:** Multer middleware cho upload hình ảnh sản phẩm.
+- **Email Service:** Nodemailer để gửi email (xác thực, đặt lại mật khẩu).
+- **Deployment:** Docker + Docker Compose, Nginx (reverse proxy).
+
+## 2. Backend Coding Standards (Express.js)
+- **Structure:**
+  - Routes: `routes/` (auth.js, products.js, cart.js, order.js, admin.js, user.js).
+  - Models (DB): `models/` (user.js, product.js, cart.js, order.js, coupon.js).
+  - Controllers: `controllers/` (auth.js, products.js, cart.js, order.js, admin.js, user.js).
+  - Middleware: `middleware/` (auth.js, bannedCheck.js, upload.js).
+  - Config: `config/` (email.js, passport.js).
+  - Utils: `utils/` (emailService.js).
+- **Naming:** Sử dụng `camelCase` cho hàm và biến, `kebab-case` hoặc `camelCase` cho file JavaScript.
+- **Rules:**
+  - Luôn sử dụng middleware `auth.js` để bảo vệ các route cần xác thực.
+  - Sử dụng `bannedCheck.js` middleware để kiểm tra user bị banned.
+  - Route prefix cho admin luôn là `/admin`.
+  - Luôn bao gồm xử lý lỗi với try-catch và trả về status code phù hợp.
+  - Validate dữ liệu đầu vào trước khi xử lý.
+  - Sử dụng Mongoose Schema validation cho Models.
+
+## 3. Frontend Coding Standards (EJS + Vanilla JS)
+- **Structure:**
+  - Views: `views/` (home.ejs, contact.ejs, 404.ejs, error.ejs).
+  - Admin Views: `views/admin/` (dashboard.ejs, products/, users/, orders/, coupons/).
+  - Auth Views: `views/auth/` (login.ejs, register.ejs, forgot-password.ejs, reset-password.ejs).
+  - User Views: `views/user/` (profile.ejs, orders.ejs, addresses.ejs, loyalty-points.ejs).
+  - Partials: `views/partials/` (header.ejs, footer.ejs, hero-slider.ejs, product-card.ejs).
+  - Layouts: `views/layouts/` (main.ejs).
+  - Public Assets: `public/` (css/, js/, image/).
+- **Naming:**
+  - View files: `kebab-case` (ví dụ: `forgot-password.ejs`).
+  - JavaScript functions: `camelCase`.
+  - CSS classes: `kebab-case`.
+- **Rules:**
+  - Sử dụng EJS partials để tái sử dụng code (header, footer, sidebar).
+  - Sử dụng layout `main.ejs` làm template chính cho các trang.
+  - Client-side JavaScript nằm trong `public/js/`.
+  - CSS tùy chỉnh trong `public/css/` (admin.css, style.css).
+  - Hình ảnh sản phẩm được upload vào `uploads/products/`.
+  - Luôn sanitize user input để tránh XSS attacks.
+
+## 4. Database & Models Standards
+- **Models Location:** `models/` (user.js, product.js, cart.js, order.js, coupon.js).
+- **Rules:**
+  - Sử dụng Mongoose Schema với validation rules rõ ràng.
+  - Định nghĩa indexes cho các trường thường xuyên query (email, productId, userId).
+  - Sử dụng virtual fields và methods khi cần thiết.
+  - Luôn có timestamps (createdAt, updatedAt) cho các models.
+  - Reference giữa các models sử dụng ObjectId và populate khi cần.
+
+## 5. Security & Authentication
+- **Passport.js:** Sử dụng Local Strategy cho authentication, config tại `config/passport.js`.
+- **Session Management:** Sử dụng express-session với MongoDB store.
+- **Password:** Luôn hash password bằng bcrypt trước khi lưu vào database.
+- **Authorization:**
+  - Middleware `auth.js`: Kiểm tra user đã đăng nhập.
+  - Middleware `bannedCheck.js`: Kiểm tra user có bị banned không.
+  - Admin routes phải có kiểm tra `req.user.isAdmin === true`.
+- **File Upload:** Sử dụng multer middleware với validation file type và size limit.
+
+## 6. E-commerce Features
+- **Products:** Quản lý sản phẩm (laptop, linh kiện, màn hình, PC, phụ kiện), hỗ trợ categories và brands.
+- **Cart:** Shopping cart với session persistence.
+- **Orders:** Quản lý đơn hàng, order tracking, order history.
+- **Coupons:** Hệ thống mã giảm giá với validation.
+- **Loyalty Points:** Tích điểm thưởng cho khách hàng.
+- **Email Notifications:** Gửi email xác nhận đơn hàng, reset password qua `utils/emailService.js`.
+
+## 7. Deployment & Docker
+- **Docker:** Project sử dụng Docker Compose với services: app, mongodb, nginx.
+- **Dockerfile:** Định nghĩa container cho Node.js application.
+- **Nginx:** Reverse proxy config tại `nginx.conf`.
+- **MongoDB Init:** Script khởi tạo database tại `mongo-init/init.js`.
+- **Rules:**
+  - Kiểm tra `docker-compose.yml` khi thay đổi environment variables.
+  - Cập nhật `package.json` dependencies khi thêm thư viện mới.
+  - Test local với Docker trước khi deploy production.
+
+## 8. Code Organization Best Practices
+- **Controllers:** Logic nghiệp vụ nằm trong controllers, không viết trực tiếp trong routes.
+- **Routes:** Chỉ định nghĩa endpoints và gọi controllers.
+- **Models:** Chỉ chứa schema definition và basic model methods.
+- **Utils:** Helper functions và shared utilities.
+- **Middleware:** Reusable middleware functions cho authentication, validation, upload.
+
+## 9. Error Handling & Logging
+- Luôn sử dụng try-catch block cho async operations.
+- Trả về error messages rõ ràng và status codes phù hợp (400, 401, 403, 404, 500).
+- Render error page (`views/error.ejs` hoặc `views/404.ejs`) cho client-facing errors.
+- Log errors để debug, sử dụng console.error hoặc logging library.
+
+10. Interaction Instructions for AI
+Khi code tính năng mới, hãy kiểm tra file @app.js để đảm bảo routes được đăng ký đúng.
+
+Kiểm tra @routes/index.js để hiểu cấu trúc routing chính.
+
+Khi tạo admin features, luôn đặt trong @routes/admin/ và @controllers/admin/.
+
+Khi sửa đổi authentication, kiểm tra @config/passport.js và @middleware/auth.js.
+
+Khi thêm model mới, tạo file trong @models/ và import vào controllers tương ứng.
+
+Khi làm việc với email, sử dụng @utils/emailService.js và config tại @config/email.js.
+
+Khi upload files, sử dụng middleware từ @middleware/upload.js.
+
+Quy trình xử lý tác vụ phức tạp: Đối với các yêu cầu có độ dài lớn, kiến trúc phức tạp hoặc tác động đến nhiều file, phải tạo một bản kế hoạch (Plan) hoàn chỉnh trước. Bản kế hoạch cần liệt kê danh sách các file cần tác động và các bước thực hiện cụ thể. Sau khi kế hoạch được thống nhất, mới tiến hành thực hiện từng bước một.
+
+Luôn test các thay đổi trong môi trường Docker local trước khi commit.
+
+Đọc @README.md và @Readme.txt để hiểu project structure và setup instructions.
+
+11. Unit Testing Standards
+Quy tắc bắt buộc: Mọi tính năng sau khi hoàn thành (đặc biệt là logic trong Controllers, Middleware và Utils) phải đi kèm với các file Unit Test tương ứng để đảm bảo tính ổn định.
+
+Công cụ: Sử dụng Jest làm framework chính và Supertest để kiểm tra các điểm cuối (endpoints) API.
+
+Cấu trúc thư viện test: Các file test phải được đặt trong thư mục tests/ và đặt tên theo định dạng filename.test.js.
+
+Yêu cầu nội dung test:
+
+Kiểm tra các trường hợp dữ liệu đúng (Happy path).
+
+Kiểm tra các trường hợp lỗi (Edge cases) như: dữ liệu trống, sai định dạng, user không có quyền hoặc bị banned.
+
+Đảm bảo các hàm Mock (như jest.fn()) được sử dụng cho các dịch vụ bên ngoài (như Nodemailer) để không gửi email thật khi chạy test.
+
+Tự động hóa: Trước khi hoàn tất tác vụ, hãy chạy lệnh npm test để xác nhận toàn bộ mã nguồn mới không làm hỏng các tính năng cũ.
+
+## 12. Advanced Architectural Rules for Opus 4.5
+- **Performance First:** Luôn sử dụng `.lean()` cho các truy vấn MongoDB chỉ đọc để tiết kiệm bộ nhớ.
+- **Async Safety:** Luôn kiểm tra `if (!data)` sau khi truy vấn để tránh lỗi "property of null".
+- **Security Check:** Mọi dữ liệu từ `req.body` và `req.params` phải được validate qua một lớp middleware hoặc Schema validation trước khi vào Controller.
+
+## 13. Planning & Multi-step Execution
+- **Plan First:** Đối với bất kỳ tính năng nào tác động > 3 file, AI phải liệt kê:
+  1. Mục tiêu thay đổi.
+  2. Danh sách file sẽ tạo mới/chỉnh sửa.
+  3. Rủi ro tiềm ẩn (Breaking changes).
+  4. Sau khi người dùng gõ "Tiến hành", AI mới được thực hiện bước 1.
+
+## 14. Unit Testing & Quality Assurance
+- Mỗi khi tạo một Controller hoặc Util mới, AI phải tự động đề xuất file test tương ứng trong thư mục `tests/` sử dụng Jest.
+- Đảm bảo độ bao phủ (coverage) cho các logic tính toán giá tiền và coupon tối thiểu là 90%.

@@ -221,4 +221,5 @@ productSchema.methods.updateStock = function (quantity, isVariant = false, varia
   return this;
 };
 
-module.exports = mongoose.model('Product', productSchema);
+module.exports = mongoose.models.Product || mongoose.model('Product', productSchema);
+

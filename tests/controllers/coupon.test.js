@@ -473,7 +473,6 @@ describe('Coupon Controller', () => {
             expect(req.flash).toHaveBeenCalledWith('error', expect.any(String));
             const coupon = await Coupon.findOne({ code: 'NEG50' });
             expect(coupon).toBeNull();
-            }
         });
 
         test('should handle extremely large discount', async () => {

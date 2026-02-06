@@ -41,61 +41,61 @@ compareListSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 compareListSchema.statics.MAX_COMPARE_ITEMS = 4;
 
 // Method thêm sản phẩm vào compare
-compareListSchema.methods.addProduct = async function(product) {
+compareListSchema.methods.addProduct = async function (product) {
   // Kiểm tra số lượng
   if (this.products.length >= 4) {
-    return { 
-      success: false, 
-      message: 'Chỉ được so sánh tối đa 4 sản phẩm' 
+    return {
+      success: false,
+      message: 'Chỉ được so sánh tối đa 4 sản phẩm'
     };
   }
-  
+
   // Kiểm tra đã có sản phẩm này chưa
   if (this.products.some(p => p.toString() === product._id.toString())) {
-    return { 
-      success: false, 
-      message: 'Sản phẩm đã có trong danh sách so sánh' 
+    return {
+      success: false,
+      message: 'Sản phẩm đã có trong danh sách so sánh'
     };
   }
-  
+
   // Kiểm tra category (nếu đã có sản phẩm)
   if (this.products.length > 0 && this.category !== product.category) {
-    return { 
-      success: false, 
-      message: 'Chỉ có thể so sánh sản phẩm cùng danh mục' 
+    return {
+      success: false,
+      message: 'Chỉ có thể so sánh sản phẩm cùng danh mục'
     };
   }
-  
+
   // Thêm sản phẩm
   this.products.push(product._id);
   if (!this.category) {
     this.category = product.category;
   }
-  
+
   await this.save();
   return { success: true, message: 'Đã thêm vào danh sách so sánh' };
 };
 
 // Method xóa sản phẩm khỏi compare
-compareListSchema.methods.removeProduct = async function(productId) {
+compareListSchema.methods.removeProduct = async function (productId) {
   const initialLength = this.products.length;
   this.products = this.products.filter(p => p.toString() !== productId.toString());
-  
+
   if (this.products.length === initialLength) {
     return { success: false, message: 'Sản phẩm không có trong danh sách so sánh' };
   }
-  
+
   // Reset category nếu không còn sản phẩm nào
   if (this.products.length === 0) {
     this.category = null;
   }
-  
+
   await this.save();
   return { success: true, message: 'Đã xóa khỏi danh sách so sánh' };
 };
 
 // Method xóa tất cả
-compareListSchema.methods.clear = async function() {
+compareListSchema.methods.clear = async function () {
   this.products = [];
   this.category = null;
   await this.save();
@@ -103,24 +103,25 @@ compareListSchema.methods.clear = async function() {
 };
 
 // Static method tìm hoặc tạo compare list
-compareListSchema.statics.findOrCreate = async function(sessionId, userId = null) {
-  let compareList = await this.findOne({ 
+compareListSchema.statics.findOrCreate = async function (sessionId, userId = null) {
+  let compareList = await this.findOne({
     $or: [
       { sessionId },
       ...(userId ? [{ user: userId }] : [])
     ]
   });
-  
+
   if (!compareList) {
-    compareList = new this({ 
-      sessionId, 
+    compareList = new this({
+      sessionId,
       user: userId,
-      products: [] 
+      products: []
     });
     await compareList.save();
   }
-  
+
   return compareList;
 };
 
-module.exports = mongoose.model('CompareList', compareListSchema);
+module.exports = mongoose.models.CompareList || mongoose.model('CompareList', compareListSchema);
+

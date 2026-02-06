@@ -36,14 +36,14 @@ exports.postAddCoupon = async (req, res) => {  try {
       return res.redirect('/admin/coupons/add');
     }
       // Parse maxUses appropriately with max limit of 10
-    let parsedMaxUses = 10; // Default to max 10 uses
-    if (maxUses) {
-      parsedMaxUses = parseInt(maxUses);
-      if (isNaN(parsedMaxUses) || parsedMaxUses < 1 || parsedMaxUses > 10) {
-        req.flash('error', 'Số lần sử dụng tối đa phải từ 1 đến 10.');
-        return res.redirect('/admin/coupons/add');
+      let parsedMaxUses = 10; // Default to max 10 uses
+      if (typeof maxUses !== 'undefined' && maxUses !== null && maxUses !== '') {
+        parsedMaxUses = parseInt(maxUses);
+        if (isNaN(parsedMaxUses) || parsedMaxUses < 1 || parsedMaxUses > 10) {
+          req.flash('error', 'Số lần sử dụng tối đa phải từ 1 đến 10.');
+          return res.redirect('/admin/coupons/add');
+        }
       }
-    }
       // Create coupon with usage limit
     const coupon = new Coupon({
       code: code.toUpperCase(),
@@ -68,7 +68,11 @@ exports.postAddCoupon = async (req, res) => {  try {
 exports.deleteCoupon = async (req, res) => {
   try {
     const { couponId } = req.params;
-    await Coupon.findByIdAndDelete(couponId);
+    const deleted = await Coupon.findByIdAndDelete(couponId);
+    if (!deleted) {
+      req.flash('error', 'Coupon không tồn tại.');
+      return res.redirect('/admin/coupons');
+    }
     req.flash('success', 'Coupon đã được xóa thành công.');
     res.redirect('/admin/coupons');
   } catch (err) {

@@ -82,43 +82,43 @@ productQuestionSchema.index({ status: 1 });
 productQuestionSchema.index({ question: 'text' });
 
 // Virtual đếm số câu trả lời
-productQuestionSchema.virtual('answerCount').get(function() {
+productQuestionSchema.virtual('answerCount').get(function () {
   return this.answers.length;
 });
 
 // Virtual kiểm tra đã có câu trả lời chính thức chưa
-productQuestionSchema.virtual('hasOfficialAnswer').get(function() {
+productQuestionSchema.virtual('hasOfficialAnswer').get(function () {
   return this.answers.some(answer => answer.isOfficial);
 });
 
 // Method thêm câu trả lời
-productQuestionSchema.methods.addAnswer = async function(userId, content, isOfficial = false) {
+productQuestionSchema.methods.addAnswer = async function (userId, content, isOfficial = false) {
   this.answers.push({
     user: userId,
     content,
     isOfficial
   });
-  
+
   // Update status nếu có câu trả lời chính thức
   if (isOfficial) {
     this.status = 'answered';
   }
-  
+
   await this.save();
   return this.answers[this.answers.length - 1];
 };
 
 // Method đánh dấu câu trả lời hữu ích
-productQuestionSchema.methods.markAnswerHelpful = async function(answerId, userId) {
+productQuestionSchema.methods.markAnswerHelpful = async function (answerId, userId) {
   const answer = this.answers.id(answerId);
-  
+
   if (!answer) {
     return { success: false, message: 'Không tìm thấy câu trả lời' };
   }
-  
+
   // Kiểm tra đã vote chưa
   const hasVoted = answer.helpfulBy.some(id => id.toString() === userId.toString());
-  
+
   if (hasVoted) {
     // Bỏ vote
     answer.helpfulBy = answer.helpfulBy.filter(id => id.toString() !== userId.toString());
@@ -128,25 +128,25 @@ productQuestionSchema.methods.markAnswerHelpful = async function(answerId, userI
     answer.helpfulBy.push(userId);
     answer.helpfulCount += 1;
   }
-  
+
   await this.save();
   return { success: true, helpful: !hasVoted, count: answer.helpfulCount };
 };
 
 // Static method lấy câu hỏi của sản phẩm với phân trang
-productQuestionSchema.statics.getByProduct = async function(productId, options = {}) {
+productQuestionSchema.statics.getByProduct = async function (productId, options = {}) {
   const {
     page = 1,
     limit = 10,
     status = null,
     sort = '-createdAt'
   } = options;
-  
+
   const query = { product: productId, isPublic: true };
   if (status) {
     query.status = status;
   }
-  
+
   const questions = await this.find(query)
     .populate('user', 'name')
     .populate('answers.user', 'name role')
@@ -154,9 +154,9 @@ productQuestionSchema.statics.getByProduct = async function(productId, options =
     .skip((page - 1) * limit)
     .limit(limit)
     .lean();
-  
+
   const total = await this.countDocuments(query);
-  
+
   return {
     questions,
     pagination: {
@@ -169,9 +169,9 @@ productQuestionSchema.statics.getByProduct = async function(productId, options =
 };
 
 // Static method lấy câu hỏi chờ trả lời (cho admin)
-productQuestionSchema.statics.getPendingQuestions = async function(options = {}) {
+productQuestionSchema.statics.getPendingQuestions = async function (options = {}) {
   const { page = 1, limit = 20 } = options;
-  
+
   const questions = await this.find({ status: 'pending' })
     .populate('product', 'name slug images')
     .populate('user', 'name email')
@@ -179,9 +179,9 @@ productQuestionSchema.statics.getPendingQuestions = async function(options = {})
     .skip((page - 1) * limit)
     .limit(limit)
     .lean();
-  
+
   const total = await this.countDocuments({ status: 'pending' });
-  
+
   return {
     questions,
     pagination: {
@@ -197,4 +197,5 @@ productQuestionSchema.statics.getPendingQuestions = async function(options = {})
 productQuestionSchema.set('toJSON', { virtuals: true });
 productQuestionSchema.set('toObject', { virtuals: true });
 
-module.exports = mongoose.model('ProductQuestion', productQuestionSchema);
+module.exports = mongoose.models.ProductQuestion || mongoose.model('ProductQuestion', productQuestionSchema);
+

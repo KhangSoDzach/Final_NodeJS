@@ -70,14 +70,14 @@ backInStockNotificationSchema.index(
 backInStockNotificationSchema.index({ status: 1, product: 1 });
 
 // Static method: Đăng ký nhận thông báo
-backInStockNotificationSchema.statics.subscribe = async function(data) {
+backInStockNotificationSchema.statics.subscribe = async function (data) {
   const Product = mongoose.model('Product');
   const product = await Product.findById(data.productId);
-  
+
   if (!product) {
     throw new Error('Sản phẩm không tồn tại');
   }
-  
+
   // Kiểm tra sản phẩm có hết hàng không
   let currentStock = product.stock;
   if (data.variant && data.variant.name && data.variant.value) {
@@ -89,11 +89,11 @@ backInStockNotificationSchema.statics.subscribe = async function(data) {
       }
     }
   }
-  
+
   if (currentStock > 0) {
     throw new Error('Sản phẩm vẫn còn hàng');
   }
-  
+
   // Tìm subscription hiện có
   const existingSubscription = await this.findOne({
     email: data.email.toLowerCase(),
@@ -101,7 +101,7 @@ backInStockNotificationSchema.statics.subscribe = async function(data) {
     'variant.name': data.variant?.name || null,
     'variant.value': data.variant?.value || null
   });
-  
+
   if (existingSubscription) {
     // Nếu đã unsubscribed, cho phép đăng ký lại
     if (existingSubscription.status === 'unsubscribed') {
@@ -110,17 +110,17 @@ backInStockNotificationSchema.statics.subscribe = async function(data) {
       await existingSubscription.save();
       return existingSubscription;
     }
-    
+
     // Nếu đã notified, cho phép đăng ký lại
     if (existingSubscription.status === 'notified') {
       existingSubscription.status = 'active';
       await existingSubscription.save();
       return existingSubscription;
     }
-    
+
     throw new Error('Bạn đã đăng ký nhận thông báo cho sản phẩm này rồi');
   }
-  
+
   const subscription = new this({
     user: data.userId,
     email: data.email.toLowerCase(),
@@ -130,108 +130,109 @@ backInStockNotificationSchema.statics.subscribe = async function(data) {
     ipAddress: data.ipAddress,
     userAgent: data.userAgent
   });
-  
+
   await subscription.save();
   return subscription;
 };
 
 // Static method: Hủy đăng ký
-backInStockNotificationSchema.statics.unsubscribe = async function(email, productId, variant = null) {
+backInStockNotificationSchema.statics.unsubscribe = async function (email, productId, variant = null) {
   const query = {
     email: email.toLowerCase(),
     product: productId
   };
-  
+
   if (variant && variant.name && variant.value) {
     query['variant.name'] = variant.name;
     query['variant.value'] = variant.value;
   }
-  
+
   const subscription = await this.findOne(query);
-  
+
   if (!subscription) {
     throw new Error('Không tìm thấy đăng ký');
   }
-  
+
   subscription.status = 'unsubscribed';
   await subscription.save();
   return subscription;
 };
 
 // Static method: Gửi thông báo cho tất cả subscriber khi có hàng
-backInStockNotificationSchema.statics.notifySubscribers = async function(productId, variant = null) {
+backInStockNotificationSchema.statics.notifySubscribers = async function (productId, variant = null) {
   const query = {
     product: productId,
     status: 'active'
   };
-  
+
   if (variant && variant.name && variant.value) {
     query['variant.name'] = variant.name;
     query['variant.value'] = variant.value;
   }
-  
+
   const subscriptions = await this.find(query)
     .populate('product', 'name slug images price discountPrice');
-  
+
   if (subscriptions.length === 0) {
     return { sent: 0, failed: 0 };
   }
-  
+
   const emailService = require('../utils/emailService');
   let sent = 0;
   let failed = 0;
-  
+
   for (const subscription of subscriptions) {
     try {
       await emailService.sendBackInStockNotification(subscription);
-      
+
       subscription.status = 'notified';
       subscription.notifiedAt = new Date();
       subscription.notificationCount += 1;
       await subscription.save();
-      
+
       sent++;
     } catch (error) {
       console.error(`Lỗi gửi thông báo đến ${subscription.email}:`, error);
       failed++;
     }
   }
-  
+
   return { sent, failed };
 };
 
 // Static method: Lấy số lượng subscriber của sản phẩm
-backInStockNotificationSchema.statics.getSubscriberCount = async function(productId, variant = null) {
+backInStockNotificationSchema.statics.getSubscriberCount = async function (productId, variant = null) {
   const query = {
     product: productId,
     status: 'active'
   };
-  
+
   if (variant && variant.name && variant.value) {
     query['variant.name'] = variant.name;
     query['variant.value'] = variant.value;
   }
-  
+
   return this.countDocuments(query);
 };
 
 // Static method: Lấy danh sách subscriber của user
-backInStockNotificationSchema.statics.getUserSubscriptions = async function(userId) {
+backInStockNotificationSchema.statics.getUserSubscriptions = async function (userId) {
   return this.find({ user: userId, status: 'active' })
     .populate('product', 'name slug images price discountPrice stock')
     .sort({ createdAt: -1 });
 };
 
 // Static method: Xóa các subscription đã thông báo quá 30 ngày
-backInStockNotificationSchema.statics.cleanupOldNotifications = async function() {
+backInStockNotificationSchema.statics.cleanupOldNotifications = async function () {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  
+
   const result = await this.deleteMany({
     status: 'notified',
     notifiedAt: { $lt: thirtyDaysAgo }
   });
-  
+
   return result.deletedCount;
 };
 
-module.exports = mongoose.model('BackInStockNotification', backInStockNotificationSchema);
+module.exports = mongoose.models.BackInStockNotification || mongoose.model('BackInStockNotification', backInStockNotificationSchema);
+
