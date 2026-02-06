@@ -14,6 +14,15 @@ test_results.txt
 final_test_results.txt
 final_summary.txt
 final_result_after_casing.txt
+*_test_*.txt
+*_output*.txt
+*_fail*.txt
+*_pass*.txt
+cart_coupon_debug.txt
+coverage_output.txt
+full_test_output.txt
+user_test_*.txt
+order_*.txt
 
 # Uploads and temporary files
 uploads/
@@ -34,3 +43,5 @@ Thumbs.db
 /system-prompts-and-models-of-ai-tools
 /.agent/active-skills
 .agent/skills/
+promptAgent/
+.agent/rules/

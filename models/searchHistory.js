@@ -13,7 +13,7 @@ const searchHistorySchema = new Schema({
     default: null,
     index: true
   },
-  
+
   // Từ khóa tìm kiếm
   query: {
     type: String,
@@ -22,7 +22,7 @@ const searchHistorySchema = new Schema({
     maxlength: 200,
     index: true
   },
-  
+
   // Normalized query (lowercase, trimmed) để tìm kiếm nhanh
   normalizedQuery: {
     type: String,
@@ -30,21 +30,21 @@ const searchHistorySchema = new Schema({
     lowercase: true,
     index: true
   },
-  
+
   // Số lần tìm kiếm từ khóa này (cho user cụ thể)
   searchCount: {
     type: Number,
     default: 1,
     min: 1
   },
-  
+
   // Số kết quả trả về
   resultCount: {
     type: Number,
     default: 0,
     min: 0
   },
-  
+
   // Filters đã áp dụng
   filters: {
     category: String,
@@ -56,24 +56,24 @@ const searchHistorySchema = new Schema({
     inStock: Boolean,
     hasDiscount: Boolean
   },
-  
+
   // Nguồn tìm kiếm
   source: {
     type: String,
     enum: ['text', 'voice', 'suggestion'],
     default: 'text'
   },
-  
+
   // IP Address (cho guest)
   ipAddress: {
     type: String
   },
-  
+
   // User Agent
   userAgent: {
     type: String
   },
-  
+
   // Sản phẩm đã click từ kết quả tìm kiếm
   clickedProducts: [{
     product: {
@@ -85,7 +85,7 @@ const searchHistorySchema = new Schema({
       default: Date.now
     }
   }],
-  
+
   // Timestamps
   lastSearchedAt: {
     type: Date,
@@ -101,7 +101,7 @@ searchHistorySchema.index({ normalizedQuery: 1, searchCount: -1 });
 searchHistorySchema.index({ createdAt: -1 });
 
 // Pre-save: Tạo normalized query
-searchHistorySchema.pre('save', function(next) {
+searchHistorySchema.pre('save', function (next) {
   if (this.query) {
     this.normalizedQuery = this.query.toLowerCase().trim();
   }
@@ -109,7 +109,7 @@ searchHistorySchema.pre('save', function(next) {
 });
 
 // Static: Lấy popular searches (trending)
-searchHistorySchema.statics.getPopularSearches = async function(limit = 10) {
+searchHistorySchema.statics.getPopularSearches = async function (limit = 10) {
   return this.aggregate([
     {
       $group: {
@@ -134,7 +134,7 @@ searchHistorySchema.statics.getPopularSearches = async function(limit = 10) {
 };
 
 // Static: Lấy lịch sử tìm kiếm của user
-searchHistorySchema.statics.getUserHistory = async function(userId, limit = 20) {
+searchHistorySchema.statics.getUserHistory = async function (userId, limit = 20) {
   return this.find({ user: userId })
     .sort({ lastSearchedAt: -1 })
     .limit(limit)
@@ -143,19 +143,19 @@ searchHistorySchema.statics.getUserHistory = async function(userId, limit = 20) 
 };
 
 // Static: Thêm hoặc cập nhật lịch sử tìm kiếm
-searchHistorySchema.statics.addOrUpdateSearch = async function(data) {
+searchHistorySchema.statics.addOrUpdateSearch = async function (data) {
   const { user, query, resultCount, filters, source, ipAddress, userAgent } = data;
-  
+
   if (!query || query.trim().length === 0) return null;
-  
+
   const normalizedQuery = query.toLowerCase().trim();
-  
+
   // Tìm xem đã có record chưa
   const existing = await this.findOne({
     user: user || null,
     normalizedQuery
   });
-  
+
   if (existing) {
     // Cập nhật record hiện có
     existing.searchCount += 1;
@@ -165,7 +165,7 @@ searchHistorySchema.statics.addOrUpdateSearch = async function(data) {
     if (source) existing.source = source;
     return existing.save();
   }
-  
+
   // Tạo mới
   return this.create({
     user: user || null,
@@ -180,21 +180,21 @@ searchHistorySchema.statics.addOrUpdateSearch = async function(data) {
 };
 
 // Static: Xóa lịch sử tìm kiếm của user
-searchHistorySchema.statics.clearUserHistory = async function(userId) {
+searchHistorySchema.statics.clearUserHistory = async function (userId) {
   return this.deleteMany({ user: userId });
 };
 
 // Static: Xóa một search cụ thể
-searchHistorySchema.statics.removeSearch = async function(userId, searchId) {
+searchHistorySchema.statics.removeSearch = async function (userId, searchId) {
   return this.deleteOne({ _id: searchId, user: userId });
 };
 
 // Static: Lấy suggestions dựa trên query
-searchHistorySchema.statics.getSuggestions = async function(query, userId = null, limit = 8) {
+searchHistorySchema.statics.getSuggestions = async function (query, userId = null, limit = 8) {
   if (!query || query.trim().length === 0) return [];
-  
+
   const normalizedQuery = query.toLowerCase().trim();
-  
+
   const suggestions = await this.aggregate([
     {
       $match: {
@@ -220,8 +220,9 @@ searchHistorySchema.statics.getSuggestions = async function(query, userId = null
       }
     }
   ]);
-  
+
   return suggestions;
 };
 
-module.exports = mongoose.model('SearchHistory', searchHistorySchema);
+module.exports = mongoose.models.SearchHistory || mongoose.model('SearchHistory', searchHistorySchema);
+

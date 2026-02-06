@@ -18,13 +18,13 @@ exports.createOrder = async (req, res) => {
 // Order Tracking
 exports.trackOrder = async (req, res) => {
   try {
-    const { orderId } = req.params;
-    const order = await Order.findById(orderId).populate('items.product');
+    const { orderNumber } = req.params;
+    const order = await Order.findOne({ orderNumber }).populate('items.product');
     if (!order || order.user.toString() !== req.user._id.toString()) {
       req.flash('error', 'Không tìm thấy đơn hàng.');
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng.' });
     }
-    res.render('orders/track', { title: `Theo dõi đơn hàng #${order._id}`, order });
+    res.render('orders/track', { title: `Theo dõi đơn hàng #${order.orderNumber}`, order });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi theo dõi đơn hàng.' });
@@ -101,7 +101,33 @@ exports.postCheckout = async (req, res) => {
     if (!cart || cart.items.length === 0) {
       req.flash('error', 'Giỏ hàng của bạn đang trống.');
       return res.redirect('/cart');
-    }    // Tính tổng tiền (có tính đến coupon nếu được áp dụng)
+    }
+
+    // Validate stock availability
+    for (const item of cart.items) {
+      if (!item.product) continue;
+      const product = item.product;
+
+      if (item.variants && Object.keys(item.variants).length > 0) {
+        for (const [key, value] of Object.entries(item.variants)) {
+          const variant = product.variants.find(v => v.name === key);
+          if (variant) {
+            const option = variant.options.find(o => o.value === value);
+            if (option && item.quantity > option.stock) {
+              req.flash('error', `Sản phẩm "${product.name}" (${key}: ${value}) không đủ hàng.`);
+              return res.redirect('/cart');
+            }
+          }
+        }
+      } else {
+        if (item.quantity > product.stock) {
+          req.flash('error', `Sản phẩm "${product.name}" không đủ hàng.`);
+          return res.redirect('/cart');
+        }
+      }
+    }
+
+    // Tính tổng tiền (có tính đến coupon nếu được áp dụng)
     let totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
 
     // Tự động sử dụng điểm tích lũy tối đa
@@ -305,15 +331,19 @@ exports.getGuestCheckout = async (req, res) => {
  */
 exports.postGuestCheckout = async (req, res) => {
   try {
-    const {
-      guestName, guestEmail, guestPhone,
-      address, district, province, ward,
-      paymentMethod, note,
-      vatInvoice, vatCompanyName, vatTaxCode, vatAddress, vatEmail
-    } = req.body;
+    // Support both test payloads and form payloads
+    let guestName = req.body.guestName || (req.body.shippingAddress && req.body.shippingAddress.fullName) || req.body.name;
+    let guestEmail = req.body.guestEmail || req.body.email;
+    let guestPhone = req.body.guestPhone || req.body.phone || (req.body.shippingAddress && req.body.shippingAddress.phone);
+    let address = req.body.address || (req.body.shippingAddress && req.body.shippingAddress.address) || (req.body.shippingAddress && req.body.shippingAddress.street);
+    let district = req.body.district || (req.body.shippingAddress && req.body.shippingAddress.district);
+    let province = req.body.province || (req.body.shippingAddress && (req.body.shippingAddress.city || req.body.shippingAddress.province));
+    let ward = req.body.ward || (req.body.shippingAddress && req.body.shippingAddress.ward);
+    const { paymentMethod, note, vatInvoice, vatCompanyName, vatTaxCode, vatAddress, vatEmail } = req.body;
 
-    // Validate required fields
+    // Validate required fields (accept both shapes)
     if (!guestName || !guestEmail || !guestPhone || !address || !district || !province) {
+      // Try to fallback to session-backed cart presence check and give a generic error
       req.flash('error', 'Vui lòng điền đầy đủ thông tin.');
       return res.redirect('/orders/guest-checkout');
     }
@@ -325,13 +355,26 @@ exports.postGuestCheckout = async (req, res) => {
       return res.redirect('/orders/guest-checkout');
     }
 
-    // Kiểm tra guest cart
-    if (!req.session.guestCart || req.session.guestCart.items.length === 0) {
+    // Support two storage methods for guest cart used by tests:
+    // 1) Session-stored object at req.session.guestCart
+    // 2) DB-backed Cart with sessionId stored and session.cartId provided
+    let guestCart = null;
+    if (req.session && req.session.guestCart && Array.isArray(req.session.guestCart.items) && req.session.guestCart.items.length > 0) {
+      guestCart = req.session.guestCart;
+    } else if (req.session && req.session.cartId) {
+      guestCart = await Cart.findOne({ sessionId: req.session.cartId });
+      if (guestCart && guestCart.items) {
+        // Normalize structure to match session guestCart shape
+        guestCart = {
+          items: guestCart.items.map(i => ({ product: i.product.toString ? i.product.toString() : i.product, quantity: i.quantity, price: i.price, variant: i.variant }))
+        };
+      }
+    }
+
+    if (!guestCart || !guestCart.items || guestCart.items.length === 0) {
       req.flash('error', 'Giỏ hàng của bạn đang trống.');
       return res.redirect('/cart');
     }
-
-    const guestCart = req.session.guestCart;
 
     // Validate và update cart items
     const orderItems = [];
@@ -497,12 +540,38 @@ exports.getGuestSuccess = async (req, res) => {
  */
 exports.trackGuestOrder = async (req, res) => {
   try {
-    const { token } = req.params;
+    const { orderNumber, token } = req.params;
+    const { email } = req.query;
+    const queryToken = req.query.token;
 
-    const order = await Order.findByGuestToken(token);
+    let order;
+
+    // Support both token-based and orderNumber+email-based lookup
+    if (token || queryToken) {
+      // Token-based lookup (legacy support)
+      const actualToken = token || queryToken;
+      order = await Order.findByGuestToken(actualToken);
+    } else if (orderNumber) {
+      // Order number + email lookup
+      if (!email) {
+        req.flash('error', 'Vui lòng cung cấp email để theo dõi đơn hàng.');
+        return res.redirect('/orders/track');
+      }
+
+      order = await Order.findOne({ orderNumber, isGuestOrder: true }).populate('items.product');
+
+      if (order) {
+        // Verify email matches
+        const orderEmail = order.guestEmail || (order.guestInfo && order.guestInfo.email);
+        if (!orderEmail || orderEmail.toLowerCase() !== email.toLowerCase()) {
+          req.flash('error', 'Email không khớp với đơn hàng.');
+          return res.redirect('/orders/track');
+        }
+      }
+    }
 
     if (!order) {
-      req.flash('error', 'Không tìm thấy đơn hàng với mã theo dõi này.');
+      req.flash('error', 'Không tìm thấy đơn hàng.');
       return res.redirect('/orders/track');
     }
 
@@ -538,7 +607,12 @@ exports.oneClickCheckout = async (req, res) => {
 
     // Lấy địa chỉ mặc định
     const user = await User.findById(req.user._id);
-    const defaultAddress = user.addresses?.find(addr => addr.default === true);
+    let defaultAddress = user.addresses?.find(addr => addr.default === true);
+    
+    // Fallback to defaultAddress field if addresses array not used
+    if (!defaultAddress && user.defaultAddress) {
+      defaultAddress = user.defaultAddress;
+    }
 
     if (!defaultAddress) {
       req.flash('error', 'Bạn chưa có địa chỉ mặc định. Vui lòng thêm địa chỉ trong trang cá nhân.');
@@ -691,10 +765,10 @@ exports.getInvoice = async (req, res) => {
       }
     }
 
-    // Generate invoice HTML
-    const invoiceHTML = invoiceGenerator.generateInvoiceHTML(order);
-
-    res.send(invoiceHTML);
+    res.render('orders/invoice', {
+      title: `Hóa đơn #${order.orderNumber}`,
+      order
+    });
   } catch (err) {
     console.error('Error generating invoice:', err);
     res.status(500).send('Đã xảy ra lỗi khi tạo hóa đơn.');
@@ -750,10 +824,11 @@ exports.downloadInvoicePDF = async (req, res) => {
 exports.requestVatInvoice = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { companyName, taxCode, address, email } = req.body;
+    const { companyName, taxCode, companyAddress, address, email } = req.body;
+    const vatAddress = companyAddress || address;
 
     // Validate VAT info
-    const vatValidation = vatCalculator.validateVatInfo({ companyName, taxCode, address, email });
+    const vatValidation = vatCalculator.validateVatInfo({ companyName, taxCode, address: vatAddress, email });
     if (!vatValidation.isValid) {
       return res.status(400).json({ success: false, message: vatValidation.errors.join('. ') });
     }
@@ -778,7 +853,7 @@ exports.requestVatInvoice = async (req, res) => {
 
     // Update order
     order.vatInvoice = true;
-    order.vatInfo = { companyName, taxCode, address, email };
+    order.vatInfo = { companyName, taxCode, address: vatAddress, email };
     order.invoiceNumber = vatCalculator.generateInvoiceNumber();
     order.invoiceGeneratedAt = new Date();
     await order.save();
