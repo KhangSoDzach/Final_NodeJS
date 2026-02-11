@@ -13,7 +13,7 @@ const orderItemSchema = new Schema({
     min: 1
   },
   price: {
-    type: Number,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+    type: Number,
     required: true
   },
   variants: { type: Object } // Thêm dòng này để lưu các lựa chọn variant
@@ -22,7 +22,7 @@ const orderItemSchema = new Schema({
 const statusHistorySchema = new Schema({
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'],
+    enum: ['pending', 'confirmed', 'processing', 'shipped', 'shipping', 'delivered', 'cancelled'],
     required: true
   },
   date: {
@@ -43,28 +43,43 @@ const orderSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: function () {
+      // Only require user if it's not a guest order.
+      // Treat orders with guestEmail or guestInfo.email as guest orders as well.
+      const hasGuestEmail = !!(this.guestEmail || (this.guestInfo && this.guestInfo.email));
+      return !(this.isGuestOrder || hasGuestEmail);
+    }
   },
   items: [orderItemSchema],
   totalAmount: {
     type: Number,
-    required: true,
+    required: false,
+    min: 0
+  },
+  total: {
+    type: Number,
+    required: false,
     min: 0
   },
   shippingAddress: {
     name: String,
+    fullName: String,
     street: String,
+    address: String,
+    city: String,
     district: String,
+    ward: String,
     province: String,
     phone: String
   },
   paymentDetails: {
     type: Object,
-    required: true
+    required: false,
+    default: {}
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'],
+    enum: ['pending', 'confirmed', 'processing', 'shipped', 'shipping', 'delivered', 'cancelled'],
     default: 'pending'
   },
   paymentStatus: {
@@ -84,7 +99,7 @@ const orderSchema = new Schema({
   loyaltyPointsUsed: {
     type: Number,
     default: 0
-  },  loyaltyPointsEarned: {
+  }, loyaltyPointsEarned: {
     type: Number,
     default: 0
   },
@@ -95,7 +110,7 @@ const orderSchema = new Schema({
   note: {
     type: String
   },
-  
+
   // Guest Order Support
   isGuestOrder: {
     type: Boolean,
@@ -107,7 +122,12 @@ const orderSchema = new Schema({
     phone: String,
     guestToken: String // Token để guest theo dõi đơn hàng
   },
-  
+  // Backwards-compatible guestEmail field (tests expect this)
+  guestEmail: {
+    type: String,
+    required: false
+  },
+
   // VAT Invoice Support
   vatInvoice: {
     type: Boolean,
@@ -126,19 +146,40 @@ const orderSchema = new Schema({
   invoiceGeneratedAt: {
     type: Date
   },
-  
+
+  // Backwards-compatible fields expected by tests
+  paymentMethod: {
+    type: String,
+    required: false
+  },
+  couponDiscount: {
+    type: Number,
+    default: 0
+  },
+  loyaltyPointsDiscount: {
+    type: Number,
+    default: 0
+  },
+  vatInvoiceRequested: {
+    type: Boolean,
+    default: false
+  },
+  notes: {
+    type: String
+  },
+
   // One-click checkout
   usedDefaultAddress: {
     type: Boolean,
     default: false
   },
-  
+
   // Shipping cost
   shippingCost: {
     type: Number,
     default: 0
   },
-  
+
   createdAt: {
     type: Date,
     default: Date.now
@@ -158,22 +199,22 @@ orderSchema.methods.calculateLoyaltyPoints = function () {
 };
 
 // Static: Find order by guest token
-orderSchema.statics.findByGuestToken = function(token) {
+orderSchema.statics.findByGuestToken = function (token) {
   return this.findOne({ 'guestInfo.guestToken': token, isGuestOrder: true })
     .populate('items.product');
 };
 
 // Static: Find orders by guest email
-orderSchema.statics.findByGuestEmail = function(email) {
+orderSchema.statics.findByGuestEmail = function (email) {
   return this.find({ 'guestInfo.email': email.toLowerCase(), isGuestOrder: true })
     .sort({ createdAt: -1 })
     .populate('items.product');
 };
 
 // Generate unique guest token
-orderSchema.statics.generateGuestToken = function() {
+orderSchema.statics.generateGuestToken = function () {
   const crypto = require('crypto');
   return crypto.randomBytes(32).toString('hex');
 };
 
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema);

@@ -158,7 +158,7 @@ app.use((req, res, next) => {
 app.use(syncUserPreferences);
 
 // Cart middleware
-const { initGuestCart, getCartCount } = require('./middleware/guestCart');
+const { initGuestCart } = require('./middleware/guestCart');
 app.use(initGuestCart);
 
 app.use(async (req, res, next) => {
@@ -177,7 +177,7 @@ app.use(async (req, res, next) => {
       // Xử lý cart cho khách không đăng nhập (guest cart từ session)
       if (req.session.guestCart && req.session.guestCart.items) {
         res.locals.cart = req.session.guestCart;
-        res.locals.cartCount = getCartCount(req);
+        res.locals.cartCount = req.session.guestCart.items.reduce((sum, item) => sum + item.quantity, 0);
         res.locals.isGuestCart = true;
       } else if (req.session.cartId) {
         const Cart = require('./models/cart');
@@ -224,8 +224,14 @@ app.use('/questions', questionRoutes);
 app.use('/user/wishlist', wishlistRoutes);
 app.use('/search', searchRoutes);
 
+// API routes (kept parallel to existing EJS routes)
+app.use('/api', require('./routes/api'));
+
 // Error handling
 app.use((req, res, next) => {
+  if (req.originalUrl && req.originalUrl.startsWith('/api')) {
+    return res.status(404).json({ success: false, error: 'Not Found' });
+  }
   res.status(404).render('404', {
     title: 'Page Not Found'
   });
@@ -233,6 +239,9 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
   console.error(err);
+  if (req.originalUrl && req.originalUrl.startsWith('/api')) {
+    return res.status(err.status || 500).json({ success: false, error: process.env.NODE_ENV === 'development' ? err.message : 'Đã xảy ra lỗi trong hệ thống.' });
+  }
   res.status(err.status || 500).render('error', {
     title: 'Error',
     error: process.env.NODE_ENV === 'development' ? err.message : 'Đã xảy ra lỗi trong hệ thống.'

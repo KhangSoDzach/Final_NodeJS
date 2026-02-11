@@ -25,3 +25,13 @@ Final project of Nodejs
 
 Thank you for evaluating this project!
 ALIBABA
+
+## Agent Prompt Template
+
+When invoking an AI agent to work on this repository, start the prompt with the following two lines (copy-paste exactly):
+
+"Strictly follow .agent/skills.manifest.json and only use folders under .agent/active-skills/ unless the user explicitly approves additional skills."
+
+"If a task requires skills outside the manifest, list the missing skills and ask for explicit user approval before proceeding."
+
+Usage: paste these two lines at the top of the agent prompt to enforce the project's skill whitelist and request explicit approval for any out-of-scope skills.

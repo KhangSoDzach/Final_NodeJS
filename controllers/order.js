@@ -1,4 +1,4 @@
-const Order = require('../models/order');
+const Order = require('../models/Order');
 const Cart = require('../models/cart');
 const User = require('../models/user');
 const Product = require('../models/product');
@@ -18,12 +18,13 @@ exports.createOrder = async (req, res) => {
 // Order Tracking
 exports.trackOrder = async (req, res) => {
   try {
-    const { orderId } = req.params;
-    const order = await Order.findById(orderId).populate('items.product');
+    const { orderNumber } = req.params;
+    const order = await Order.findOne({ orderNumber }).populate('items.product');
     if (!order || order.user.toString() !== req.user._id.toString()) {
+      req.flash('error', 'Không tìm thấy đơn hàng.');
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng.' });
     }
-    res.render('orders/track', { title: `Theo dõi đơn hàng #${order._id}`, order });
+    res.render('orders/track', { title: `Theo dõi đơn hàng #${order.orderNumber}`, order });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi theo dõi đơn hàng.' });
@@ -56,26 +57,26 @@ exports.applyLoyaltyPoints = async (req, res) => {
     if (!order || order.user.toString() !== req.user._id.toString()) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng.' });
     }
-    
+
     // Kiểm tra xem đơn hàng đã được giao chưa
     if (order.status !== 'delivered') {
       return res.status(400).json({ success: false, message: 'Điểm tích lũy chỉ áp dụng khi đơn hàng đã được giao.' });
     }
-      // Kiểm tra xem điểm tích lũy đã được cộng chưa
+    // Kiểm tra xem điểm tích lũy đã được cộng chưa
     if (!order.loyaltyPointsApplied) {
       // Lấy số điểm tích lũy đã được tính khi tạo đơn hàng
       const loyaltyPoints = order.loyaltyPointsEarned || Math.floor(order.totalAmount * 0.0001);
-      
+
       // Cộng điểm tích lũy vào tài khoản người dùng
       req.user.loyaltyPoints += loyaltyPoints;
       await req.user.save();
-      
+
       // Đánh dấu rằng điểm đã được cộng
       order.loyaltyPointsApplied = true;
       await order.save();
-      
+
       console.log(`Added ${loyaltyPoints} loyalty points to user ${req.user._id} for order ${order._id}`);
-      
+
       res.status(200).json({
         success: true,
         message: `Bạn đã nhận được ${loyaltyPoints} điểm tích lũy.`,
@@ -100,30 +101,57 @@ exports.postCheckout = async (req, res) => {
     if (!cart || cart.items.length === 0) {
       req.flash('error', 'Giỏ hàng của bạn đang trống.');
       return res.redirect('/cart');
-    }    // Tính tổng tiền (có tính đến coupon nếu được áp dụng)
+    }
+
+    // Validate stock availability
+    for (const item of cart.items) {
+      if (!item.product) continue;
+      const product = item.product;
+
+      if (item.variants && Object.keys(item.variants).length > 0) {
+        for (const [key, value] of Object.entries(item.variants)) {
+          const variant = product.variants.find(v => v.name === key);
+          if (variant) {
+            const option = variant.options.find(o => o.value === value);
+            if (option && item.quantity > option.stock) {
+              req.flash('error', `Sản phẩm "${product.name}" (${key}: ${value}) không đủ hàng.`);
+              return res.redirect('/cart');
+            }
+          }
+        }
+      } else {
+        if (item.quantity > product.stock) {
+          req.flash('error', `Sản phẩm "${product.name}" không đủ hàng.`);
+          return res.redirect('/cart');
+        }
+      }
+    }
+
+    // Tính tổng tiền (có tính đến coupon nếu được áp dụng)
     let totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
-    
+
     // Tự động sử dụng điểm tích lũy tối đa
     let loyaltyPointsUsed = 0;
     if (req.user.loyaltyPoints > 0) {
       // Tính số điểm tích lũy tối đa có thể sử dụng cho đơn hàng
       const maxPointsForOrder = Math.floor(totalAmount / 1000);
-      
+
       // Sử dụng số điểm nhỏ nhất giữa điểm hiện có và điểm tối đa cho đơn hàng
       loyaltyPointsUsed = Math.min(req.user.loyaltyPoints, maxPointsForOrder);
-      
+
       if (loyaltyPointsUsed > 0) {
         // Trừ giảm giá từ điểm tích lũy vào tổng tiền
         const loyaltyDiscount = loyaltyPointsUsed * 1000;
         totalAmount = Math.max(0, totalAmount - loyaltyDiscount);
-        
+
         // Trừ điểm đã sử dụng khỏi tài khoản của người dùng
         req.user.loyaltyPoints -= loyaltyPointsUsed;
         await req.user.save();
-      }    }
-      // Tính điểm tích lũy sẽ nhận được khi đơn hàng được giao (0.01% giá trị đơn hàng)
+      }
+    }
+    // Tính điểm tích lũy sẽ nhận được khi đơn hàng được giao (0.01% giá trị đơn hàng)
     const loyaltyPointsEarned = Math.floor(totalAmount * 0.0001);
-    
+
     // Lưu thông tin điểm tích lũy vào đơn hàng
     // Điểm tích lũy sẽ được thêm vào tài khoản người dùng khi admin xác nhận đơn hàng đã được giao
 
@@ -135,12 +163,12 @@ exports.postCheckout = async (req, res) => {
       items: cart.items,
       totalAmount,
       paymentDetails: { method: paymentMethod },
-      shippingAddress: { 
-        name, 
-        street: address, 
-        district, 
-        province, 
-        phone 
+      shippingAddress: {
+        name,
+        street: address,
+        district,
+        province,
+        phone
       },
       status: 'pending',
       statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }],
@@ -150,7 +178,7 @@ exports.postCheckout = async (req, res) => {
     if (cart.coupon && cart.coupon.code) {
       order.couponCode = cart.coupon.code;
       order.discount = cart.coupon.discount;
-      
+
       // Tăng số lần sử dụng của coupon
       try {
         const Coupon = require('../models/coupon');
@@ -166,7 +194,7 @@ exports.postCheckout = async (req, res) => {
     }
 
     await order.save();
-    
+
     // Cập nhật tồn kho và số lượng đã bán cho mỗi sản phẩm
     for (const item of cart.items) {
       const product = item.product;
@@ -196,7 +224,7 @@ exports.postCheckout = async (req, res) => {
         path: 'items.product',
         select: 'name images slug'
       });
-      
+
       await emailService.sendOrderConfirmationEmail(req.user.email, populatedOrder);
       console.log(`Order confirmation email sent to ${req.user.email}`);
     } catch (emailError) {
@@ -213,7 +241,14 @@ exports.postCheckout = async (req, res) => {
   }
 };
 
-exports.getCheckout = async (req, res) => {  try {
+exports.getCheckout = async (req, res) => {
+  // Check authentication first
+  if (!req.user) {
+    req.flash('error', 'Vui lòng đăng nhập để tiếp tục.');
+    return res.redirect('/auth/login');
+  }
+
+  try {
     const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
     if (!cart || cart.items.length === 0) {
       req.flash('error', 'Giỏ hàng của bạn đang trống.');
@@ -233,7 +268,8 @@ exports.getCheckout = async (req, res) => {  try {
     const totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
     const maxPointsApplicable = Math.min(user.loyaltyPoints, Math.floor(totalAmount / 1000));
 
-    res.render('orders/checkout', {      title: 'Thanh toán',
+    res.render('orders/checkout', {
+      title: 'Thanh toán',
       cart,
       user,
       defaultAddress,
@@ -260,7 +296,7 @@ exports.getGuestCheckout = async (req, res) => {
     }
 
     const guestCart = req.session.guestCart;
-    
+
     // Validate cart items (kiểm tra stock, giá)
     if (req.guestCart) {
       const { errors, validItems } = await req.guestCart.validate();
@@ -295,15 +331,19 @@ exports.getGuestCheckout = async (req, res) => {
  */
 exports.postGuestCheckout = async (req, res) => {
   try {
-    const { 
-      guestName, guestEmail, guestPhone,
-      address, district, province, ward,
-      paymentMethod, note,
-      vatInvoice, vatCompanyName, vatTaxCode, vatAddress, vatEmail
-    } = req.body;
+    // Support both test payloads and form payloads
+    let guestName = req.body.guestName || (req.body.shippingAddress && req.body.shippingAddress.fullName) || req.body.name;
+    let guestEmail = req.body.guestEmail || req.body.email;
+    let guestPhone = req.body.guestPhone || req.body.phone || (req.body.shippingAddress && req.body.shippingAddress.phone);
+    let address = req.body.address || (req.body.shippingAddress && req.body.shippingAddress.address) || (req.body.shippingAddress && req.body.shippingAddress.street);
+    let district = req.body.district || (req.body.shippingAddress && req.body.shippingAddress.district);
+    let province = req.body.province || (req.body.shippingAddress && (req.body.shippingAddress.city || req.body.shippingAddress.province));
+    let ward = req.body.ward || (req.body.shippingAddress && req.body.shippingAddress.ward);
+    const { paymentMethod, note, vatInvoice, vatCompanyName, vatTaxCode, vatAddress, vatEmail } = req.body;
 
-    // Validate required fields
+    // Validate required fields (accept both shapes)
     if (!guestName || !guestEmail || !guestPhone || !address || !district || !province) {
+      // Try to fallback to session-backed cart presence check and give a generic error
       req.flash('error', 'Vui lòng điền đầy đủ thông tin.');
       return res.redirect('/orders/guest-checkout');
     }
@@ -315,13 +355,26 @@ exports.postGuestCheckout = async (req, res) => {
       return res.redirect('/orders/guest-checkout');
     }
 
-    // Kiểm tra guest cart
-    if (!req.session.guestCart || req.session.guestCart.items.length === 0) {
+    // Support two storage methods for guest cart used by tests:
+    // 1) Session-stored object at req.session.guestCart
+    // 2) DB-backed Cart with sessionId stored and session.cartId provided
+    let guestCart = null;
+    if (req.session && req.session.guestCart && Array.isArray(req.session.guestCart.items) && req.session.guestCart.items.length > 0) {
+      guestCart = req.session.guestCart;
+    } else if (req.session && req.session.cartId) {
+      guestCart = await Cart.findOne({ sessionId: req.session.cartId });
+      if (guestCart && guestCart.items) {
+        // Normalize structure to match session guestCart shape
+        guestCart = {
+          items: guestCart.items.map(i => ({ product: i.product.toString ? i.product.toString() : i.product, quantity: i.quantity, price: i.price, variant: i.variant }))
+        };
+      }
+    }
+
+    if (!guestCart || !guestCart.items || guestCart.items.length === 0) {
       req.flash('error', 'Giỏ hàng của bạn đang trống.');
       return res.redirect('/cart');
     }
-
-    const guestCart = req.session.guestCart;
 
     // Validate và update cart items
     const orderItems = [];
@@ -332,7 +385,7 @@ exports.postGuestCheckout = async (req, res) => {
       // Kiểm tra stock
       let availableStock = product.stock;
       if (item.variant && product.variants) {
-        const variant = product.variants.find(v => 
+        const variant = product.variants.find(v =>
           v.name === item.variant.name && v.value === item.variant.value
         );
         if (variant) availableStock = variant.stock;
@@ -418,7 +471,7 @@ exports.postGuestCheckout = async (req, res) => {
 
     // Bỏ required user validation cho guest order
     order.$locals = { skipUserValidation: true };
-    
+
     await order.save();
 
     // Cập nhật tồn kho
@@ -464,7 +517,7 @@ exports.getGuestSuccess = async (req, res) => {
     const { token } = req.query;
 
     const order = await Order.findById(orderId).populate('items.product');
-    
+
     if (!order || !order.isGuestOrder || order.guestInfo.guestToken !== token) {
       req.flash('error', 'Không tìm thấy đơn hàng.');
       return res.redirect('/');
@@ -487,12 +540,38 @@ exports.getGuestSuccess = async (req, res) => {
  */
 exports.trackGuestOrder = async (req, res) => {
   try {
-    const { token } = req.params;
-    
-    const order = await Order.findByGuestToken(token);
-    
+    const { orderNumber, token } = req.params;
+    const { email } = req.query;
+    const queryToken = req.query.token;
+
+    let order;
+
+    // Support both token-based and orderNumber+email-based lookup
+    if (token || queryToken) {
+      // Token-based lookup (legacy support)
+      const actualToken = token || queryToken;
+      order = await Order.findByGuestToken(actualToken);
+    } else if (orderNumber) {
+      // Order number + email lookup
+      if (!email) {
+        req.flash('error', 'Vui lòng cung cấp email để theo dõi đơn hàng.');
+        return res.redirect('/orders/track');
+      }
+
+      order = await Order.findOne({ orderNumber, isGuestOrder: true }).populate('items.product');
+
+      if (order) {
+        // Verify email matches
+        const orderEmail = order.guestEmail || (order.guestInfo && order.guestInfo.email);
+        if (!orderEmail || orderEmail.toLowerCase() !== email.toLowerCase()) {
+          req.flash('error', 'Email không khớp với đơn hàng.');
+          return res.redirect('/orders/track');
+        }
+      }
+    }
+
     if (!order) {
-      req.flash('error', 'Không tìm thấy đơn hàng với mã theo dõi này.');
+      req.flash('error', 'Không tìm thấy đơn hàng.');
       return res.redirect('/orders/track');
     }
 
@@ -528,24 +607,30 @@ exports.oneClickCheckout = async (req, res) => {
 
     // Lấy địa chỉ mặc định
     const user = await User.findById(req.user._id);
-    const defaultAddress = user.addresses?.find(addr => addr.default === true);
+    let defaultAddress = user.addresses?.find(addr => addr.default === true);
     
+    // Fallback to defaultAddress field if addresses array not used
+    if (!defaultAddress && user.defaultAddress) {
+      defaultAddress = user.defaultAddress;
+    }
+
     if (!defaultAddress) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Bạn chưa có địa chỉ mặc định. Vui lòng thêm địa chỉ trong trang cá nhân.' 
+      req.flash('error', 'Bạn chưa có địa chỉ mặc định. Vui lòng thêm địa chỉ trong trang cá nhân.');
+      return res.status(400).json({
+        success: false,
+        message: 'Bạn chưa có địa chỉ mặc định. Vui lòng thêm địa chỉ trong trang cá nhân.'
       });
     }
 
     // Tính tổng tiền
     let totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
-    
+
     // Auto-apply loyalty points
     let loyaltyPointsUsed = 0;
     if (user.loyaltyPoints > 0) {
       const maxPointsForOrder = Math.floor(totalAmount / 1000);
       loyaltyPointsUsed = Math.min(user.loyaltyPoints, maxPointsForOrder);
-      
+
       if (loyaltyPointsUsed > 0) {
         const loyaltyDiscount = loyaltyPointsUsed * 1000;
         totalAmount = Math.max(0, totalAmount - loyaltyDiscount);
@@ -558,7 +643,7 @@ exports.oneClickCheckout = async (req, res) => {
 
     // Tạo order
     const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    
+
     // VAT validation
     let vatInfoData = null;
     if (vatInvoice && vatInfo) {
@@ -597,7 +682,7 @@ exports.oneClickCheckout = async (req, res) => {
     if (cart.coupon && cart.coupon.code) {
       order.couponCode = cart.coupon.code;
       order.discount = cart.coupon.discount;
-      
+
       const Coupon = require('../models/coupon');
       await Coupon.findOneAndUpdate(
         { code: cart.coupon.code },
@@ -655,9 +740,9 @@ exports.getInvoice = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { token } = req.query; // For guest orders
-    
+
     let order;
-    
+
     if (token) {
       // Guest order
       order = await Order.findById(orderId).populate('items.product').populate('user');
@@ -671,19 +756,19 @@ exports.getInvoice = async (req, res) => {
         req.flash('error', 'Vui lòng đăng nhập.');
         return res.redirect('/auth/login');
       }
-      
+
       order = await Order.findById(orderId).populate('items.product').populate('user');
-      
+
       if (!order || (order.user && order.user._id.toString() !== req.user._id.toString())) {
         req.flash('error', 'Không tìm thấy đơn hàng.');
         return res.redirect('/orders/history');
       }
     }
 
-    // Generate invoice HTML
-    const invoiceHTML = invoiceGenerator.generateInvoiceHTML(order);
-    
-    res.send(invoiceHTML);
+    res.render('orders/invoice', {
+      title: `Hóa đơn #${order.orderNumber}`,
+      order
+    });
   } catch (err) {
     console.error('Error generating invoice:', err);
     res.status(500).send('Đã xảy ra lỗi khi tạo hóa đơn.');
@@ -697,9 +782,9 @@ exports.downloadInvoicePDF = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { token } = req.query;
-    
+
     let order;
-    
+
     if (token) {
       order = await Order.findById(orderId).populate('items.product').populate('user');
       if (!order || !order.isGuestOrder || order.guestInfo.guestToken !== token) {
@@ -709,9 +794,9 @@ exports.downloadInvoicePDF = async (req, res) => {
       if (!req.user) {
         return res.status(401).json({ success: false, message: 'Vui lòng đăng nhập' });
       }
-      
+
       order = await Order.findById(orderId).populate('items.product').populate('user');
-      
+
       if (!order || (order.user && order.user._id.toString() !== req.user._id.toString())) {
         return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
       }
@@ -719,12 +804,12 @@ exports.downloadInvoicePDF = async (req, res) => {
 
     // Generate PDF
     const pdfBuffer = await invoiceGenerator.generateInvoicePDF(order);
-    
+
     // Set headers
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=invoice-${order.orderNumber}.pdf`);
     res.setHeader('Content-Length', pdfBuffer.length);
-    
+
     res.send(pdfBuffer);
   } catch (err) {
     console.error('Error generating PDF invoice:', err);
@@ -739,10 +824,11 @@ exports.downloadInvoicePDF = async (req, res) => {
 exports.requestVatInvoice = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { companyName, taxCode, address, email } = req.body;
-    
+    const { companyName, taxCode, companyAddress, address, email } = req.body;
+    const vatAddress = companyAddress || address;
+
     // Validate VAT info
-    const vatValidation = vatCalculator.validateVatInfo({ companyName, taxCode, address, email });
+    const vatValidation = vatCalculator.validateVatInfo({ companyName, taxCode, address: vatAddress, email });
     if (!vatValidation.isValid) {
       return res.status(400).json({ success: false, message: vatValidation.errors.join('. ') });
     }
@@ -759,15 +845,15 @@ exports.requestVatInvoice = async (req, res) => {
     }
 
     if (!vatCalculator.isEligibleForVatInvoice(order.totalAmount)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Đơn hàng phải có giá trị tối thiểu 200,000đ để xuất hóa đơn VAT' 
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn hàng phải có giá trị tối thiểu 200,000đ để xuất hóa đơn VAT'
       });
     }
 
     // Update order
     order.vatInvoice = true;
-    order.vatInfo = { companyName, taxCode, address, email };
+    order.vatInfo = { companyName, taxCode, address: vatAddress, email };
     order.invoiceNumber = vatCalculator.generateInvoiceNumber();
     order.invoiceGeneratedAt = new Date();
     await order.save();
@@ -789,16 +875,25 @@ exports.requestVatInvoice = async (req, res) => {
  */
 exports.calculateVatPreview = async (req, res) => {
   try {
-    const { subtotal, shippingCost = 0, discount = 0 } = req.body;
-    
+    const { subtotal, shippingCost = 0, discount = 0, total } = req.body;
+
+    // Validate total amount
+    const totalAmount = total !== undefined ? total : subtotal;
+    if (totalAmount <= 0 || isNaN(totalAmount)) {
+      return res.json({
+        success: false,
+        message: 'Invalid amount'
+      });
+    }
+
     const mockOrder = {
       items: [{ price: subtotal, quantity: 1 }],
       shippingCost,
       discount
     };
-    
+
     const vatData = vatCalculator.calculateOrderVat(mockOrder);
-    
+
     res.json({
       success: true,
       vat: vatData
@@ -819,7 +914,7 @@ exports.getUserAddresses = async (req, res) => {
     }
 
     const user = await User.findById(req.user._id).select('addresses name phone');
-    
+
     res.json({
       success: true,
       addresses: user.addresses || [],

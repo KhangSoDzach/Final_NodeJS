@@ -6,12 +6,16 @@ const { SUPPORTED_LOCALES } = require('../utils/localeFormatter');
 const { isSupportedCurrency } = require('../config/currencies');
 
 exports.getProfile = async (req, res) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.redirect('/auth/login');
+  }
   try {
+
     // Get recent orders
     const recentOrders = await Order.find({ user: req.user._id })
       .sort({ createdAt: -1 })
       .limit(5);
-    
+
     res.render('user/profile', {
       title: 'Thông tin tài khoản',
       user: req.user,
@@ -25,25 +29,40 @@ exports.getProfile = async (req, res) => {
 };
 
 exports.updateProfile = async (req, res) => {
-  const { name, phone } = req.body;
+  if (!req.isAuthenticated() || !req.user) {
+    return res.redirect('/auth/login');
+  }
+  const { name, email, phone } = req.body;
+
+
   const errors = validationResult(req);
-  
+
   if (!errors.isEmpty()) {
     req.flash('error', errors.array()[0].msg);
     return res.redirect('/user/profile');
   }
-  
+
   try {
+    const userId = req.user._id;
+    const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+    console.log('UpdateProfile Duplicate Check:', { email, userId, existingUser });
+    if (existingUser) {
+      req.flash('error', 'Email đã tồn tại.');
+      return res.redirect('/user/profile');
+    }
+
+
     await User.updateOne(
-      { _id: req.user._id },
+      { _id: userId },
       {
         $set: {
           name,
+          email,
           phone
         }
       }
     );
-    
+
     req.flash('success', 'Thông tin tài khoản đã được cập nhật.');
     res.redirect('/user/profile');
   } catch (err) {
@@ -54,7 +73,11 @@ exports.updateProfile = async (req, res) => {
 };
 
 exports.getAddresses = async (req, res) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.redirect('/auth/login');
+  }
   try {
+
     res.render('user/addresses', {
       title: 'Địa chỉ của tôi',
       addresses: req.user.addresses
@@ -67,31 +90,42 @@ exports.getAddresses = async (req, res) => {
 };
 
 exports.addAddress = async (req, res) => {
-  const { street, district, province, isDefault } = req.body;
-  
+  if (!req.isAuthenticated() || !req.user) {
+    return res.redirect('/auth/login');
+  }
+  const { street, district, province, city, state, isDefault, fullName, phone } = req.body;
+  const finalDistrict = district || state;
+  const finalProvince = province || city;
+
+  if (!street || !finalDistrict || !finalProvince) {
+    req.flash('error', 'Vui lòng điền đầy đủ thông tin địa chỉ.');
+    return res.redirect('/user/addresses');
+  }
+
   try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      req.flash('error', 'Không tìm thấy người dùng.');
+      return res.redirect('/');
+    }
+
     // If this is the default address, unset other default addresses
     if (isDefault) {
-      await User.updateOne(
-        { _id: req.user._id },
-        { $set: { "addresses.$[].default": false } }
-      );
+      user.addresses.forEach(addr => addr.default = false);
     }
-    
-    await User.updateOne(
-      { _id: req.user._id },
-      {
-        $push: {
-          addresses: {
-            street,
-            district,
-            province,
-            default: isDefault ? true : false
-          }
-        }
-      }
-    );
-    
+
+    user.addresses.push({
+      fullName: fullName || user.name,
+      phone: phone || user.phone,
+      street,
+      district: finalDistrict,
+      province: finalProvince,
+      default: isDefault ? true : false
+
+    });
+
+    await user.save();
+
     req.flash('success', 'Địa chỉ đã được thêm thành công.');
     res.redirect('/user/addresses');
   } catch (err) {
@@ -101,30 +135,39 @@ exports.addAddress = async (req, res) => {
   }
 };
 
+
 exports.updateAddress = async (req, res) => {
-  const { addressId, street, district, province, isDefault } = req.body;
-  
+  if (!req.isAuthenticated() || !req.user) {
+    return res.redirect('/auth/login');
+  }
+  const { addressId, street, district, province, city, state, isDefault, fullName, phone } = req.body;
+  const finalDistrict = district || state;
+  const finalProvince = province || city;
+
   try {
+    const user = await User.findById(req.user._id);
+    const address = user.addresses.id(addressId || req.params.addressId);
+
+    if (!address) {
+      req.flash('error', 'Không tìm thấy địa chỉ.');
+      return res.redirect('/user/addresses');
+    }
+
     // If this is the default address, unset other default addresses
     if (isDefault) {
-      await User.updateOne(
-        { _id: req.user._id },
-        { $set: { "addresses.$[].default": false } }
-      );
+      user.addresses.forEach(addr => addr.default = false);
     }
-    
-    await User.updateOne(
-      { _id: req.user._id, "addresses._id": addressId },
-      {
-        $set: {
-          "addresses.$.street": street,
-          "addresses.$.district": district,
-          "addresses.$.province": province,
-          "addresses.$.default": isDefault ? true : false
-        }
-      }
-    );
-    
+
+    address.fullName = fullName || address.fullName;
+    address.phone = phone || address.phone;
+    address.street = street || address.street;
+    address.district = finalDistrict || address.district;
+    address.province = finalProvince || address.province;
+
+    address.default = isDefault ? true : false;
+
+    await user.save();
+
     req.flash('success', 'Địa chỉ đã được cập nhật.');
     res.redirect('/user/addresses');
   } catch (err) {
@@ -134,15 +177,20 @@ exports.updateAddress = async (req, res) => {
   }
 };
 
+
 exports.deleteAddress = async (req, res) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.redirect('/auth/login');
+  }
   const { addressId } = req.params;
-  
+
+
   try {
     await User.updateOne(
       { _id: req.user._id },
       { $pull: { addresses: { _id: addressId } } }
     );
-    
+
     req.flash('success', 'Địa chỉ đã được xóa.');
     res.redirect('/user/addresses');
   } catch (err) {
@@ -157,25 +205,35 @@ exports.getChangePassword = (req, res) => {
     req.flash('error', 'Tài khoản của bạn đăng nhập qua Google không thể thay đổi mật khẩu.');
     return res.redirect('/user/profile');
   }
-  
+
   res.render('user/change-password', {
     title: 'Đổi mật khẩu'
   });
 };
 
 exports.postChangePassword = async (req, res) => {
-  const { currentPassword, newPassword, confirmNewPassword } = req.body;
-  
+  if (!req.isAuthenticated() || !req.user) {
+    return res.redirect('/auth/login');
+  }
+  const { currentPassword, newPassword, confirmNewPassword, confirmPassword } = req.body;
+  const finalConfirm = confirmNewPassword || confirmPassword;
+
   if (req.user.googleId) {
     req.flash('error', 'Tài khoản của bạn đăng nhập qua Google không thể thay đổi mật khẩu.');
     return res.redirect('/user/profile');
   }
-  
-  if (newPassword !== confirmNewPassword) {
+
+  if (newPassword !== finalConfirm) {
     req.flash('error', 'Mật khẩu mới không khớp.');
     return res.redirect('/user/change-password');
   }
-  
+
+  if (newPassword.length < 6) {
+    req.flash('error', 'Mật khẩu mới phải có ít nhất 6 ký tự.');
+    return res.redirect('/user/change-password');
+  }
+
+
   try {
     // Verify current password
     const isMatch = await bcrypt.compare(currentPassword, req.user.password);
@@ -183,14 +241,14 @@ exports.postChangePassword = async (req, res) => {
       req.flash('error', 'Mật khẩu hiện tại không chính xác.');
       return res.redirect('/user/change-password');
     }
-    
+
     // Update password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await User.updateOne(
       { _id: req.user._id },
       { $set: { password: hashedPassword } }
     );
-    
+
     req.flash('success', 'Mật khẩu đã được cập nhật thành công.');
     res.redirect('/user/profile');
   } catch (err) {
@@ -201,7 +259,11 @@ exports.postChangePassword = async (req, res) => {
 };
 
 exports.getUserOrders = async (req, res) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.redirect('/auth/login');
+  }
   try {
+
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
     const skip = (page - 1) * limit;
@@ -226,7 +288,11 @@ exports.getUserOrders = async (req, res) => {
 };
 
 exports.getLoyaltyPoints = async (req, res) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.redirect('/auth/login');
+  }
   try {
+
     // Get points history from orders
     const pointsHistory = await Order.find({
       user: req.user._id,
@@ -235,9 +301,9 @@ exports.getLoyaltyPoints = async (req, res) => {
         { loyaltyPointsUsed: { $gt: 0 } }
       ]
     })
-    .select('orderNumber createdAt loyaltyPointsEarned loyaltyPointsUsed')
-    .sort({ createdAt: -1 });
-    
+      .select('orderNumber createdAt loyaltyPointsEarned loyaltyPointsUsed')
+      .sort({ createdAt: -1 });
+
     res.render('user/loyalty-points', {
       title: 'Điểm tích lũy',
       currentPoints: req.user.loyaltyPoints,
@@ -251,14 +317,24 @@ exports.getLoyaltyPoints = async (req, res) => {
 };
 
 exports.getOrderDetail = async (req, res) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.redirect('/auth/login');
+  }
   try {
+
     const { orderId } = req.params;
     const order = await Order.findById(orderId).populate('items.product');
 
-    if (!order || order.user.toString() !== req.user._id.toString()) {
+    if (!order) {
       req.flash('error', 'Không tìm thấy đơn hàng.');
       return res.redirect('/user/orders');
     }
+
+    if (order.user.toString() !== req.user._id.toString()) {
+      req.flash('error', 'Bạn không có quyền xem đơn hàng này.');
+      return res.redirect('/user/orders');
+    }
+
 
     res.render('orders/detail', {
       title: `Chi tiết đơn hàng #${order.orderNumber}`,
@@ -272,21 +348,33 @@ exports.getOrderDetail = async (req, res) => {
 };
 
 exports.cancelOrder = async (req, res) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.redirect('/auth/login');
+  }
   try {
+
     const { orderId } = req.params;
 
     // Tìm đơn hàng theo ID và kiểm tra quyền sở hữu
     const order = await Order.findById(orderId).populate('items.product');
-    if (!order || order.user.toString() !== req.user._id.toString()) {
+    if (!order) {
       req.flash('error', 'Không tìm thấy đơn hàng.');
       return res.redirect('/user/orders');
     }
 
+    if (order.user.toString() !== req.user._id.toString()) {
+      req.flash('error', 'Bạn không có quyền hủy đơn hàng này.');
+      return res.redirect('/user/orders');
+    }
+
+
     // Kiểm tra trạng thái đơn hàng (chỉ cho phép hủy nếu chưa giao hàng)
-    if (order.status === 'shipping' || order.status === 'delivered') {
+    console.log('CancelOrder Check:', { orderId, status: order.status });
+    if (order.status === 'shipping' || order.status === 'shipped' || order.status === 'delivered') {
       req.flash('error', 'Không thể hủy đơn hàng đã được giao hoặc đang vận chuyển.');
       return res.redirect('/user/orders');
     }
+
 
     // BUG-002 FIX: Hoàn trả tồn kho cho từng sản phẩm trong đơn hàng
     const Product = require('../models/product');
@@ -336,7 +424,7 @@ exports.cancelOrder = async (req, res) => {
       date: Date.now(),
       note: 'Đơn hàng đã được hủy bởi người dùng.',
     });
-    
+
     // Nếu có sử dụng coupon, giảm số lượt đã dùng của coupon
     if (order.couponCode) {
       try {
@@ -350,7 +438,7 @@ exports.cancelOrder = async (req, res) => {
         console.error('Error updating coupon usedCount on cancel:', couponError);
       }
     }
-    
+
     await order.save();
 
     req.flash('success', 'Đơn hàng đã được hủy thành công. Tồn kho và điểm tích lũy đã được hoàn trả.');
