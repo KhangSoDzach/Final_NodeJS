@@ -1,0 +1,385 @@
+/* ===================================================================
+   Interactive Elements Module Index
+   Import all interactive component stylesheets
+   ================================================================ */
+
+@import './tooltips.css';
+@import './dropdowns.css';
+@import './accordion.css';
+@import './tabs.css';
+@import './loaders.css';
+@import './carousel.css';
+
+/* ===================================================================
+   INTERACTIVE ELEMENTS USAGE GUIDE
+   ================================================================
+
+   ## Tooltips
+   
+   ```html
+   <!-- Simple tooltip -->
+   <button data-tooltip data-position="top">
+     Hover me
+     <span class="tooltip show">Tooltip text</span>
+   </button>
+   
+   <!-- Tooltip with variant -->
+   <span class="info-tooltip">
+     <i class="fas fa-info-circle"></i>
+     <span class="tooltip tooltip-primary" data-position="right">
+       Important information here
+     </span>
+   </span>
+   
+   <!-- Popover -->
+   <div class="popover show" data-position="bottom">
+     <div class="popover-header">
+       <h4>Popover Title</h4>
+       <button class="popover-close">×</button>
+     </div>
+     <div class="popover-body">
+       <p>Detailed content with interactive elements.</p>
+     </div>
+     <div class="popover-footer">
+       <button class="btn btn-sm btn-primary">Action</button>
+     </div>
+   </div>
+   ```
+
+   ## Dropdowns
+   
+   ```html
+   <!-- Basic dropdown -->
+   <div class="dropdown show">
+     <button class="dropdown-toggle">
+       Options
+     </button>
+     <div class="dropdown-menu">
+       <div class="dropdown-header">Actions</div>
+       <a href="#" class="dropdown-item">
+         <i class="fas fa-user"></i>
+         Profile
+       </a>
+       <a href="#" class="dropdown-item active">
+         <i class="fas fa-cog"></i>
+         Settings
+       </a>
+       <div class="dropdown-divider"></div>
+       <a href="#" class="dropdown-item dropdown-item-danger">
+         <i class="fas fa-sign-out-alt"></i>
+         Logout
+       </a>
+     </div>
+   </div>
+   
+   <!-- Custom select -->
+   <div class="select-dropdown open">
+     <div class="select-dropdown-trigger">
+       <span>Select option</span>
+       <div class="select-dropdown-icon">
+         <i class="fas fa-chevron-down"></i>
+       </div>
+     </div>
+     <div class="select-dropdown-menu">
+       <div class="select-dropdown-option selected">Option 1</div>
+       <div class="select-dropdown-option">Option 2</div>
+       <div class="select-dropdown-option">Option 3</div>
+     </div>
+   </div>
+   ```
+
+   ## Accordion
+   
+   ```html
+   <!-- Accordion -->
+   <div class="accordion">
+     <div class="accordion-item active">
+       <button class="accordion-header">
+         <h3 class="accordion-title">Section 1</h3>
+         <div class="accordion-icon">
+           <i class="fas fa-chevron-down"></i>
+         </div>
+       </button>
+       <div class="accordion-body">
+         <div class="accordion-content">
+           <p>Content for section 1...</p>
+         </div>
+       </div>
+     </div>
+     
+     <div class="accordion-item">
+       <button class="accordion-header">
+         <h3 class="accordion-title">Section 2</h3>
+         <div class="accordion-icon">
+           <i class="fas fa-chevron-down"></i>
+         </div>
+       </button>
+       <div class="accordion-body">
+         <div class="accordion-content">
+           <p>Content for section 2...</p>
+         </div>
+       </div>
+     </div>
+   </div>
+   
+   <!-- FAQ style -->
+   <div class="accordion accordion-faq">
+     <div class="accordion-item">
+       <button class="accordion-header">
+         <h3 class="accordion-title">How do I place an order?</h3>
+         <div class="accordion-icon">
+           <i class="fas fa-chevron-down"></i>
+         </div>
+       </button>
+       <div class="accordion-body">
+         <div class="accordion-content">
+           Simply browse products and click "Add to Cart"...
+         </div>
+       </div>
+     </div>
+   </div>
+   ```
+
+   ## Tabs
+   
+   ```html
+   <!-- Horizontal tabs -->
+   <div class="tabs">
+     <div class="tab-list">
+       <button class="tab-button active">
+         <i class="fas fa-home"></i>
+         Overview
+       </button>
+       <button class="tab-button">
+         <i class="fas fa-star"></i>
+         Reviews
+         <span class="badge badge-primary">12</span>
+       </button>
+       <button class="tab-button">
+         <i class="fas fa-info-circle"></i>
+         Specifications
+       </button>
+     </div>
+     
+     <div class="tab-panels">
+       <div class="tab-panel active">
+         <p>Overview content...</p>
+       </div>
+       <div class="tab-panel">
+         <p>Reviews content...</p>
+       </div>
+       <div class="tab-panel">
+         <p>Specifications content...</p>
+       </div>
+     </div>
+   </div>
+   
+   <!-- Pills style -->
+   <div class="tabs">
+     <div class="tab-list tab-list-pills">
+       <button class="tab-button active">Tab 1</button>
+       <button class="tab-button">Tab 2</button>
+       <button class="tab-button">Tab 3</button>
+     </div>
+     <div class="tab-panels">...</div>
+   </div>
+   
+   <!-- Breadcrumb -->
+   <nav class="breadcrumb">
+     <a href="/" class="breadcrumb-item">
+       <i class="fas fa-home"></i>
+       Home
+     </a>
+     <span class="breadcrumb-separator">/</span>
+     <a href="/products" class="breadcrumb-item">Products</a>
+     <span class="breadcrumb-separator">/</span>
+     <span class="breadcrumb-item active">Laptop</span>
+   </nav>
+   
+   <!-- Pagination -->
+   <nav class="pagination">
+     <a href="#" class="pagination-item pagination-prev">
+       <i class="fas fa-chevron-left"></i>
+     </a>
+     <a href="#" class="pagination-item">1</a>
+     <a href="#" class="pagination-item active">2</a>
+     <a href="#" class="pagination-item">3</a>
+     <span class="pagination-info">of 10</span>
+     <a href="#" class="pagination-item pagination-next">
+       <i class="fas fa-chevron-right"></i>
+     </a>
+   </nav>
+   ```
+
+   ## Loaders
+   
+   ```html
+   <!-- Spinners -->
+   <div class="spinner-ring"></div>
+   <div class="spinner-dual-ring"></div>
+   <div class="spinner-gradient"></div>
+   
+   <div class="spinner-dots">
+     <span></span>
+     <span></span>
+     <span></span>
+   </div>
+   
+   <div class="spinner-bars">
+     <span></span>
+     <span></span>
+     <span></span>
+     <span></span>
+     <span></span>
+   </div>
+   
+   <!-- Loading overlay -->
+   <div class="loading-overlay show">
+     <div class="spinner-gradient spinner-lg"></div>
+     <div class="loading-overlay-text">Loading...</div>
+   </div>
+   
+   <!-- Skeleton loaders -->
+   <div class="skeleton-card">
+     <div class="skeleton skeleton-image"></div>
+     <div class="skeleton skeleton-title"></div>
+     <div class="skeleton skeleton-text"></div>
+     <div class="skeleton skeleton-text" style="width: 70%;"></div>
+   </div>
+   
+   <!-- Progress bar -->
+   <div class="progress">
+     <div class="progress-bar" style="width: 75%;"></div>
+   </div>
+   
+   <div class="progress">
+     <div class="progress-bar progress-animated progress-striped" style="width: 60%;"></div>
+   </div>
+   
+   <!-- Circular progress -->
+   <div class="progress-circle">
+     <svg>
+       <circle class="progress-circle-bg" cx="60" cy="60" r="54"></circle>
+       <circle class="progress-circle-bar" cx="60" cy="60" r="54" 
+         stroke-dasharray="339.292" stroke-dashoffset="100"></circle>
+     </svg>
+     <div class="progress-circle-text">65%</div>
+   </div>
+   ```
+
+   ## Carousel
+   
+   ```html
+   <!-- Hero slider -->
+   <div class="carousel hero-slider">
+     <div class="carousel-wrapper">
+       <div class="carousel-item">
+         <img src="hero1.jpg" alt="Hero 1">
+         <div class="hero-content">
+           <h1 class="hero-title">Welcome to Source Computer</h1>
+           <p class="hero-subtitle">The best tech products at amazing prices</p>
+           <div class="hero-actions">
+             <a href="#" class="btn btn-primary btn-lg">Shop Now</a>
+             <a href="#" class="btn btn-outline-light btn-lg">Learn More</a>
+           </div>
+         </div>
+       </div>
+     </div>
+     
+     <button class="carousel-control carousel-control-prev">
+       <i class="fas fa-chevron-left"></i>
+     </button>
+     <button class="carousel-control carousel-control-next">
+       <i class="fas fa-chevron-right"></i>
+     </button>
+     
+     <div class="carousel-indicators">
+       <button class="carousel-indicator active"></button>
+       <button class="carousel-indicator"></button>
+       <button class="carousel-indicator"></button>
+     </div>
+   </div>
+   
+   <!-- Product carousel -->
+   <div class="product-carousel">
+     <div class="carousel-wrapper">
+       <div class="carousel-item">
+         <!-- Product card -->
+       </div>
+       <div class="carousel-item">
+         <!-- Product card -->
+       </div>
+       <!-- More items... -->
+     </div>
+   </div>
+   ```
+
+   ## JavaScript Integration Examples
+   
+   ```javascript
+   // Tooltip
+   document.querySelectorAll('[data-tooltip]').forEach(el => {
+     el.addEventListener('mouseenter', () => {
+       el.querySelector('.tooltip').classList.add('show');
+     });
+     el.addEventListener('mouseleave', () => {
+       el.querySelector('.tooltip').classList.remove('show');
+     });
+   });
+   
+   // Dropdown
+   document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+     toggle.addEventListener('click', () => {
+       toggle.closest('.dropdown').classList.toggle('show');
+     });
+   });
+   
+   // Accordion
+   document.querySelectorAll('.accordion-header').forEach(header => {
+     header.addEventListener('click', () => {
+       const item = header.closest('.accordion-item');
+       item.classList.toggle('active');
+     });
+   });
+   
+   // Tabs
+   document.querySelectorAll('.tab-button').forEach(button => {
+     button.addEventListener('click', () => {
+       const tabs = button.closest('.tabs');
+       const index = Array.from(button.parentElement.children).indexOf(button);
+       
+       // Remove active from all
+       tabs.querySelectorAll('.tab-button, .tab-panel').forEach(el => {
+         el.classList.remove('active');
+       });
+       
+       // Add active to clicked
+       button.classList.add('active');
+       tabs.querySelectorAll('.tab-panel')[index].classList.add('active');
+     });
+   });
+   
+   // Carousel with GSAP
+   const carousel = document.querySelector('.hero-slider .carousel-wrapper');
+   let currentSlide = 0;
+   
+   function nextSlide() {
+     currentSlide = (currentSlide + 1) % slides;
+     gsap.to(carousel, {
+       x: `-${currentSlide * 100}%`,
+       duration: 0.8,
+       ease: 'power2.inOut'
+     });
+   }
+   
+   // Progress bar animation
+   function animateProgress(element, targetWidth) {
+     gsap.to(element, {
+       width: `${targetWidth}%`,
+       duration: 1,
+       ease: 'power2.out'
+     });
+   }
+   ```
+
+================================================================ */

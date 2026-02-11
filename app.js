@@ -64,8 +64,8 @@ global.broadcastReview = (productSlug, review) => {
 
 // Database connection - Sửa đường dẫn kết nối
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/sourcecomputer')
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // View engine setup
 app.set('view engine', 'ejs');
@@ -102,11 +102,11 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'e2f3c4d5e6f7a8b9c0d1e2f3c4d5e6f7a8b9c0d1e2f3',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ 
+  store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:27017/sourcecomputer',
     ttl: 24 * 60 * 60 // Session expire sau 1 ngày
   }),
-  cookie: { 
+  cookie: {
     maxAge: 1000 * 60 * 60 * 24, // 1 ngày
     secure: false, // Set true nếu dùng HTTPS
     httpOnly: true,
@@ -138,19 +138,19 @@ app.use((req, res, next) => {
   res.locals.isAuthenticated = req.isAuthenticated();
   res.locals.isAdmin = req.user && req.user.role === 'admin';
   res.locals.user = req.user || null;
-  
+
   // Flash messages
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.warning = req.flash('warning');
-  
+
   // For debugging
   console.log('Session ID:', req.sessionID);
-  console.log('Flash messages:', { 
+  console.log('Flash messages:', {
     success: res.locals.success,
     error: res.locals.error
   });
-  
+
   next();
 });
 
@@ -227,6 +227,30 @@ app.use('/search', searchRoutes);
 // API routes (kept parallel to existing EJS routes)
 app.use('/api', require('./routes/api'));
 
+// Serve React SPA build (production)
+const distPath = path.join(__dirname, 'dist');
+
+
+// Check if dist/index.html exists (React build)
+if (fs.existsSync(path.join(distPath, 'index.html'))) {
+  app.use(express.static(distPath));
+
+  // SPA fallback - Serve index.html for all non-API routes
+  app.get('*', (req, res, next) => {
+    // Skip if it's an API route or EJS route
+    if (req.path.startsWith('/api') ||
+      req.path.startsWith('/auth') ||
+      req.path.startsWith('/admin') ||
+      req.path.startsWith('/user') ||
+      req.path.startsWith('/products') ||
+      req.path.startsWith('/cart') ||
+      req.path.startsWith('/orders')) {
+      return next();
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
 // Error handling
 app.use((req, res, next) => {
   if (req.originalUrl && req.originalUrl.startsWith('/api')) {
@@ -255,3 +279,4 @@ server.listen(PORT, () => {
 });
 
 module.exports = app;
+

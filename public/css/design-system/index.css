@@ -1,0 +1,195 @@
+/* ===================================================================
+   Source Computer - Design System Index
+   Import this file to get all design tokens
+   ================================================================ */
+
+/* Import Design Tokens */
+@import './variables-dark.css';    /* Dark theme (default) */
+@import './variables-light.css';   /* Light theme (fallback) */
+@import './mixins.css';            /* Utility classes & patterns */
+
+/* ===================================================================
+   USAGE GUIDE
+   ================================================================
+
+   1. THEME SWITCHING
+   ------------------
+   Default theme is dark. To enable light theme, add data-theme attribute:
+   
+   <html data-theme="light">
+   or
+   <html data-theme="dark">
+   
+   JavaScript example:
+   ```javascript
+   // Get saved theme from localStorage
+   const savedTheme = localStorage.getItem('theme') || 'dark';
+   document.documentElement.setAttribute('data-theme', savedTheme);
+   
+   // Toggle function
+   function toggleTheme() {
+     const current = document.documentElement.getAttribute('data-theme') || 'dark';
+     const newTheme = current === 'dark' ? 'light' : 'dark';
+     document.documentElement.setAttribute('data-theme', newTheme);
+     localStorage.setItem('theme', newTheme);
+   }
+   ```
+
+   2. USING COLOR TOKENS
+   ----------------------
+   ```css
+   .my-element {
+     background: var(--bg-primary);
+     color: var(--text-primary);
+     border: 1px solid var(--border-default);
+   }
+   
+   .my-button {
+     background: var(--primary);
+     color: var(--text-inverse);
+     box-shadow: var(--shadow-glow-primary);
+   }
+   ```
+
+   3. USING SPACING
+   ----------------
+   ```css
+   .my-card {
+     padding: var(--space-6);
+     margin-bottom: var(--space-8);
+     gap: var(--space-4);
+   }
+   ```
+
+   4. USING SHADOWS & GLOWS
+   ------------------------
+   ```css
+   .card {
+     box-shadow: var(--shadow-md);
+   }
+   
+   .card:hover {
+     box-shadow: var(--shadow-elevated-primary); /* Shadow + glow */
+   }
+   
+   .neon-button {
+     box-shadow: var(--shadow-glow-primary-lg);
+   }
+   ```
+
+   5. USING TYPOGRAPHY
+   -------------------
+   ```css
+   h1 {
+     font-size: var(--text-4xl);
+     font-weight: var(--font-bold);
+     line-height: var(--leading-tight);
+   }
+   
+   .small-text {
+     font-size: var(--text-sm);
+     color: var(--text-secondary);
+   }
+   ```
+
+   6. USING BORDER RADIUS
+   ----------------------
+   ```css
+   .card {
+     border-radius: var(--radius-lg);
+   }
+   
+   .button {
+     border-radius: var(--radius-base);
+   }
+   
+   .avatar {
+     border-radius: var(--radius-full);
+   }
+   ```
+
+   7. USING UTILITY CLASSES FROM MIXINS.CSS
+   -----------------------------------------
+   ```html
+   <!-- Glassmorphism -->
+   <div class="glass">...</div>
+   <div class="glass-strong">...</div>
+   
+   <!-- Glow effects -->
+   <div class="glow-primary">...</div>
+   <div class="glow-on-hover">...</div>
+   
+   <!-- Hover effects -->
+   <div class="hover-lift">...</div>
+   <div class="hover-scale">...</div>
+   
+   <!-- Gradient backgrounds -->
+   <div class="gradient-primary">...</div>
+   
+   <!-- Loading states -->
+   <div class="skeleton">...</div>
+   <div class="shimmer">...</div>
+   
+   <!-- Elevation -->
+   <div class="elevation-3">...</div>
+   ```
+
+   8. RESPONSIVE BREAKPOINTS
+   -------------------------
+   ```css
+   /* Mobile first approach */
+   .container {
+     padding: var(--space-4);
+   }
+   
+   @media (min-width: 768px) {
+     .container {
+       padding: var(--space-6);
+     }
+   }
+   
+   @media (min-width: 1200px) {
+     .container {
+       padding: var(--space-8);
+       max-width: var(--container-max-width);
+     }
+   }
+   ```
+
+   9. TRANSITIONS & ANIMATIONS
+   ---------------------------
+   ```css
+   .button {
+     transition: var(--transition-all);
+   }
+   
+   .link {
+     transition: var(--transition-colors);
+   }
+   
+   .scale-element {
+     transition: var(--transition-transform);
+   }
+   ```
+
+   10. Z-INDEX LAYERS
+   ------------------
+   ```css
+   .dropdown {
+     z-index: var(--z-dropdown);
+   }
+   
+   .modal-backdrop {
+     z-index: var(--z-modal-backdrop);
+   }
+   
+   .modal {
+     z-index: var(--z-modal);
+   }
+   
+   .toast {
+     z-index: var(--z-toast);
+   }
+   ```
+
+================================================================ */

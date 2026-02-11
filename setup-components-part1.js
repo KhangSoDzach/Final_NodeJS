@@ -42,7 +42,7 @@ const components = {};
 // PRIORITY 1: PRODUCT COMPONENTS
 // ============================================
 
-components['src/components/products/ProductCard.jsx'] = \`import React from 'react';
+components['src/components/products/ProductCard.jsx'] = `import React from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -210,7 +210,10 @@ Object.entries(components).forEach(([filePath, content]) => {
     if (writeFile(filePath, content)) successCount++;
 });
 
-console.log(\`\\n✅ Part 1 Complete: Created \${successCount}/\${Object.keys(components).length} files\`);
-console.log('\\n⚠️  Due to file size limits, you need to run additional setup scripts.');
-console.log('Please check the repository for complete component files.\\n');
-\`;
+console.log(`\n✅ Part 1 Complete: Created ${successCount}/${Object.keys(components).length} files`);
+console.log('\n  Due to file size limits, you need to run additional setup scripts.');
+console.log('Please check the repository for complete component files.\n');
+console.log('Next Steps:');
+console.log('1. Run "node setup-components-part2.js" to create more product components.');
+console.log('2. Run "node setup-cart-components.js" for cart components.\n');
+console.log('Thank you for using the React E-Commerce Component Library Setup Script!\n`);

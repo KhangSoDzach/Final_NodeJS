@@ -1,0 +1,386 @@
+/* ===================================================================
+   Footer Styles
+   Dark gradient background with 4-column grid
+   ================================================================ */
+
+/* ==================== Footer Container ==================== */
+footer {
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  border-top: 1px solid var(--glass-border);
+  padding: var(--space-16) 0 var(--space-8);
+  margin-top: var(--space-20);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Optional: Decorative gradient line at top */
+footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--primary) 25%, 
+    var(--accent) 50%, 
+    var(--primary) 75%, 
+    transparent 100%
+  );
+  animation: shimmer-slide 3s linear infinite;
+}
+
+/* ==================== Footer Content Grid ==================== */
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-8);
+  margin-bottom: var(--space-12);
+}
+
+.footer-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.footer-section h3 {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--primary);
+  margin-bottom: var(--space-2);
+  position: relative;
+  padding-bottom: var(--space-3);
+}
+
+.footer-section h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+.footer-section p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+/* ==================== Footer Links ==================== */
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.footer-section ul li a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--text-sm);
+  transition: var(--transition-all);
+  position: relative;
+  padding-left: var(--space-4);
+}
+
+.footer-section ul li a::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  background: var(--primary);
+  border-radius: var(--radius-full);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: var(--transition-all);
+}
+
+.footer-section ul li a:hover {
+  color: var(--primary);
+  padding-left: var(--space-5);
+}
+
+.footer-section ul li a:hover::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ==================== Contact Info ==================== */
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.contact-info p {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+
+.contact-info p i {
+  color: var(--primary);
+  font-size: var(--text-base);
+  margin-top: 2px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.contact-info p:hover {
+  color: var(--text-primary);
+}
+
+.contact-info p:hover i {
+  animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* ==================== Social Icons ==================== */
+.social-icons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.social-icons a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-size: var(--text-lg);
+  transition: var(--transition-all);
+  position: relative;
+  overflow: hidden;
+}
+
+.social-icons a::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit;
+}
+
+.social-icons a i {
+  position: relative;
+  z-index: 1;
+  transition: var(--transition-transform);
+}
+
+.social-icons a:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-glow-primary);
+}
+
+.social-icons a:hover::before {
+  opacity: 1;
+}
+
+.social-icons a:hover i {
+  color: var(--text-inverse);
+  transform: scale(1.1);
+}
+
+/* ==================== Footer Bottom ==================== */
+.footer-bottom {
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--divider);
+  text-align: center;
+}
+
+.footer-bottom p {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.footer-bottom a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+.footer-bottom a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* ==================== Newsletter Section (Optional) ==================== */
+.footer-newsletter {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.footer-newsletter h4 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.footer-newsletter p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4);
+}
+
+.newsletter-form {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.newsletter-form input[type="email"] {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-base);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  outline: none;
+  transition: var(--transition-all);
+}
+
+.newsletter-form input[type="email"]:focus {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-glow-primary);
+}
+
+.newsletter-form button {
+  padding: var(--space-3) var(--space-6);
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border: none;
+  border-radius: var(--radius-base);
+  color: var(--text-inverse);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: var(--transition-all);
+  white-space: nowrap;
+}
+
+.newsletter-form button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated-primary);
+}
+
+/* ==================== Responsive Design ==================== */
+
+/* Large tablet */
+@media (max-width: 1024px) {
+  .footer-content {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  footer {
+    padding: var(--space-12) 0 var(--space-6);
+    margin-top: var(--space-16);
+  }
+  
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+  
+  .footer-section h3 {
+    font-size: var(--text-lg);
+  }
+  
+  .newsletter-form {
+    flex-direction: column;
+  }
+  
+  .newsletter-form button {
+    width: 100%;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  footer {
+    padding: var(--space-10) 0 var(--space-6);
+  }
+  
+  .footer-section {
+    gap: var(--space-3);
+  }
+  
+  .social-icons a {
+    width: 36px;
+    height: 36px;
+    font-size: var(--text-base);
+  }
+  
+  .contact-info p {
+    font-size: var(--text-xs);
+  }
+  
+  .footer-bottom p {
+    font-size: var(--text-xs);
+  }
+}
+
+/* ==================== Dark Mode Adjustments ==================== */
+:root[data-theme="light"] footer {
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+}
+
+/* ==================== Accessibility ==================== */
+footer a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ==================== Print Styles ==================== */
+@media print {
+  footer {
+    margin-top: var(--space-8);
+    padding: var(--space-6) 0;
+    border-top: 1px solid #000;
+  }
+  
+  .footer-bottom {
+    border-top: 1px solid #000;
+  }
+  
+  .social-icons,
+  .footer-newsletter {
+    display: none;
+  }
+}

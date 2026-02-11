@@ -15,8 +15,8 @@ const Home = () => {
           axios.get('/api/products?sort=newest&limit=8'),
           axios.get('/api/products?sort=bestseller&limit=8')
         ]);
-        setNewProducts(newRes.data);
-        setBestSellers(bestRes.data);
+        setNewProducts(newRes.data.data || []);
+        setBestSellers(bestRes.data.data || []);
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {

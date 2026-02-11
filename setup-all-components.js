@@ -946,5 +946,5 @@ Object.entries(components).forEach(([filePath, content]) => {
     writeFile(filePath, content);
 });
 
-console.log(\`\n=== \${Object.keys(components).length} Product Components Created! ===\n\`);
+console.log(`\n=== ${Object.keys(components).length} Product Components Created! ===\n`);
 console.log('Next: Run "node setup-cart-components.js" for cart components\n');

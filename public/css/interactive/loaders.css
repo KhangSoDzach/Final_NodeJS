@@ -1,0 +1,529 @@
+/* ===================================================================
+   LOADING SPINNERS
+   Various loading animations
+   ================================================================ */
+
+/* Spinner Container */
+.spinner {
+  display: inline-block;
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+/* Ring Spinner */
+.spinner-ring {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--glass-border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spinner-rotate 0.8s linear infinite;
+}
+
+/* Dual Ring Spinner */
+.spinner-dual-ring {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+}
+
+.spinner-dual-ring::after {
+  content: '';
+  display: block;
+  width: 32px;
+  height: 32px;
+  margin: 4px;
+  border-radius: 50%;
+  border: 3px solid var(--primary);
+  border-color: var(--primary) transparent var(--accent) transparent;
+  animation: spinner-rotate 1.2s linear infinite;
+}
+
+/* Gradient Spinner */
+.spinner-gradient {
+  width: 40px;
+  height: 40px;
+  border: 3px solid transparent;
+  border-top: 3px solid var(--primary);
+  border-right: 3px solid var(--accent);
+  border-radius: 50%;
+  animation: spinner-rotate 0.8s linear infinite;
+  box-shadow: var(--glow-primary);
+}
+
+/* Dots Spinner */
+.spinner-dots {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.spinner-dots span {
+  width: 10px;
+  height: 10px;
+  background: var(--primary);
+  border-radius: 50%;
+  animation: spinner-dots-bounce 1.4s ease-in-out infinite;
+  box-shadow: 0 0 10px var(--primary);
+}
+
+.spinner-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.spinner-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+/* Pulse Spinner */
+.spinner-pulse {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  animation: spinner-pulse 1.5s ease-out infinite;
+  box-shadow: var(--glow-primary);
+}
+
+/* Bars Spinner */
+.spinner-bars {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  height: 40px;
+}
+
+.spinner-bars span {
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--primary), var(--accent));
+  border-radius: var(--radius-sm);
+  animation: spinner-bars-stretch 1.2s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--primary);
+}
+
+.spinner-bars span:nth-child(1) { animation-delay: -0.4s; }
+.spinner-bars span:nth-child(2) { animation-delay: -0.3s; }
+.spinner-bars span:nth-child(3) { animation-delay: -0.2s; }
+.spinner-bars span:nth-child(4) { animation-delay: -0.1s; }
+.spinner-bars span:nth-child(5) { animation-delay: 0s; }
+
+/* Spinner Sizes */
+.spinner-sm { width: 24px; height: 24px; }
+.spinner-sm.spinner-dual-ring::after { width: 16px; height: 16px; }
+.spinner-lg { width: 60px; height: 60px; }
+.spinner-lg.spinner-dual-ring::after { width: 48px; height: 48px; }
+
+/* ===================================================================
+   LOADING OVERLAY
+   Full-screen or container loading
+   ================================================================ */
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-modal);
+  background: rgba(15, 15, 35, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.loading-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.loading-overlay-text {
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  font-weight: 500;
+}
+
+/* Container Loading */
+.loading-container {
+  position: relative;
+}
+
+.loading-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 15, 35, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+}
+
+.loading-container.loading::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ===================================================================
+   SKELETON LOADERS
+   Content placeholder animations
+   ================================================================ */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--glass-bg) 25%,
+    var(--glass-bg-hover) 50%,
+    var(--glass-bg) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+  pointer-events: none;
+}
+
+/* Skeleton Text */
+.skeleton-text {
+  height: 16px;
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+
+.skeleton-text.skeleton-text-sm { height: 12px; }
+.skeleton-text.skeleton-text-lg { height: 20px; }
+
+/* Skeleton Title */
+.skeleton-title {
+  height: 24px;
+  width: 60%;
+  margin-bottom: var(--space-3);
+}
+
+/* Skeleton Avatar */
+.skeleton-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+}
+
+.skeleton-avatar.skeleton-avatar-sm { width: 32px; height: 32px; }
+.skeleton-avatar.skeleton-avatar-lg { width: 80px; height: 80px; }
+
+/* Skeleton Image */
+.skeleton-image {
+  width: 100%;
+  height: 200px;
+  border-radius: var(--radius-lg);
+}
+
+/* Skeleton Card */
+.skeleton-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.skeleton-card .skeleton-image {
+  margin-bottom: var(--space-4);
+}
+
+/* Skeleton Product Card */
+.skeleton-product-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.skeleton-product-card .skeleton-image {
+  height: 280px;
+}
+
+.skeleton-product-card .skeleton-title {
+  width: 80%;
+}
+
+.skeleton-product-card .skeleton-text {
+  width: 50%;
+}
+
+/* ===================================================================
+   PROGRESS BARS
+   Linear progress indicators
+   ================================================================ */
+
+.progress {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: var(--glass-bg);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--glow-primary);
+}
+
+/* Progress Bar - Animated */
+.progress-bar.progress-animated::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: progress-shine 2s ease-in-out infinite;
+}
+
+/* Progress Bar - Striped */
+.progress-bar.progress-striped {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 20px 20px;
+  animation: progress-stripes 1s linear infinite;
+}
+
+/* Progress Bar Variants */
+.progress-bar.progress-success {
+  background: linear-gradient(90deg, #00e676, #00c853);
+  box-shadow: 0 0 16px rgba(0, 230, 118, 0.5);
+}
+
+.progress-bar.progress-warning {
+  background: linear-gradient(90deg, #ffd740, #ffc400);
+  box-shadow: 0 0 16px rgba(255, 215, 64, 0.5);
+}
+
+.progress-bar.progress-danger {
+  background: linear-gradient(90deg, #ff5252, #ff1744);
+  box-shadow: 0 0 16px rgba(255, 82, 82, 0.5);
+}
+
+/* Progress Sizes */
+.progress-sm {
+  height: 4px;
+}
+
+.progress-lg {
+  height: 12px;
+}
+
+/* Progress with Label */
+.progress-labeled {
+  height: 24px;
+  background: var(--glass-bg-strong);
+}
+
+.progress-labeled .progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ===================================================================
+   CIRCULAR PROGRESS
+   Radial progress indicators
+   ================================================================ */
+
+.progress-circle {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-circle svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.progress-circle-bg {
+  fill: none;
+  stroke: var(--glass-border);
+  stroke-width: 8;
+}
+
+.progress-circle-bar {
+  fill: none;
+  stroke: url(#progress-gradient);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+.progress-circle-text {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Progress Circle - Small */
+.progress-circle-sm {
+  width: 80px;
+  height: 80px;
+}
+
+.progress-circle-sm .progress-circle-text {
+  font-size: var(--text-base);
+}
+
+/* ===================================================================
+   LOADING BUTTON STATES
+   ================================================================ */
+
+.btn.loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spinner-rotate 0.6s linear infinite;
+}
+
+/* ===================================================================
+   RESPONSIVE
+   ================================================================ */
+
+@media (max-width: 768px) {
+  .spinner {
+    width: 32px;
+    height: 32px;
+  }
+
+  .spinner-ring,
+  .spinner-gradient {
+    width: 32px;
+    height: 32px;
+  }
+
+  .progress-circle {
+    width: 100px;
+    height: 100px;
+  }
+
+  .progress-circle-text {
+    font-size: var(--text-lg);
+  }
+}
+
+/* ===================================================================
+   ANIMATIONS
+   ================================================================ */
+
+@keyframes spinner-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinner-dots-bounce {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+@keyframes spinner-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+@keyframes spinner-bars-stretch {
+  0%, 40%, 100% {
+    transform: scaleY(0.4);
+  }
+  20% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes progress-shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes progress-stripes {
+  from { background-position: 0 0; }
+  to { background-position: 20px 0; }
+}

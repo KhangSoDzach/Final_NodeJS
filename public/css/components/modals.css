@@ -1,0 +1,431 @@
+/* ===================================================================
+   Modal & Drawer Components
+   Popup dialogs and slide-in panels
+   ================================================================ */
+
+/* ==================== Modal Backdrop ==================== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-darker);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  z-index: var(--z-modal-backdrop);
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition-all);
+}
+
+.modal-backdrop.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ==================== Modal Container ==================== */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition-all);
+}
+
+.modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal.show .modal-dialog {
+  transform: scale(1);
+}
+
+/* ==================== Modal Dialog ==================== */
+.modal-dialog {
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-elevated-primary);
+  transform: scale(0.9);
+  transition: transform 0.3s var(--ease-smooth);
+  overflow: hidden;
+}
+
+.modal-dialog-sm {
+  max-width: 400px;
+}
+
+.modal-dialog-lg {
+  max-width: 800px;
+}
+
+.modal-dialog-xl {
+  max-width: 1200px;
+}
+
+.modal-dialog-fullscreen {
+  max-width: 100%;
+  max-height: 100%;
+  height: 100%;
+  border-radius: 0;
+  margin: 0;
+}
+
+/* ==================== Modal Header ==================== */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--divider);
+  flex-shrink: 0;
+}
+
+.modal-header h2,
+.modal-header h3 {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.modal-close {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-all);
+  font-size: var(--text-xl);
+  padding: 0;
+}
+
+.modal-close:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--text-inverse);
+  transform: rotate(90deg);
+}
+
+/* ==================== Modal Body ==================== */
+.modal-body {
+  padding: var(--space-6);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: var(--radius-full);
+}
+
+/* ==================== Modal Footer ==================== */
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border-top: 1px solid var(--divider);
+  flex-shrink: 0;
+}
+
+.modal-footer .btn {
+  margin: 0;
+}
+
+/* ==================== Drawer (Slide-in Panel) ==================== */
+.drawer {
+  position: fixed;
+  top: 0;
+  height: 100%;
+  width: 400px;
+  max-width: 90vw;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-modal);
+  transition: transform 0.3s var(--ease-smooth);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Drawer Positions */
+.drawer-right {
+  right: 0;
+  border-left: 1px solid var(--glass-border);
+  transform: translateX(100%);
+}
+
+.drawer-right.show {
+  transform: translateX(0);
+}
+
+.drawer-left {
+  left: 0;
+  border-right: 1px solid var(--glass-border);
+  transform: translateX(-100%);
+}
+
+.drawer-left.show {
+  transform: translateX(0);
+}
+
+.drawer-top {
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: auto;
+  max-height: 90vh;
+  border-bottom: 1px solid var(--glass-border);
+  transform: translateY(-100%);
+}
+
+.drawer-top.show {
+  transform: translateY(0);
+}
+
+.drawer-bottom {
+  bottom: 0;
+  top: auto;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: auto;
+  max-height: 90vh;
+  border-top: 1px solid var(--glass-border);
+  transform: translateY(100%);
+}
+
+.drawer-bottom.show {
+  transform: translateY(0);
+}
+
+/* ==================== Drawer Header ==================== */
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--divider);
+  flex-shrink: 0;
+}
+
+.drawer-header h3 {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+/* ==================== Drawer Body ==================== */
+.drawer-body {
+  padding: var(--space-6);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ==================== Drawer Footer ==================== */
+.drawer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border-top: 1px solid var(--divider);
+  flex-shrink: 0;
+}
+
+/* ==================== Confirmation Dialog ==================== */
+.modal-confirm .modal-dialog {
+  max-width: 400px;
+}
+
+.modal-confirm .modal-body {
+  text-align: center;
+  padding: var(--space-8) var(--space-6);
+}
+
+.modal-confirm .modal-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  font-size: var(--text-4xl);
+}
+
+.modal-confirm.modal-danger .modal-icon {
+  background: var(--danger);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-glow-danger);
+}
+
+.modal-confirm.modal-warning .modal-icon {
+  background: var(--warning);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-glow-warning);
+}
+
+.modal-confirm.modal-success .modal-icon {
+  background: var(--success);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-glow-success);
+}
+
+.modal-confirm .modal-body h3 {
+  font-size: var(--text-xl);
+  margin-bottom: var(--space-3);
+  color: var(--text-primary);
+}
+
+.modal-confirm .modal-body p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+/* ==================== Popup Menu ==================== */
+.popup-menu {
+  position: absolute;
+  min-width: 200px;
+  background: var(--glass-bg-hover);
+  backdrop-filter: var(--backdrop-blur-strong);
+  -webkit-backdrop-filter: var(--backdrop-blur-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-2);
+  z-index: var(--z-popover);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: var(--transition-all);
+}
+
+.popup-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.popup-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-primary);
+  text-decoration: none;
+  border-radius: var(--radius-base);
+  transition: var(--transition-all);
+  cursor: pointer;
+  font-size: var(--text-sm);
+}
+
+.popup-menu-item:hover {
+  background: var(--glass-bg-hover);
+  color: var(--primary);
+}
+
+.popup-menu-item i {
+  width: 20px;
+  text-align: center;
+  font-size: var(--text-base);
+}
+
+.popup-menu-divider {
+  height: 1px;
+  background: var(--divider);
+  margin: var(--space-2) 0;
+}
+
+/* ==================== Responsive Design ==================== */
+@media (max-width: 768px) {
+  .modal-dialog {
+    max-width: 100%;
+    margin: 0;
+    max-height: 100%;
+    border-radius: 0;
+  }
+  
+  .modal-dialog-lg,
+  .modal-dialog-xl {
+    max-width: 100%;
+  }
+  
+  .drawer {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .drawer-right,
+  .drawer-left {
+    width: 85vw;
+  }
+  
+  .modal-header,
+  .modal-body,
+  .modal-footer,
+  .drawer-header,
+  .drawer-body,
+  .drawer-footer {
+    padding: var(--space-4);
+  }
+}
+
+/* ==================== Animations ==================== */
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes drawer-slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawer-slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

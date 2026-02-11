@@ -1,0 +1,266 @@
+/* ===================================================================
+   Source Computer - Dark Theme Design Tokens
+   Neomorphism + Glassmorphism Design System
+   ================================================================ */
+
+:root[data-theme="dark"],
+:root {
+  /* ==================== Color Palette ==================== */
+  
+  /* Background Colors */
+  --bg-primary: #0f0f23;           /* Deep navy - main background */
+  --bg-secondary: #1a1a3e;         /* Lighter navy - sections */
+  --bg-tertiary: #252545;          /* Card backgrounds */
+  --bg-elevated: #2d2d52;          /* Elevated elements */
+  
+  /* Glassmorphism Backgrounds */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-bg-hover: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-hover: rgba(255, 255, 255, 0.2);
+  
+  /* Brand Colors */
+  --primary: #00d4ff;              /* Cyan neon - primary actions */
+  --primary-dark: #00a3cc;         /* Darker cyan */
+  --primary-light: #33ddff;        /* Lighter cyan */
+  --primary-glow: rgba(0, 212, 255, 0.4);
+  --primary-glow-intense: rgba(0, 212, 255, 0.6);
+  
+  --accent: #7c3aed;               /* Violet - highlights */
+  --accent-dark: #6d28d9;          /* Darker violet */
+  --accent-light: #8b5cf6;         /* Lighter violet */
+  --accent-glow: rgba(124, 58, 237, 0.4);
+  --accent-glow-intense: rgba(124, 58, 237, 0.6);
+  
+  /* Semantic Colors */
+  --success: #00e676;              /* Green - success, "New" badges */
+  --success-dark: #00c853;
+  --success-glow: rgba(0, 230, 118, 0.4);
+  
+  --danger: #ff5252;               /* Red - errors, "Out of stock" */
+  --danger-dark: #ff1744;
+  --danger-glow: rgba(255, 82, 82, 0.4);
+  
+  --warning: #ffd740;              /* Yellow - warnings, "Low stock" */
+  --warning-dark: #ffc400;
+  --warning-glow: rgba(255, 215, 64, 0.4);
+  
+  --info: #00d4ff;                 /* Same as primary */
+  --info-glow: var(--primary-glow);
+  
+  /* Text Colors */
+  --text-primary: #e2e8f0;         /* Main text - high contrast */
+  --text-secondary: #94a3b8;       /* Secondary text - medium contrast */
+  --text-muted: #64748b;           /* Muted text - low contrast */
+  --text-inverse: #0f0f23;         /* Text on light backgrounds */
+  
+  /* Border & Divider Colors */
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(255, 255, 255, 0.2);
+  --border-focus: var(--primary);
+  --divider: rgba(255, 255, 255, 0.08);
+  
+  /* Overlay Colors */
+  --overlay-dark: rgba(15, 15, 35, 0.8);
+  --overlay-darker: rgba(15, 15, 35, 0.95);
+  --backdrop-blur: blur(10px);
+  --backdrop-blur-strong: blur(20px);
+  
+  
+  /* ==================== Spacing Scale ==================== */
+  --space-0: 0;
+  --space-1: 0.25rem;    /* 4px */
+  --space-2: 0.5rem;     /* 8px */
+  --space-3: 0.75rem;    /* 12px */
+  --space-4: 1rem;       /* 16px */
+  --space-5: 1.25rem;    /* 20px */
+  --space-6: 1.5rem;     /* 24px */
+  --space-8: 2rem;       /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+  --space-20: 5rem;      /* 80px */
+  --space-24: 6rem;      /* 96px */
+  --space-32: 8rem;      /* 128px */
+  
+  
+  /* ==================== Typography Scale ==================== */
+  
+  /* Font Families */
+  --font-primary: 'Roboto', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Roboto', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Fira Code', 'Courier New', monospace;
+  
+  /* Font Sizes */
+  --text-xs: 0.75rem;       /* 12px */
+  --text-sm: 0.875rem;      /* 14px */
+  --text-base: 1rem;        /* 16px */
+  --text-lg: 1.125rem;      /* 18px */
+  --text-xl: 1.25rem;       /* 20px */
+  --text-2xl: 1.5rem;       /* 24px */
+  --text-3xl: 1.875rem;     /* 30px */
+  --text-4xl: 2.25rem;      /* 36px */
+  --text-5xl: 3rem;         /* 48px */
+  --text-6xl: 3.75rem;      /* 60px */
+  
+  /* Font Weights */
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  
+  /* Line Heights */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+  
+  
+  /* ==================== Border Radius ==================== */
+  --radius-none: 0;
+  --radius-sm: 0.25rem;     /* 4px */
+  --radius-base: 0.5rem;    /* 8px */
+  --radius-md: 0.75rem;     /* 12px */
+  --radius-lg: 1rem;        /* 16px */
+  --radius-xl: 1.5rem;      /* 24px */
+  --radius-2xl: 2rem;       /* 32px */
+  --radius-full: 9999px;    /* Full round */
+  
+  
+  /* ==================== Shadow System ==================== */
+  
+  /* Subtle Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.4);
+  --shadow-base: 0 4px 8px 0 rgba(0, 0, 0, 0.5);
+  
+  /* Medium Shadows */
+  --shadow-md: 0 8px 16px 0 rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 12px 24px 0 rgba(0, 0, 0, 0.7);
+  
+  /* Glow Shadows (for neon effects) */
+  --shadow-glow-primary: 0 0 20px var(--primary-glow);
+  --shadow-glow-primary-lg: 0 0 40px var(--primary-glow-intense);
+  --shadow-glow-accent: 0 0 20px var(--accent-glow);
+  --shadow-glow-accent-lg: 0 0 40px var(--accent-glow-intense);
+  --shadow-glow-success: 0 0 20px var(--success-glow);
+  --shadow-glow-danger: 0 0 20px var(--danger-glow);
+  --shadow-glow-warning: 0 0 20px var(--warning-glow);
+  
+  /* Combined Shadows (shadow + glow) */
+  --shadow-elevated-primary: 
+    0 12px 24px rgba(0, 0, 0, 0.6),
+    0 0 30px var(--primary-glow);
+  
+  --shadow-elevated-accent: 
+    0 12px 24px rgba(0, 0, 0, 0.6),
+    0 0 30px var(--accent-glow);
+  
+  
+  /* ==================== Z-Index Scale ==================== */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-toast: 800;
+  --z-max: 9999;
+  
+  
+  /* ==================== Breakpoints ==================== */
+  /* NOTE: Use in @media queries manually */
+  --breakpoint-xs: 0;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-2xl: 1400px;
+  
+  
+  /* ==================== Container & Layout ==================== */
+  --container-max-width: 1320px;
+  --container-padding: var(--space-4);
+  --container-padding-mobile: var(--space-4);
+  
+  --header-height: 80px;
+  --header-height-mobile: 64px;
+  --footer-height: auto;
+  
+  
+  /* ==================== Transitions & Animations ==================== */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 350ms ease;
+  --transition-slower: 500ms ease;
+  
+  --transition-all: all var(--transition-base);
+  --transition-colors: color var(--transition-base), 
+                       background-color var(--transition-base), 
+                       border-color var(--transition-base);
+  --transition-transform: transform var(--transition-base);
+  --transition-shadow: box-shadow var(--transition-base);
+  
+  /* Easing Functions */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  
+  /* ==================== Component Specific Tokens ==================== */
+  
+  /* Buttons */
+  --btn-height-sm: 32px;
+  --btn-height-base: 40px;
+  --btn-height-lg: 48px;
+  --btn-height-xl: 56px;
+  
+  --btn-padding-x-sm: var(--space-3);
+  --btn-padding-x-base: var(--space-4);
+  --btn-padding-x-lg: var(--space-6);
+  --btn-padding-x-xl: var(--space-8);
+  
+  /* Cards */
+  --card-padding: var(--space-6);
+  --card-padding-sm: var(--space-4);
+  --card-bg: var(--glass-bg);
+  --card-border: var(--glass-border);
+  --card-radius: var(--radius-lg);
+  
+  /* Forms */
+  --input-height: 44px;
+  --input-padding-x: var(--space-4);
+  --input-padding-y: var(--space-3);
+  --input-border: var(--border-default);
+  --input-border-focus: var(--primary);
+  --input-bg: var(--glass-bg);
+  --input-radius: var(--radius-base);
+  
+  /* Product Cards */
+  --product-card-width: 280px;
+  --product-card-padding: var(--space-4);
+  --product-card-hover-lift: -8px;
+  
+  /* Navbar */
+  --navbar-height: var(--header-height);
+  --navbar-bg: var(--glass-bg);
+  --navbar-border: var(--glass-border);
+  
+  /* Sidebar */
+  --sidebar-width: 280px;
+  --sidebar-width-collapsed: 64px;
+  --sidebar-bg: var(--bg-secondary);
+  
+  
+  /* ==================== Accessibility ==================== */
+  --focus-ring: 0 0 0 3px var(--primary-glow);
+  --focus-ring-danger: 0 0 0 3px var(--danger-glow);
+}

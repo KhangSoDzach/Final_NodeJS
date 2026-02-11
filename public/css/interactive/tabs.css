@@ -1,0 +1,476 @@
+/* ===================================================================
+   TABS & PANELS
+   Tab navigation with smooth transitions
+   ================================================================ */
+
+/* Tabs Container */
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Tab List */
+.tab-list {
+  display: flex;
+  gap: var(--space-2);
+  border-bottom: 2px solid var(--glass-border);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.tab-list::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tab-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tab-list::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: var(--radius-full);
+}
+
+/* Tab Button */
+.tab-button {
+  position: relative;
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab-button:hover {
+  color: var(--text-primary);
+  background: var(--glass-bg-hover);
+}
+
+.tab-button.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
+}
+
+/* Tab with Icon */
+.tab-button i {
+  margin-right: var(--space-2);
+}
+
+/* Tab with Badge */
+.tab-button .badge {
+  margin-left: var(--space-2);
+  font-size: 10px;
+  padding: 2px 6px;
+}
+
+/* Tab Panels Container */
+.tab-panels {
+  position: relative;
+}
+
+/* Tab Panel */
+.tab-panel {
+  display: none;
+  animation: tab-fade-in 0.3s ease;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* ===================================================================
+   TAB VARIANTS
+   ================================================================ */
+
+/* Pills Style */
+.tab-list-pills {
+  border-bottom: none;
+  gap: var(--space-2);
+}
+
+.tab-list-pills .tab-button {
+  padding: var(--space-2-5) var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  border-bottom: 1px solid var(--glass-border);
+  margin-bottom: 0;
+}
+
+.tab-list-pills .tab-button:hover {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary-subtle);
+}
+
+.tab-list-pills .tab-button.active {
+  background: linear-gradient(135deg, 
+    rgba(0, 212, 255, 0.15), 
+    rgba(124, 58, 237, 0.15)
+  );
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+/* Vertical Tabs */
+.tabs-vertical {
+  flex-direction: row;
+  gap: var(--space-6);
+}
+
+.tabs-vertical .tab-list {
+  flex-direction: column;
+  border-bottom: none;
+  border-right: 2px solid var(--glass-border);
+  min-width: 200px;
+}
+
+.tabs-vertical .tab-button {
+  text-align: left;
+  width: 100%;
+  border-bottom: none;
+  border-right: 2px solid transparent;
+  margin-bottom: 0;
+  margin-right: -2px;
+}
+
+.tabs-vertical .tab-button.active {
+  border-right-color: var(--primary);
+  border-bottom-color: transparent;
+}
+
+.tabs-vertical .tab-panels {
+  flex: 1;
+}
+
+/* Full Width Tabs */
+.tab-list-full {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0;
+}
+
+.tab-list-full .tab-button {
+  justify-content: center;
+}
+
+/* Card Style Tabs */
+.tabs-card .tab-list {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--space-2);
+  border-bottom: none;
+}
+
+.tabs-card .tab-panels {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: var(--space-5);
+}
+
+/* ===================================================================
+   BREADCRUMB
+   Navigation trail
+   ================================================================ */
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+  font-size: var(--text-sm);
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb-item:hover {
+  color: var(--primary);
+}
+
+.breadcrumb-item.active {
+  color: var(--text-primary);
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.breadcrumb-separator {
+  color: var(--text-tertiary);
+}
+
+/* Breadcrumb with Icons */
+.breadcrumb-item i {
+  font-size: 14px;
+}
+
+/* ===================================================================
+   PAGINATION
+   Page navigation
+   ================================================================ */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+}
+
+.pagination-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 var(--space-3);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-item:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--glow-primary-subtle);
+}
+
+.pagination-item.active {
+  background: linear-gradient(135deg, 
+    rgba(0, 212, 255, 0.2), 
+    rgba(124, 58, 237, 0.2)
+  );
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--glow-primary);
+  cursor: default;
+  pointer-events: none;
+}
+
+.pagination-item.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.pagination-item i {
+  font-size: 14px;
+}
+
+/* Pagination - Compact */
+.pagination-compact .pagination-item {
+  min-width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+
+/* Pagination - Rounded */
+.pagination-rounded .pagination-item {
+  border-radius: var(--radius-full);
+}
+
+/* Pagination Info */
+.pagination-info {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  margin: 0 var(--space-4);
+}
+
+/* ===================================================================
+   STEPPER
+   Step wizard navigation
+   ================================================================ */
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6) 0;
+  position: relative;
+}
+
+.stepper::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--glass-border);
+  z-index: 0;
+}
+
+.stepper-progress {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width 0.3s ease;
+  z-index: 0;
+}
+
+.stepper-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  position: relative;
+  z-index: 1;
+}
+
+.stepper-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--backdrop-blur-strong);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.stepper-item.active .stepper-icon {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-color: var(--primary);
+  color: white;
+  box-shadow: var(--glow-primary);
+}
+
+.stepper-item.completed .stepper-icon {
+  background: var(--glass-bg-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.stepper-item.completed .stepper-icon::before {
+  content: '✓';
+}
+
+.stepper-label {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  max-width: 120px;
+}
+
+.stepper-item.active .stepper-label {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ===================================================================
+   RESPONSIVE
+   ================================================================ */
+
+@media (max-width: 992px) {
+  .tabs-vertical {
+    flex-direction: column;
+  }
+
+  .tabs-vertical .tab-list {
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 2px solid var(--glass-border);
+    min-width: auto;
+  }
+
+  .tabs-vertical .tab-button {
+    border-right: none;
+    border-bottom: 2px solid transparent;
+    margin-right: 0;
+    margin-bottom: -2px;
+  }
+
+  .tabs-vertical .tab-button.active {
+    border-right-color: transparent;
+    border-bottom-color: var(--primary);
+  }
+}
+
+@media (max-width: 768px) {
+  .tab-button {
+    padding: var(--space-2-5) var(--space-3);
+    font-size: 13px;
+  }
+
+  .pagination {
+    gap: var(--space-1);
+  }
+
+  .pagination-item {
+    min-width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  /* Hide page numbers on mobile, show only prev/next */
+  .pagination-item:not(.pagination-prev):not(.pagination-next):not(.active) {
+    display: none;
+  }
+
+  .stepper {
+    padding: var(--space-4) 0;
+  }
+
+  .stepper-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stepper-label {
+    font-size: 11px;
+    max-width: 80px;
+  }
+}
+
+/* ===================================================================
+   ANIMATIONS
+   ================================================================ */
+
+@keyframes tab-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tab-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

@@ -14,7 +14,7 @@ const Products = () => {
       try {
         const query = searchParams.toString();
         const response = await axios.get(`/api/products?${query}`);
-        setProducts(response.data);
+        setProducts(response.data.data || []);
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {

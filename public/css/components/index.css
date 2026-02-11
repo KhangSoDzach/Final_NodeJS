@@ -1,0 +1,311 @@
+/* ===================================================================
+   Components Module Index
+   Import all component stylesheets
+   ================================================================ */
+
+@import './buttons.css';
+@import './forms.css';
+@import './cards.css';
+@import './badges.css';
+@import './modals.css';
+@import './alerts.css';
+
+/* ===================================================================
+   COMPONENTS USAGE GUIDE
+   ================================================================
+
+   ## Buttons
+   
+   ```html
+   <!-- Primary button with gradient -->
+   <button class="btn btn-primary">Add to Cart</button>
+   
+   <!-- Outline button -->
+   <button class="btn btn-outline-primary">Learn More</button>
+   
+   <!-- Icon button -->
+   <button class="btn btn-icon btn-primary">
+     <i class="fas fa-heart"></i>
+   </button>
+   
+   <!-- Button sizes -->
+   <button class="btn btn-sm btn-primary">Small</button>
+   <button class="btn btn-lg btn-primary">Large</button>
+   
+   <!-- Loading state -->
+   <button class="btn btn-primary loading">Processing...</button>
+   
+   <!-- Neon button -->
+   <button class="btn btn-neon">Glow Effect</button>
+   
+   <!-- FAB (Floating Action Button) -->
+   <button class="btn-fab"><i class="fas fa-plus"></i></button>
+   ```
+
+   ## Forms
+   
+   ```html
+   <!-- Text input -->
+   <div class="form-group">
+     <label for="name">Name</label>
+     <input type="text" class="form-control" id="name">
+   </div>
+   
+   <!-- Input with icon -->
+   <div class="input-group">
+     <input type="email" class="form-control" placeholder="Email">
+     <i class="input-group-icon fas fa-envelope"></i>
+   </div>
+   
+   <!-- Floating label -->
+   <div class="form-floating">
+     <input type="text" class="form-control" placeholder=" ">
+     <label>Username</label>
+   </div>
+   
+   <!-- Checkbox -->
+   <div class="form-check">
+     <input type="checkbox" id="agree">
+     <label for="agree">I agree to terms</label>
+   </div>
+   
+   <!-- Toggle switch -->
+   <div class="form-switch">
+     <input type="checkbox" id="notifications">
+     <label for="notifications">Enable Notifications</label>
+   </div>
+   
+   <!-- Range slider -->
+   <input type="range" class="form-range" min="0" max="100">
+   ```
+
+   ## Product Cards
+   
+   ```html
+   <!-- Standard product card -->
+   <div class="product-card">
+     <div class="image">
+       <a href="/product/slug">
+         <img src="..." alt="Product">
+       </a>
+       
+       <!-- Quick actions -->
+       <div class="product-quick-actions">
+         <button class="btn-wishlist"><i class="far fa-heart"></i></button>
+         <button class="btn-compare"><i class="fas fa-balance-scale"></i></button>
+       </div>
+       
+       <!-- Badges -->
+       <div class="discount-badge">-30%</div>
+       <div class="new-badge">New</div>
+     </div>
+     
+     <div class="content">
+       <a href="/product/slug">
+         <h3>Product Name</h3>
+         <div class="price">
+           <span class="discount-price">999,000 ₫</span>
+           <span class="original-price">1,499,000 ₫</span>
+         </div>
+         <div class="rating">
+           <i class="fas fa-star"></i>
+           <i class="fas fa-star"></i>
+           (42)
+         </div>
+       </a>
+       
+       <div class="actions">
+         <button class="btn btn-primary">Add to Cart</button>
+         <a href="#" class="btn btn-outline-secondary">Details</a>
+       </div>
+     </div>
+   </div>
+   
+   <!-- Compact variant -->
+   <div class="product-card compact">...</div>
+   
+   <!-- List view -->
+   <div class="product-card list-view">...</div>
+   ```
+
+   ## Badges & Labels
+   
+   ```html
+   <!-- Basic badges -->
+   <span class="badge badge-primary">New</span>
+   <span class="badge badge-success">In Stock</span>
+   <span class="badge badge-danger">Sale</span>
+   
+   <!-- Outline badges -->
+   <span class="badge badge-outline-primary">Featured</span>
+   
+   <!-- Status label -->
+   <span class="status-label status-active">Active</span>
+   <span class="status-label status-pending">Pending</span>
+   
+   <!-- Tags -->
+   <span class="tag">Gaming</span>
+   <span class="tag tag-removable">
+     Laptop
+     <button class="tag-close">×</button>
+   </span>
+   
+   <!-- Notification badge -->
+   <div class="notification-badge" data-count="5">
+     <i class="fas fa-bell"></i>
+   </div>
+   ```
+
+   ## Modals
+   
+   ```html
+   <!-- Modal backdrop -->
+   <div class="modal-backdrop show"></div>
+   
+   <!-- Modal -->
+   <div class="modal show">
+     <div class="modal-dialog">
+       <div class="modal-header">
+         <h2>Modal Title</h2>
+         <button class="modal-close">×</button>
+       </div>
+       <div class="modal-body">
+         <p>Modal content here...</p>
+       </div>
+       <div class="modal-footer">
+         <button class="btn btn-secondary">Cancel</button>
+         <button class="btn btn-primary">Confirm</button>
+       </div>
+     </div>
+   </div>
+   
+   <!-- Confirmation dialog -->
+   <div class="modal modal-confirm modal-danger">
+     <div class="modal-dialog">
+       <div class="modal-body">
+         <div class="modal-icon">
+           <i class="fas fa-exclamation-triangle"></i>
+         </div>
+         <h3>Are you sure?</h3>
+         <p>This action cannot be undone.</p>
+       </div>
+       <div class="modal-footer">
+         <button class="btn btn-secondary">Cancel</button>
+         <button class="btn btn-danger">Delete</button>
+       </div>
+     </div>
+   </div>
+   
+   <!-- Drawer (side panel) -->
+   <div class="drawer drawer-right show">
+     <div class="drawer-header">
+       <h3>Shopping Cart</h3>
+       <button class="modal-close">×</button>
+     </div>
+     <div class="drawer-body">
+       <!-- Cart items -->
+     </div>
+     <div class="drawer-footer">
+       <button class="btn btn-block btn-primary">Checkout</button>
+     </div>
+   </div>
+   ```
+
+   ## Alerts & Toasts
+   
+   ```html
+   <!-- Alert -->
+   <div class="alert alert-success">
+     <i class="alert-icon fas fa-check-circle"></i>
+     <div class="alert-content">
+       <div class="alert-title">Success!</div>
+       <div class="alert-message">Your order has been placed.</div>
+     </div>
+     <button class="alert-close">×</button>
+   </div>
+   
+   <!-- Solid alert -->
+   <div class="alert alert-solid alert-danger">
+     <i class="alert-icon fas fa-times-circle"></i>
+     <div class="alert-content">
+       <div class="alert-message">Error occurred!</div>
+     </div>
+   </div>
+   
+   <!-- Toast container -->
+   <div class="toast-container toast-container-top-right">
+     
+     <!-- Toast with progress -->
+     <div class="toast toast-success">
+       <div class="toast-header">
+         <div class="toast-icon">
+           <i class="fas fa-check"></i>
+         </div>
+         <h4 class="toast-title">Success</h4>
+         <button class="toast-close">×</button>
+       </div>
+       <div class="toast-body">
+         Item added to cart successfully.
+       </div>
+       <div class="toast-progress"></div>
+     </div>
+     
+     <!-- Simple toast -->
+     <div class="toast toast-simple toast-info">
+       <div class="toast-icon">
+         <i class="fas fa-info-circle"></i>
+       </div>
+       <div class="toast-body">
+         New updates available!
+       </div>
+       <button class="toast-close">×</button>
+     </div>
+   </div>
+   ```
+
+   ## JavaScript Integration Examples
+   
+   ```javascript
+   // Show modal
+   document.getElementById('myModal').classList.add('show');
+   document.querySelector('.modal-backdrop').classList.add('show');
+   
+   // Close modal
+   document.querySelectorAll('.modal-close').forEach(btn => {
+     btn.addEventListener('click', () => {
+       document.querySelector('.modal').classList.remove('show');
+       document.querySelector('.modal-backdrop').classList.remove('show');
+     });
+   });
+   
+   // Show toast notification
+   function showToast(message, type = 'info') {
+     const toast = document.createElement('div');
+     toast.className = `toast toast-${type}`;
+     toast.innerHTML = `
+       <div class="toast-header">
+         <div class="toast-icon"><i class="fas fa-info-circle"></i></div>
+         <h4 class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</h4>
+         <button class="toast-close">×</button>
+       </div>
+       <div class="toast-body">${message}</div>
+       <div class="toast-progress"></div>
+     `;
+     
+     document.querySelector('.toast-container').appendChild(toast);
+     
+     // Auto remove after 5 seconds
+     setTimeout(() => {
+       toast.classList.add('toast-hiding');
+       setTimeout(() => toast.remove(), 300);
+     }, 5000);
+   }
+   
+   // Button loading state
+   const btn = document.getElementById('submitBtn');
+   btn.classList.add('loading');
+   // ... perform async action
+   btn.classList.remove('loading');
+   ```
+
+================================================================ */

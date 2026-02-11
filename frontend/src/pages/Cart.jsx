@@ -10,7 +10,7 @@ const Cart = () => {
       setLoading(true);
       try {
         const response = await axios.get('/api/cart');
-        setCartItems(response.data);
+        setCartItems(response.data.data?.items || []);
       } catch (error) {
         console.error('Error fetching cart:', error);
       } finally {

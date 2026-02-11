@@ -12,7 +12,7 @@ const ProductDetail = () => {
       setLoading(true);
       try {
         const response = await axios.get(`/api/products/${slug}`);
-        setProduct(response.data);
+        setProduct(response.data.data || null);
       } catch (error) {
         console.error('Error fetching product details:', error);
       } finally {
@@ -52,7 +52,13 @@ const ProductDetail = () => {
         <h2>Description</h2>
         <p>{product.description}</p>
         <h2>Specifications</h2>
-        <p>{product.specifications}</p>
+        <div className="specifications">
+          {product.specifications && product.specifications.map((spec, index) => (
+            <div key={index} className="spec-item">
+              <strong>{spec.name}:</strong> {spec.value}
+            </div>
+          ))}
+        </div>
         <h2>Reviews</h2>
         {/* Add ReviewList and ReviewForm components here */}
         <h2>Q&A</h2>
