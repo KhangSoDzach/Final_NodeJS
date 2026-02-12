@@ -185,8 +185,8 @@ function i18nMiddleware(req, res, next) {
   // Provide list of available locales and currencies for switcher
   res.locals.availableLocales = getAllLocales();
   res.locals.availableCurrencies = getAllCurrencies();
-  res.locals.currentLocale = SUPPORTED_LOCALES[locale];
-  res.locals.currentCurrency = getCurrencyInfo(currency);
+  res.locals.currentLocale = SUPPORTED_LOCALES[locale] || SUPPORTED_LOCALES[DEFAULT_LOCALE] || { code: 'vi', name: 'Tiếng Việt', locale: 'vi-VN' };
+  res.locals.currentCurrency = getCurrencyInfo(currency) || getCurrencyInfo(DEFAULT_CURRENCY) || { code: 'VND', symbol: '₫' };
   
   // Helper to generate URL with locale/currency param
   res.locals.localeUrl = function(newLocale, preserveQuery = true) {
