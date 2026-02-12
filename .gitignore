@@ -45,3 +45,5 @@ Thumbs.db
 .agent/skills/
 promptAgent/
 .agent/rules/
+.env
+.env

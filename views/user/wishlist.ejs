@@ -60,7 +60,7 @@
                     <tr data-product-id="<%= item.product._id %>">
                       <td>
                         <a href="/products/<%= item.product.slug %>">
-                          <img src="<%= item.product.images && item.product.images[0] ? item.product.images[0] : '/image/no-image.png' %>" 
+                           <img src="<%= item.product.images && item.product.images[0] ? '/uploads/products/' + item.product.images[0] : '/image/no-image.png' %>" 
                                alt="<%= item.product.name %>"
                                class="img-thumbnail"
                                style="width: 80px; height: 80px; object-fit: cover;">
@@ -162,7 +162,7 @@
                   <div class="col-md-3 col-6 mb-3">
                     <div class="card h-100 border-success">
                       <a href="/products/<%= item.product.slug %>">
-                        <img src="<%= item.product.images && item.product.images[0] ? item.product.images[0] : '/image/no-image.png' %>" 
+                            <img src="<%= item.product.images && item.product.images[0] ? '/uploads/products/' + item.product.images[0] : '/image/no-image.png' %>" 
                              class="card-img-top" 
                              alt="<%= item.product.name %>"
                              style="height: 150px; object-fit: cover;">

@@ -3,47 +3,8 @@
  * Autocomplete, Voice Search, Advanced Filters
  */
 
-/* ==================== Search Bar Enhancements ==================== */
-.search-bar {
-  position: relative;
-}
-
-.search-bar form {
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.search-bar input[name="search"] {
-  flex: 1;
-  padding-right: 80px; /* Space for buttons */
-}
-
-/* Voice Search Button */
-.voice-search-btn {
-  position: absolute;
-  right: 45px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #6c757d;
-  cursor: pointer;
-  padding: 8px;
-  font-size: 16px;
-  transition: all 0.3s ease;
-  border-radius: 50%;
-}
-
-.voice-search-btn:hover {
-  color: #0d6efd;
-  background-color: rgba(13, 110, 253, 0.1);
-}
-
-.voice-search-btn.listening {
-  color: #dc3545;
-  animation: pulse 1.5s infinite;
-}
+/* ==================== Voice Search Button Animation ==================== */
+/* Main voice button styles are in style.css */
 
 @keyframes pulse {
   0% {
@@ -582,12 +543,6 @@
 @media (max-width: 768px) {
   .search-suggestions {
     max-height: 60vh;
-  }
-  
-  .voice-search-btn {
-    right: 40px;
-    padding: 6px;
-    font-size: 14px;
   }
   
   .suggestion-product .product-thumb {

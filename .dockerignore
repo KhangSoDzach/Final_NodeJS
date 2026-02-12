@@ -5,8 +5,20 @@ yarn-error.log
 .git
 .gitignore
 .env
+.env.example
 *.md
+!README_DOCKER.md
 .DS_Store
 .vscode
+coverage/
+.agent/
+test-output.txt
+*.test.js
+
+# Don't copy uploads when building - will use volume
 uploads/*
 !uploads/.gitkeep
+
+# Don't copy dev tools
+Dockerfile.dev
+docker-compose.dev.yml

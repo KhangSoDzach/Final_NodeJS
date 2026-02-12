@@ -12,7 +12,15 @@
     "test:coverage": "jest --coverage",
     "frontend:dev": "vite",
     "frontend:build": "vite build",
-    "frontend:preview": "vite preview"
+    "frontend:preview": "vite preview",
+    "docker:init": "node init-uploads.js",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up -d",
+    "docker:dev:logs": "docker compose -f docker-compose.dev.yml logs -f",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
+    "docker:prod": "docker compose up -d --build",
+    "docker:prod:logs": "docker compose logs -f",
+    "docker:prod:down": "docker compose down",
+    "docker:clean": "docker compose down -v && docker system prune -f"
   },
   "dependencies": {
     "@studio-freight/lenis": "^1.0.42",
