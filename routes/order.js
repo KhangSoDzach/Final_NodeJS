@@ -1,13 +1,65 @@
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/order');
-const { isAuth, allowGuest } = require('../middleware/auth');
+const { isAuth } = require('../middleware/auth');
+const { initGuestCart } = require('../middleware/guestCart');
 
-// Order Creation
-router.post('/create', allowGuest, orderController.createOrder);
+// =============================================
+// GUEST CHECKOUT ROUTES (Không cần đăng nhập)
+// =============================================
 
-// Order Tracking
-router.get('/track/:orderId', allowGuest, orderController.trackOrder);
+// Guest checkout page
+router.get('/guest-checkout', initGuestCart, orderController.getGuestCheckout);
+
+// Process guest checkout
+router.post('/guest-checkout', initGuestCart, orderController.postGuestCheckout);
+
+// Guest order success
+router.get('/guest-success/:orderId', orderController.getGuestSuccess);
+
+// Track guest order by token
+router.get('/track-guest/:token', orderController.trackGuestOrder);
+
+// Track order page (public - cho phép nhập mã)
+router.get('/track', (req, res) => {
+  res.render('orders/track-form', { title: 'Theo dõi đơn hàng' });
+});
+
+// =============================================
+// INVOICE ROUTES
+// =============================================
+
+// View invoice (HTML - cả guest và user)
+router.get('/invoice/:orderId', orderController.getInvoice);
+
+// Download invoice PDF
+router.get('/invoice/:orderId/pdf', orderController.downloadInvoicePDF);
+
+// Request VAT invoice for existing order
+router.post('/request-vat-invoice/:orderId', isAuth, orderController.requestVatInvoice);
+
+// Calculate VAT preview (API)
+router.post('/calculate-vat', orderController.calculateVatPreview);
+
+// =============================================
+// ONE-CLICK CHECKOUT
+// =============================================
+
+// One-click checkout (AJAX)
+router.post('/one-click-checkout', isAuth, orderController.oneClickCheckout);
+
+// Get user addresses for autofill
+router.get('/addresses', isAuth, orderController.getUserAddresses);
+
+// =============================================
+// AUTHENTICATED ROUTES
+// =============================================
+
+// Order Creation (deprecated - redirect to checkout)
+router.post('/create', isAuth, orderController.createOrder);
+
+// Order Tracking (for logged in users)
+router.get('/track/:orderId', isAuth, orderController.trackOrder);
 
 // Order History
 router.get('/history', isAuth, orderController.getOrderHistory);
@@ -63,8 +115,9 @@ router.get('/success/:orderId', allowGuest, async (req, res) => {
       discountPercent,
       order,
       currentLoyaltyPoints,
-      isGuest: !req.user
-    });  } catch (err) {
+      isGuest: false
+    });
+  } catch (err) {
     console.error('Error loading order success page:', err);
     req.flash('error', 'Đã xảy ra lỗi khi tải trang thành công.');
     res.redirect(req.user ? '/orders/history' : '/');

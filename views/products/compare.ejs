@@ -1,0 +1,305 @@
+<!-- views/products/compare.ejs -->
+<!-- Trang so sánh sản phẩm -->
+
+<div class="container my-4">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+      <li class="breadcrumb-item"><a href="/products">Sản phẩm</a></li>
+      <li class="breadcrumb-item active">So sánh sản phẩm</li>
+    </ol>
+  </nav>
+
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">
+        <i class="fas fa-balance-scale me-2"></i>
+        So sánh sản phẩm
+        <% if (category) { %>
+          <span class="badge bg-secondary ms-2"><%= category %></span>
+        <% } %>
+      </h5>
+      <% if (products.length > 0) { %>
+        <button class="btn btn-outline-danger btn-sm" id="btn-clear-compare">
+          <i class="fas fa-trash me-1"></i> Xóa tất cả
+        </button>
+      <% } %>
+    </div>
+    <div class="card-body">
+      <% if (products.length === 0) { %>
+        <div class="text-center py-5">
+          <i class="fas fa-balance-scale fa-4x text-muted mb-3"></i>
+          <h5>Chưa có sản phẩm để so sánh</h5>
+          <p class="text-muted">Thêm sản phẩm vào danh sách so sánh để xem sự khác biệt!</p>
+          <a href="/products" class="btn btn-primary">
+            <i class="fas fa-shopping-bag me-1"></i> Xem sản phẩm
+          </a>
+        </div>
+      <% } else { %>
+        <!-- Bảng so sánh -->
+        <div class="table-responsive">
+          <table class="table table-bordered compare-table">
+            <!-- Header: Hình ảnh sản phẩm -->
+            <thead>
+              <tr>
+                <th class="compare-label" style="width: 200px;">Sản phẩm</th>
+                <% products.forEach(product => { %>
+                  <th class="compare-product text-center" style="min-width: 250px;">
+                    <div class="position-relative">
+                      <button class="btn btn-sm btn-danger position-absolute top-0 end-0 btn-remove-compare"
+                              data-product-id="<%= product._id %>"
+                              title="Xóa khỏi so sánh">
+                        <i class="fas fa-times"></i>
+                      </button>
+                      <a href="/products/<%= product.slug %>">
+                        <img src="<%= product.images && product.images[0] ? product.images[0] : '/image/no-image.png' %>" 
+                             alt="<%= product.name %>"
+                             class="img-fluid mb-2"
+                             style="max-height: 200px; object-fit: contain;">
+                      </a>
+                      <h6 class="mt-2">
+                        <a href="/products/<%= product.slug %>" class="text-decoration-none">
+                          <%= product.name %>
+                        </a>
+                      </h6>
+                    </div>
+                  </th>
+                <% }); %>
+                <% if (products.length < 4) { %>
+                  <th class="compare-add text-center" style="min-width: 200px;">
+                    <div class="py-4">
+                      <a href="/products<%= category ? '?category=' + encodeURIComponent(category) : '' %>" 
+                         class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-1"></i>
+                        Thêm sản phẩm
+                      </a>
+                      <p class="text-muted small mt-2">
+                        Còn <%= 4 - products.length %> vị trí
+                      </p>
+                    </div>
+                  </th>
+                <% } %>
+              </tr>
+            </thead>
+            
+            <!-- Body: Các thuộc tính -->
+            <tbody>
+              <% specifications.forEach((spec, index) => { %>
+                <tr class="<%= index % 2 === 0 ? 'bg-light' : '' %>">
+                  <td class="compare-label fw-bold">
+                    <% if (spec.isPrice) { %>
+                      <i class="fas fa-tag text-primary me-1"></i>
+                    <% } %>
+                    <%= spec.name %>
+                  </td>
+                  <% spec.values.forEach((value, vIndex) => { %>
+                    <td class="text-center compare-value 
+                        <%= spec.isPrice ? 'text-danger fw-bold fs-5' : '' %>">
+                      <%= value %>
+                      
+                      <% // Highlight giá tốt nhất
+                      if (spec.isPrice && products.length > 1) {
+                        const priceValues = spec.values.map(v => 
+                          parseInt(v.replace(/[^\d]/g, ''))
+                        );
+                        const minPrice = Math.min(...priceValues);
+                        const currentPrice = parseInt(value.replace(/[^\d]/g, ''));
+                        if (currentPrice === minPrice && products.length > 1) { %>
+                          <br>
+                          <span class="badge bg-success">
+                            <i class="fas fa-check me-1"></i>Giá tốt nhất
+                          </span>
+                        <% }
+                      } %>
+                    </td>
+                  <% }); %>
+                  <% if (products.length < 4) { %>
+                    <td></td>
+                  <% } %>
+                </tr>
+              <% }); %>
+              
+              <!-- Hàng actions -->
+              <tr class="table-light">
+                <td class="fw-bold">
+                  <i class="fas fa-shopping-cart text-success me-1"></i>
+                  Mua ngay
+                </td>
+                <% products.forEach(product => { %>
+                  <td class="text-center">
+                    <% if (product.stock > 0) { %>
+                      <button class="btn btn-success btn-add-to-cart" 
+                              data-product-id="<%= product._id %>">
+                        <i class="fas fa-cart-plus me-1"></i>
+                        Thêm vào giỏ
+                      </button>
+                    <% } else { %>
+                      <button class="btn btn-secondary" disabled>
+                        <i class="fas fa-times me-1"></i>
+                        Hết hàng
+                      </button>
+                    <% } %>
+                  </td>
+                <% }); %>
+                <% if (products.length < 4) { %>
+                  <td></td>
+                <% } %>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Tips -->
+        <div class="alert alert-info mt-3">
+          <i class="fas fa-lightbulb me-2"></i>
+          <strong>Mẹo:</strong> Bạn có thể so sánh tối đa 4 sản phẩm cùng danh mục. 
+          Click vào nút <i class="fas fa-balance-scale"></i> trên mỗi sản phẩm để thêm vào so sánh.
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<style>
+.compare-table {
+  table-layout: fixed;
+}
+
+.compare-table th,
+.compare-table td {
+  vertical-align: middle;
+  padding: 15px;
+}
+
+.compare-label {
+  background-color: #f8f9fa;
+  font-weight: 500;
+}
+
+.compare-product img {
+  transition: transform 0.3s ease;
+}
+
+.compare-product img:hover {
+  transform: scale(1.05);
+}
+
+.btn-remove-compare {
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.btn-remove-compare:hover {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .compare-table {
+    font-size: 0.9rem;
+  }
+  
+  .compare-table th,
+  .compare-table td {
+    padding: 10px;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Xóa sản phẩm khỏi so sánh
+  document.querySelectorAll('.btn-remove-compare').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const productId = this.dataset.productId;
+      
+      try {
+        const res = await fetch(`/compare/remove/${productId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          location.reload();
+        } else {
+          alert(data.message || 'Có lỗi xảy ra');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra');
+      }
+    });
+  });
+
+  // Xóa tất cả
+  const btnClearCompare = document.getElementById('btn-clear-compare');
+  if (btnClearCompare) {
+    btnClearCompare.addEventListener('click', async function() {
+      if (!confirm('Bạn có chắc muốn xóa tất cả sản phẩm?')) return;
+      
+      try {
+        const res = await fetch('/compare/clear', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          location.reload();
+        } else {
+          alert(data.message || 'Có lỗi xảy ra');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra');
+      }
+    });
+  }
+
+  // Thêm vào giỏ hàng
+  document.querySelectorAll('.btn-add-to-cart').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const productId = this.dataset.productId;
+      
+      try {
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        const res = await fetch('/cart/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, quantity: 1 })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          this.innerHTML = '<i class="fas fa-check me-1"></i>Đã thêm';
+          this.classList.remove('btn-success');
+          this.classList.add('btn-outline-success');
+          
+          // Update cart count
+          if (typeof updateCartCount === 'function') {
+            updateCartCount();
+          }
+          
+          setTimeout(() => {
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-cart-plus me-1"></i>Thêm vào giỏ';
+            this.classList.remove('btn-outline-success');
+            this.classList.add('btn-success');
+          }, 2000);
+        } else {
+          alert(data.message || 'Có lỗi xảy ra');
+          this.disabled = false;
+          this.innerHTML = '<i class="fas fa-cart-plus me-1"></i>Thêm vào giỏ';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra');
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-cart-plus me-1"></i>Thêm vào giỏ';
+      }
+    });
+  });
+});
+</script>

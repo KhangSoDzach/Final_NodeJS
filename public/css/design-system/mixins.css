@@ -1,0 +1,414 @@
+/* ===================================================================
+   Source Computer - CSS Mixins & Utility Patterns
+   Reusable CSS patterns using custom properties
+   ================================================================ */
+
+/* ==================== Glassmorphism Effect ==================== */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-strong {
+  background: var(--glass-bg-hover);
+  backdrop-filter: var(--backdrop-blur-strong);
+  -webkit-backdrop-filter: var(--backdrop-blur-strong);
+  border: 1px solid var(--glass-border-hover);
+}
+
+/* Hover state for glass elements */
+.glass-hover {
+  transition: var(--transition-all);
+}
+
+.glass-hover:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+}
+
+
+/* ==================== Glow Effects ==================== */
+.glow-primary {
+  box-shadow: var(--shadow-glow-primary);
+}
+
+.glow-primary-lg {
+  box-shadow: var(--shadow-glow-primary-lg);
+}
+
+.glow-accent {
+  box-shadow: var(--shadow-glow-accent);
+}
+
+.glow-accent-lg {
+  box-shadow: var(--shadow-glow-accent-lg);
+}
+
+.glow-success {
+  box-shadow: var(--shadow-glow-success);
+}
+
+.glow-danger {
+  box-shadow: var(--shadow-glow-danger);
+}
+
+.glow-warning {
+  box-shadow: var(--shadow-glow-warning);
+}
+
+/* Hover glow effect */
+.glow-on-hover {
+  transition: box-shadow var(--transition-base);
+}
+
+.glow-on-hover:hover {
+  box-shadow: var(--shadow-glow-primary);
+}
+
+
+/* ==================== Elevation Shadows ==================== */
+.elevation-1 {
+  box-shadow: var(--shadow-sm);
+}
+
+.elevation-2 {
+  box-shadow: var(--shadow-base);
+}
+
+.elevation-3 {
+  box-shadow: var(--shadow-md);
+}
+
+.elevation-4 {
+  box-shadow: var(--shadow-lg);
+}
+
+.elevation-primary {
+  box-shadow: var(--shadow-elevated-primary);
+}
+
+.elevation-accent {
+  box-shadow: var(--shadow-elevated-accent);
+}
+
+
+/* ==================== Gradient Backgrounds ==================== */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+}
+
+.gradient-primary-radial {
+  background: radial-gradient(circle at top left, var(--primary), var(--accent));
+}
+
+.gradient-dark {
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+
+.gradient-overlay {
+  position: relative;
+}
+
+.gradient-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 15, 35, 0) 0%,
+    rgba(15, 15, 35, 0.8) 100%
+  );
+  pointer-events: none;
+}
+
+/* Gradient borders */
+.gradient-border {
+  position: relative;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+
+/* ==================== Hover Effects ==================== */
+.hover-lift {
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.hover-lift-lg {
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.hover-lift-lg:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-elevated-primary);
+}
+
+.hover-scale {
+  transition: transform var(--transition-base);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-scale-sm {
+  transition: transform var(--transition-base);
+}
+
+.hover-scale-sm:hover {
+  transform: scale(1.02);
+}
+
+.hover-glow-border {
+  border: 1px solid var(--glass-border);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.hover-glow-border:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-glow-primary);
+}
+
+
+/* ==================== Text Effects ==================== */
+.text-gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-glow {
+  text-shadow: 0 0 20px var(--primary-glow);
+}
+
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+
+/* ==================== Loading States ==================== */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-tertiary) 0%,
+    var(--bg-elevated) 50%,
+    var(--bg-tertiary) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  animation: shimmer-slide 2s infinite;
+}
+
+@keyframes shimmer-slide {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+
+/* ==================== Focus States ==================== */
+.focus-ring:focus,
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.focus-ring-danger:focus,
+.focus-ring-danger:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring-danger);
+}
+
+
+/* ==================== Scrollbar Styling ==================== */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--bg-secondary);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--bg-secondary);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-light);
+}
+
+
+/* ==================== Backdrop Blur ==================== */
+.backdrop-blur {
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+}
+
+.backdrop-blur-strong {
+  backdrop-filter: var(--backdrop-blur-strong);
+  -webkit-backdrop-filter: var(--backdrop-blur-strong);
+}
+
+
+/* ==================== Grid Patterns ==================== */
+.grid-dots {
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+}
+
+.grid-lines {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+
+/* ==================== Neon Border Animation ==================== */
+.neon-border {
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  background: 
+    linear-gradient(var(--bg-tertiary), var(--bg-tertiary)) padding-box,
+    linear-gradient(135deg, var(--primary), var(--accent)) border-box;
+}
+
+.neon-border-animated {
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  background: var(--bg-tertiary);
+}
+
+.neon-border-animated::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--primary), var(--accent), var(--primary));
+  background-size: 200% 200%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: neon-border-rotate 3s linear infinite;
+}
+
+@keyframes neon-border-rotate {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+
+/* ==================== Visibility Utilities ==================== */
+.hidden {
+  display: none !important;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* ==================== GPU Acceleration ==================== */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+
+/* ==================== Clip Paths ==================== */
+.clip-diagonal {
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+}
+
+.clip-arrow-right {
+  clip-path: polygon(0 0, 90% 0, 100% 50%, 90% 100%, 0 100%);
+}

@@ -130,9 +130,41 @@
                             Mua ngay
                         </button>
                     <% } else { %>
-                        <button type="button" class="btn btn-secondary btn-lg" disabled>
-                            Hết hàng
-                        </button>
+                        <!-- Out of Stock Actions -->
+                        <div class="out-of-stock-actions">
+                            <% if (product.allowPreOrder) { %>
+                                <!-- Pre-order Option -->
+                                <div class="pre-order-section">
+                                    <div class="pre-order-info">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Sản phẩm đang hết hàng, dự kiến có lại: 
+                                            <strong><%= product.estimatedRestockDate ? new Date(product.estimatedRestockDate).toLocaleDateString('vi-VN') : 'Đang cập nhật' %></strong>
+                                        </span>
+                                    </div>
+                                    <button type="button" id="preOrderBtn" class="btn btn-warning btn-lg" data-id="<%= product._id %>">
+                                        <i class="fas fa-calendar-check"></i> Đặt trước
+                                    </button>
+                                </div>
+                            <% } else { %>
+                                <button type="button" class="btn btn-secondary btn-lg" disabled>
+                                    <i class="fas fa-times-circle"></i> Hết hàng
+                                </button>
+                            <% } %>
+                            
+                            <!-- Back in Stock Notification -->
+                            <div class="notify-section">
+                                <p class="notify-text"><i class="fas fa-bell"></i> Nhận thông báo khi có hàng</p>
+                                <div class="notify-form">
+                                    <input type="email" id="notifyEmail" placeholder="Email của bạn" 
+                                           value="<%= locals.user ? user.email : '' %>" 
+                                           <%= locals.user ? 'readonly' : '' %>>
+                                    <button type="button" id="notifyBtn" class="btn btn-outline-primary" data-id="<%= product._id %>">
+                                        <i class="fas fa-bell"></i> Đăng ký
+                                    </button>
+                                </div>
+                                <p class="notify-hint">Chúng tôi sẽ gửi email thông báo ngay khi sản phẩm có hàng trở lại</p>
+                            </div>
+                        </div>
                     <% } %>
                 </div>
             </form>

@@ -1,5 +1,48 @@
 <div class="container checkout-page">
   <h1>Thanh toán</h1>
+  
+  <!-- One-click Checkout Section -->
+  <% if (user && user.addresses && user.addresses.length > 0) { %>
+    <% const defaultAddr = user.addresses.find(a => a.default) || user.addresses[0]; %>
+    <div class="one-click-checkout-section mb-4">
+      <div class="card border-success">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-bolt me-2"></i>
+            Thanh toán nhanh (One-Click)
+          </h5>
+        </div>
+        <div class="card-body">
+          <p class="mb-3">Sử dụng địa chỉ mặc định để đặt hàng ngay:</p>
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="default-address-info p-3 bg-light rounded">
+                <strong><i class="fas fa-map-marker-alt text-success me-2"></i><%= defaultAddr.street %></strong>
+                <br>
+                <span class="text-muted"><%= defaultAddr.district %>, <%= defaultAddr.province %></span>
+                <br>
+                <span class="text-muted"><i class="fas fa-phone me-1"></i><%= user.phone %></span>
+              </div>
+            </div>
+            <div class="col-md-4 mt-3 mt-md-0">
+              <form action="/orders/one-click-checkout" method="POST" id="one-click-form">
+                <input type="hidden" name="paymentMethod" value="cod">
+                <button type="submit" class="btn btn-success btn-lg w-100" id="one-click-btn">
+                  <i class="fas fa-shopping-cart me-2"></i>
+                  Đặt hàng ngay
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="divider-text my-4">
+      <span>HOẶC ĐIỀN THÔNG TIN GIAO HÀNG</span>
+    </div>
+  <% } %>
+
   <div class="checkout-grid">
     <!-- Thông tin giỏ hàng -->
     <div class="checkout-details">
@@ -142,6 +185,50 @@
             <input type="radio" name="paymentMethod" value="online" required> Thanh toán trực tuyến
           </label>
         </div>
+        <div class="form-group">
+          <label>
+            <input type="radio" name="paymentMethod" value="bank_transfer" required> Chuyển khoản ngân hàng
+          </label>
+        </div>
+      </div>
+
+      <!-- VAT Invoice Option -->
+      <div class="checkout-section">
+        <h2><i class="fas fa-file-invoice me-2"></i>Hóa đơn VAT</h2>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="vatInvoice" name="vatInvoice">
+          <label class="form-check-label" for="vatInvoice">
+            Yêu cầu xuất hóa đơn VAT (GTGT)
+          </label>
+        </div>
+        <div id="vat-info-section" style="display: none;">
+          <div class="form-group">
+            <label for="vatCompanyName">Tên công ty/Người mua <span class="text-danger">*</span></label>
+            <input type="text" id="vatCompanyName" name="vatCompanyName" class="form-control" 
+                   placeholder="Công ty TNHH ABC">
+          </div>
+          <div class="form-group">
+            <label for="vatTaxCode">Mã số thuế</label>
+            <input type="text" id="vatTaxCode" name="vatTaxCode" class="form-control" 
+                   placeholder="0123456789" pattern="[0-9]{10}(-[0-9]{3})?">
+          </div>
+          <div class="form-group">
+            <label for="vatAddress">Địa chỉ xuất hóa đơn <span class="text-danger">*</span></label>
+            <input type="text" id="vatAddress" name="vatAddress" class="form-control" 
+                   placeholder="Địa chỉ công ty">
+          </div>
+          <div class="form-group">
+            <label for="vatEmail">Email nhận hóa đơn</label>
+            <input type="email" id="vatEmail" name="vatEmail" class="form-control" 
+                   placeholder="ketoan@company.com" value="<%= user ? user.email : '' %>">
+          </div>
+          <div class="alert alert-info">
+            <small>
+              <i class="fas fa-info-circle me-1"></i>
+              Hóa đơn VAT sẽ được gửi qua email trong vòng 3-5 ngày làm việc sau khi đơn hàng được giao thành công.
+            </small>
+          </div>
+        </div>
       </div>
 
       <!-- Nút xác nhận -->
@@ -156,6 +243,28 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // VAT Invoice Toggle
+    const vatCheckbox = document.getElementById('vatInvoice');
+    const vatSection = document.getElementById('vat-info-section');
+    if (vatCheckbox && vatSection) {
+      vatCheckbox.addEventListener('change', function() {
+        vatSection.style.display = this.checked ? 'block' : 'none';
+        // Toggle required on VAT fields
+        document.getElementById('vatCompanyName').required = this.checked;
+        document.getElementById('vatAddress').required = this.checked;
+      });
+    }
+
+    // One-click checkout form
+    const oneClickForm = document.getElementById('one-click-form');
+    if (oneClickForm) {
+      oneClickForm.addEventListener('submit', function(e) {
+        const btn = document.getElementById('one-click-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
+      });
+    }
+
     // Xử lý chọn địa chỉ đã lưu
     const savedAddressSelect = document.getElementById('saved-address');
     if (savedAddressSelect) {
@@ -322,6 +431,35 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       padding: var(--spacing-xl);
       box-sizing: border-box;
+    }
+
+    /* One-click checkout */
+    .one-click-checkout-section .card {
+      border-width: 2px;
+    }
+    
+    .one-click-checkout-section .default-address-info {
+      border-left: 4px solid var(--success-color);
+    }
+
+    .divider-text {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: var(--text-color-muted);
+    }
+    
+    .divider-text::before,
+    .divider-text::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border-color-light);
+    }
+    
+    .divider-text span {
+      padding: 0 1rem;
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
     }
 
     h1 {

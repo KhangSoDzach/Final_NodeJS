@@ -1,0 +1,225 @@
+/* ===================================================================
+   Layout Module Index
+   Import all layout-related stylesheets
+   ================================================================ */
+
+@import './header.css';
+@import './footer.css';
+@import './container.css';
+@import './sidebar.css';
+
+/* ===================================================================
+   LAYOUT USAGE GUIDE
+   ================================================================
+
+   ## Header & Navigation
+   
+   The header uses a sticky glassmorphism design with backdrop blur:
+   
+   ```html
+   <header>
+     <div class="container">
+       <div class="top-header">
+         <div class="logo">...</div>
+         <div class="search-bar">...</div>
+         <div class="user-actions">...</div>
+       </div>
+     </div>
+     <nav class="main-nav">
+       <div class="container">
+         <ul class="nav-list">...</ul>
+       </div>
+     </nav>
+   </header>
+   ```
+   
+   - Sticky navigation with glassmorphism effect
+   - Responsive search bar with autocomplete
+   - User action icons (cart, wishlist, compare)
+   - Dropdown menus with smooth animations
+   - Mobile hamburger menu support
+
+   ## Footer
+   
+   4-column grid layout with dark gradient background:
+   
+   ```html
+   <footer>
+     <div class="container">
+       <div class="footer-content">
+         <div class="footer-section">...</div>
+         <!-- Repeat 4 times -->
+       </div>
+       <div class="footer-bottom">...</div>
+     </div>
+   </footer>
+   ```
+   
+   - Responsive grid (4 → 2 → 1 columns)
+   - Social icons with glow effects
+   - Contact information with icons
+   - Optional newsletter subscription
+
+   ## Container System
+   
+   ```html
+   <!-- Standard container -->
+   <div class="container">...</div>
+   
+   <!-- Fluid container -->
+   <div class="container-fluid">...</div>
+   
+   <!-- Narrow container -->
+   <div class="container container-narrow">...</div>
+   
+   <!-- Wide container -->
+   <div class="container container-wide">...</div>
+   ```
+
+   ## Grid System
+   
+   ```html
+   <!-- Auto-fit grid (responsive by default) -->
+   <div class="grid grid-auto-fit">
+     <div>Item 1</div>
+     <div>Item 2</div>
+   </div>
+   
+   <!-- Fixed columns -->
+   <div class="grid grid-cols-4 grid-gap-md">
+     <div>Item 1</div>
+     <div class="col-span-2">Item 2 (spans 2 columns)</div>
+     <div>Item 3</div>
+   </div>
+   
+   <!-- Product grid -->
+   <div class="product-grid">
+     <div class="product-card">...</div>
+     <!-- Products here -->
+   </div>
+   ```
+
+   ## Flex Utilities
+   
+   ```html
+   <div class="flex items-center justify-between gap-4">
+     <div>Left</div>
+     <div>Right</div>
+   </div>
+   
+   <div class="flex flex-col items-center gap-6">
+     <div>Stacked items</div>
+   </div>
+   ```
+
+   ## Two-Column Layouts
+   
+   ```html
+   <!-- Sidebar left + main content -->
+   <div class="two-column-layout">
+     <aside class="filter-sidebar">...</aside>
+     <main>...</main>
+   </div>
+   
+   <!-- Sidebar right -->
+   <div class="two-column-layout sidebar-right">
+     <main>...</main>
+     <aside>...</aside>
+   </div>
+   ```
+
+   ## Filter Sidebar (Product Pages)
+   
+   ```html
+   <aside class="filter-sidebar">
+     <h3>Filters</h3>
+     
+     <div class="filter-group">
+       <h4>Category <i class="fas fa-angle-down"></i></h4>
+       <div class="filter-group-content">
+         <div class="filter-option">
+           <input type="checkbox" id="cat1">
+           <label for="cat1">
+             Laptop
+             <span class="count">42</span>
+           </label>
+         </div>
+       </div>
+     </div>
+     
+     <button class="clear-filters">Clear All Filters</button>
+   </aside>
+   ```
+   
+   Features:
+   - Collapsible filter groups
+   - Custom styled checkboxes/radios
+   - Price range slider with glow effect
+   - Active filter tags
+   - Mobile-friendly drawer
+
+   ## Admin Sidebar
+   
+   ```html
+   <aside class="admin-sidebar">
+     <div class="admin-sidebar-header">
+       <h2>Admin</h2>
+       <button class="sidebar-toggle">
+         <i class="fas fa-bars"></i>
+       </button>
+     </div>
+     
+     <nav class="admin-nav">
+       <a href="/admin" class="admin-nav-item active">
+         <i class="fas fa-dashboard"></i>
+         <span>Dashboard</span>
+       </a>
+       <a href="/admin/orders" class="admin-nav-item">
+         <i class="fas fa-shopping-bag"></i>
+         <span>Orders</span>
+         <span class="badge">5</span>
+       </a>
+     </nav>
+   </aside>
+   
+   <main class="admin-main">
+     <!-- Admin content here -->
+   </main>
+   ```
+   
+   Features:
+   - Fixed sidebar with gradient background
+   - Collapsible (full width ↔ icon-only)
+   - Active item highlighting
+   - Badge support for notifications
+   - Mobile drawer with overlay
+
+   ## Section Styling
+   
+   ```html
+   <section>
+     <div class="container">
+       <div class="section-title">
+         <h2>Section Title</h2>
+         <p>Optional subtitle</p>
+       </div>
+       
+       <div class="product-grid">
+         <!-- Content -->
+       </div>
+       
+       <div class="view-more">
+         <a href="#" class="btn btn-primary">View All</a>
+       </div>
+     </div>
+   </section>
+   ```
+
+   ## Responsive Behavior
+   
+   - Desktop (1200px+): Full layout, 4-col grids
+   - Laptop (992-1199px): 3-col grids, compact spacing
+   - Tablet (768-991px): 2-col grids, sidebars stack
+   - Mobile (<768px): 1-col, hamburger menu, bottom nav
+   
+================================================================ */

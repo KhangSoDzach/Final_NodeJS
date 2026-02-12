@@ -1,0 +1,316 @@
+<%- include('../layouts/main', { body: ` 
+<div class="container py-5">
+  <div class="row">
+    <div class="col-12">
+      <h2 class="mb-4">
+        <i class="fas fa-shopping-cart text-success me-2"></i>
+        Thanh toán - Khách vãng lai
+      </h2>
+      
+      <!-- Info Alert -->
+      <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Mua hàng không cần đăng ký!</strong> 
+        Chúng tôi sẽ gửi email xác nhận và mã theo dõi đơn hàng đến email của bạn.
+        <a href="/auth/login" class="alert-link ms-2">Đăng nhập</a> để tích điểm thưởng và quản lý đơn hàng dễ dàng hơn.
+      </div>
+    </div>
+  </div>
+
+  <form action="/orders/guest-checkout" method="POST" id="guest-checkout-form">
+    <div class="row">
+      <!-- Left Column - Forms -->
+      <div class="col-lg-8">
+        
+        <!-- Customer Info -->
+        <div class="card mb-4 shadow-sm">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-user me-2"></i>Thông tin liên hệ</h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="guestName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="guestName" name="guestName" required 
+                       placeholder="Nguyễn Văn A" autocomplete="name">
+              </div>
+              <div class="col-md-6">
+                <label for="guestPhone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                <input type="tel" class="form-control" id="guestPhone" name="guestPhone" required 
+                       placeholder="0912345678" pattern="[0-9]{10,11}" autocomplete="tel">
+              </div>
+              <div class="col-12">
+                <label for="guestEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" id="guestEmail" name="guestEmail" required 
+                       placeholder="email@example.com" autocomplete="email">
+                <small class="text-muted">Chúng tôi sẽ gửi xác nhận đơn hàng và mã theo dõi đến email này.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="card mb-4 shadow-sm">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Địa chỉ giao hàng</h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-12">
+                <label for="address" class="form-label">Địa chỉ <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="address" name="address" required 
+                       placeholder="Số nhà, tên đường..." autocomplete="street-address">
+              </div>
+              <div class="col-md-4">
+                <label for="ward" class="form-label">Phường/Xã</label>
+                <input type="text" class="form-control" id="ward" name="ward" 
+                       placeholder="Phường/Xã" autocomplete="address-level3">
+              </div>
+              <div class="col-md-4">
+                <label for="district" class="form-label">Quận/Huyện <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="district" name="district" required 
+                       placeholder="Quận/Huyện" autocomplete="address-level2">
+              </div>
+              <div class="col-md-4">
+                <label for="province" class="form-label">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="province" name="province" required 
+                       placeholder="Tỉnh/Thành phố" autocomplete="address-level1">
+              </div>
+              <div class="col-12">
+                <label for="note" class="form-label">Ghi chú</label>
+                <textarea class="form-control" id="note" name="note" rows="2" 
+                          placeholder="Ghi chú cho đơn hàng (không bắt buộc)"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="card mb-4 shadow-sm">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Phương thức thanh toán</h5>
+          </div>
+          <div class="card-body">
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="cod" checked>
+              <label class="form-check-label" for="cod">
+                <i class="fas fa-money-bill-wave text-success me-2"></i>
+                Thanh toán khi nhận hàng (COD)
+              </label>
+            </div>
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="radio" name="paymentMethod" id="bank_transfer" value="bank_transfer">
+              <label class="form-check-label" for="bank_transfer">
+                <i class="fas fa-university text-primary me-2"></i>
+                Chuyển khoản ngân hàng
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- VAT Invoice Option -->
+        <div class="card mb-4 shadow-sm">
+          <div class="card-header bg-light">
+            <div class="form-check mb-0">
+              <input class="form-check-input" type="checkbox" id="vatInvoice" name="vatInvoice">
+              <label class="form-check-label fw-bold" for="vatInvoice">
+                <i class="fas fa-file-invoice text-warning me-2"></i>
+                Yêu cầu xuất hóa đơn VAT
+              </label>
+            </div>
+          </div>
+          <div class="card-body" id="vatInfoSection" style="display: none;">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="vatCompanyName" class="form-label">Tên công ty/Người mua <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="vatCompanyName" name="vatCompanyName" 
+                       placeholder="Công ty TNHH ABC">
+              </div>
+              <div class="col-md-6">
+                <label for="vatTaxCode" class="form-label">Mã số thuế</label>
+                <input type="text" class="form-control" id="vatTaxCode" name="vatTaxCode" 
+                       placeholder="0123456789" pattern="[0-9]{10}(-[0-9]{3})?">
+              </div>
+              <div class="col-12">
+                <label for="vatAddress" class="form-label">Địa chỉ xuất hóa đơn <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="vatAddress" name="vatAddress" 
+                       placeholder="Địa chỉ công ty">
+              </div>
+              <div class="col-12">
+                <label for="vatEmail" class="form-label">Email nhận hóa đơn</label>
+                <input type="email" class="form-control" id="vatEmail" name="vatEmail" 
+                       placeholder="ketoan@company.com">
+              </div>
+            </div>
+            <div class="alert alert-info mt-3 mb-0">
+              <small>
+                <i class="fas fa-info-circle me-1"></i>
+                Hóa đơn VAT sẽ được gửi qua email trong vòng 3-5 ngày làm việc sau khi đơn hàng được giao thành công.
+              </small>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column - Order Summary -->
+      <div class="col-lg-4">
+        <div class="card shadow-sm sticky-top" style="top: 100px;">
+          <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Đơn hàng của bạn</h5>
+          </div>
+          <div class="card-body">
+            <!-- Cart Items -->
+            <div class="order-items mb-3" style="max-height: 300px; overflow-y: auto;">
+              <% if (cart && cart.items && cart.items.length > 0) { %>
+                <% cart.items.forEach(function(item) { %>
+                  <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                    <img src="<%= item.productImage || item.product?.images?.[0] || '/image/placeholder.png' %>" 
+                         alt="<%= item.productName || item.product?.name %>" 
+                         class="rounded" style="width: 60px; height: 60px; object-fit: cover;">
+                    <div class="ms-3 flex-grow-1">
+                      <h6 class="mb-0 small"><%= item.productName || item.product?.name %></h6>
+                      <% if (item.variant) { %>
+                        <small class="text-muted"><%= item.variant.name %>: <%= item.variant.value %></small>
+                      <% } %>
+                      <div class="text-muted small">SL: <%= item.quantity %></div>
+                    </div>
+                    <div class="text-end">
+                      <strong><%= new Intl.NumberFormat('vi-VN').format(item.price * item.quantity) %>đ</strong>
+                    </div>
+                  </div>
+                <% }); %>
+              <% } else { %>
+                <p class="text-muted text-center">Giỏ hàng trống</p>
+              <% } %>
+            </div>
+
+            <!-- Price Summary -->
+            <div class="border-top pt-3">
+              <div class="d-flex justify-content-between mb-2">
+                <span>Tạm tính:</span>
+                <span><%= new Intl.NumberFormat('vi-VN').format(subtotal) %>đ</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span>Phí vận chuyển:</span>
+                <span>
+                  <% if (shippingCost === 0) { %>
+                    <span class="text-success">Miễn phí</span>
+                  <% } else { %>
+                    <%= new Intl.NumberFormat('vi-VN').format(shippingCost) %>đ
+                  <% } %>
+                </span>
+              </div>
+              
+              <!-- VAT Info -->
+              <div class="vat-breakdown mb-2" id="vatBreakdownSummary" style="display: none;">
+                <div class="d-flex justify-content-between text-muted small">
+                  <span>Giá trước thuế:</span>
+                  <span id="priceBeforeVat"><%= new Intl.NumberFormat('vi-VN').format(vatInfo.priceBeforeVat) %>đ</span>
+                </div>
+                <div class="d-flex justify-content-between text-muted small">
+                  <span>VAT (10%):</span>
+                  <span id="vatAmount"><%= new Intl.NumberFormat('vi-VN').format(vatInfo.vatAmount) %>đ</span>
+                </div>
+              </div>
+
+              <hr>
+              <div class="d-flex justify-content-between mb-3">
+                <strong class="fs-5">Tổng cộng:</strong>
+                <strong class="fs-5 text-success"><%= new Intl.NumberFormat('vi-VN').format(totalAmount) %>đ</strong>
+              </div>
+
+              <% if (subtotal < 500000) { %>
+                <div class="alert alert-warning small mb-3">
+                  <i class="fas fa-truck me-1"></i>
+                  Mua thêm <strong><%= new Intl.NumberFormat('vi-VN').format(500000 - subtotal) %>đ</strong> để được miễn phí vận chuyển!
+                </div>
+              <% } %>
+
+              <button type="submit" class="btn btn-success btn-lg w-100" id="submitBtn">
+                <i class="fas fa-check-circle me-2"></i>
+                Đặt hàng
+              </button>
+              
+              <p class="text-muted text-center small mt-3 mb-0">
+                <i class="fas fa-lock me-1"></i>
+                Thông tin của bạn được bảo mật
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<style>
+  .form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+  }
+  .form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+  }
+  .order-items::-webkit-scrollbar {
+    width: 5px;
+  }
+  .order-items::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 5px;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // VAT Invoice toggle
+  const vatCheckbox = document.getElementById('vatInvoice');
+  const vatSection = document.getElementById('vatInfoSection');
+  const vatBreakdown = document.getElementById('vatBreakdownSummary');
+  
+  vatCheckbox.addEventListener('change', function() {
+    vatSection.style.display = this.checked ? 'block' : 'none';
+    vatBreakdown.style.display = this.checked ? 'block' : 'none';
+    
+    // Toggle required on VAT fields
+    document.getElementById('vatCompanyName').required = this.checked;
+    document.getElementById('vatAddress').required = this.checked;
+  });
+
+  // Form validation
+  document.getElementById('guest-checkout-form').addEventListener('submit', function(e) {
+    const email = document.getElementById('guestEmail').value;
+    const phone = document.getElementById('guestPhone').value;
+    
+    // Email validation
+    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+    if (!emailRegex.test(email)) {
+      e.preventDefault();
+      alert('Vui lòng nhập email hợp lệ');
+      return;
+    }
+    
+    // Phone validation
+    const phoneRegex = /^[0-9]{10,11}$/;
+    if (!phoneRegex.test(phone)) {
+      e.preventDefault();
+      alert('Số điện thoại phải có 10-11 chữ số');
+      return;
+    }
+    
+    // Disable submit button
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+  });
+
+  // Auto-copy email to VAT email
+  document.getElementById('guestEmail').addEventListener('blur', function() {
+    const vatEmail = document.getElementById('vatEmail');
+    if (!vatEmail.value) {
+      vatEmail.value = this.value;
+    }
+  });
+});
+</script>
+` }) %>

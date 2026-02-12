@@ -1,0 +1,466 @@
+/* ===================================================================
+   Form Components
+   Inputs, selects, checkboxes, radios with glassmorphism
+   ================================================================ */
+
+/* ==================== Form Groups ==================== */
+.form-group {
+  margin-bottom: var(--space-4);
+}
+
+.form-group label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.form-group label.required::after {
+  content: '*';
+  color: var(--danger);
+  margin-left: var(--space-1);
+}
+
+.form-group small {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+.form-group.error label {
+  color: var(--danger);
+}
+
+.form-group.error .form-control {
+  border-color: var(--danger);
+}
+
+.form-group.error small {
+  color: var(--danger);
+}
+
+/* ==================== Text Inputs ==================== */
+.form-control {
+  width: 100%;
+  height: var(--input-height);
+  padding: var(--input-padding-y) var(--input-padding-x);
+  font-family: var(--font-primary);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--input-radius);
+  outline: none;
+  transition: var(--transition-all);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+}
+
+.form-control::placeholder {
+  color: var(--text-muted);
+}
+
+.form-control:focus {
+  border-color: var(--input-border-focus);
+  box-shadow: var(--shadow-glow-primary);
+  background: var(--glass-bg-hover);
+}
+
+.form-control:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--bg-tertiary);
+}
+
+/* Textarea */
+textarea.form-control {
+  height: auto;
+  min-height: 100px;
+  resize: vertical;
+  padding: var(--space-3) var(--input-padding-x);
+}
+
+/* ==================== Input Sizes ==================== */
+.form-control-sm {
+  height: 36px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.form-control-lg {
+  height: 52px;
+  padding: var(--space-4) var(--space-5);
+  font-size: var(--text-lg);
+}
+
+/* ==================== Select Dropdown ==================== */
+select.form-control {
+  appearance: none;
+  cursor: pointer;
+  padding-right: var(--space-10);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+}
+
+select.form-control:focus {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300d4ff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+}
+
+select.form-control option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* ==================== Input with Icon ==================== */
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-group .form-control {
+  padding-left: var(--space-10);
+}
+
+.input-group-icon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  pointer-events: none;
+  transition: var(--transition-colors);
+}
+
+.input-group .form-control:focus ~ .input-group-icon {
+  color: var(--primary);
+}
+
+/* Icon on right */
+.input-group.icon-right .form-control {
+  padding-left: var(--input-padding-x);
+  padding-right: var(--space-10);
+}
+
+.input-group.icon-right .input-group-icon {
+  left: auto;
+  right: var(--space-3);
+}
+
+/* ==================== Floating Label ==================== */
+.form-floating {
+  position: relative;
+}
+
+.form-floating > .form-control {
+  padding: var(--space-5) var(--input-padding-x) var(--space-2);
+}
+
+.form-floating > label {
+  position: absolute;
+  top: 50%;
+  left: var(--input-padding-x);
+  transform: translateY(-50%);
+  font-size: var(--text-base);
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: var(--transition-all);
+  background: transparent;
+  padding: 0 var(--space-1);
+  margin: 0;
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+  top: 8px;
+  transform: translateY(0);
+  font-size: var(--text-xs);
+  color: var(--primary);
+}
+
+/* ==================== Checkbox ==================== */
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  cursor: pointer;
+}
+
+.form-check input[type="checkbox"],
+.form-check input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  appearance: none;
+  background: var(--input-bg);
+  border: 2px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-all);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.form-check input[type="radio"] {
+  border-radius: var(--radius-full);
+}
+
+.form-check input[type="checkbox"]:checked,
+.form-check input[type="radio"]:checked {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-color: var(--primary);
+  box-shadow: var(--shadow-glow-primary);
+}
+
+.form-check input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-inverse);
+  font-size: 14px;
+  font-weight: var(--font-bold);
+}
+
+.form-check input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: var(--text-inverse);
+  border-radius: var(--radius-full);
+}
+
+.form-check input:focus {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.form-check label {
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.form-check input:checked ~ label {
+  color: var(--text-primary);
+}
+
+/* ==================== Toggle Switch ==================== */
+.form-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
+.form-switch input[type="checkbox"] {
+  position: relative;
+  width: 48px;
+  height: 24px;
+  appearance: none;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-default);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: var(--transition-all);
+  flex-shrink: 0;
+}
+
+.form-switch input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: var(--text-secondary);
+  border-radius: var(--radius-full);
+  transition: var(--transition-all);
+}
+
+.form-switch input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-color: var(--primary);
+  box-shadow: var(--shadow-glow-primary);
+}
+
+.form-switch input[type="checkbox"]:checked::before {
+  left: 26px;
+  background: var(--text-inverse);
+}
+
+.form-switch label {
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ==================== Range Slider ==================== */
+input[type="range"].form-range {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+input[type="range"].form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  box-shadow: var(--shadow-glow-primary);
+  transition: var(--transition-transform);
+}
+
+input[type="range"].form-range::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: var(--shadow-glow-primary-lg);
+}
+
+input[type="range"].form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  border: none;
+  box-shadow: var(--shadow-glow-primary);
+}
+
+/* ==================== File Upload ==================== */
+.form-file {
+  position: relative;
+  display: inline-block;
+}
+
+.form-file input[type="file"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.form-file-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-base);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.form-file-label:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.form-file-label i {
+  font-size: var(--text-lg);
+}
+
+/* ==================== Search Input ==================== */
+.search-input {
+  position: relative;
+}
+
+.search-input input {
+  padding-right: var(--space-12);
+}
+
+.search-input button {
+  position: absolute;
+  right: var(--space-1);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  border-radius: var(--radius-base);
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.search-input button:hover {
+  background: var(--primary);
+  color: var(--text-inverse);
+}
+
+/* ==================== Form Validation States ==================== */
+.form-control.is-valid {
+  border-color: var(--success);
+}
+
+.form-control.is-valid:focus {
+  box-shadow: var(--shadow-glow-success);
+}
+
+.form-control.is-invalid {
+  border-color: var(--danger);
+}
+
+.form-control.is-invalid:focus {
+  box-shadow: var(--shadow-glow-danger);
+}
+
+.valid-feedback,
+.invalid-feedback {
+  display: none;
+  font-size: var(--text-xs);
+  margin-top: var(--space-1);
+}
+
+.valid-feedback {
+  color: var(--success);
+}
+
+.invalid-feedback {
+  color: var(--danger);
+}
+
+.form-control.is-valid ~ .valid-feedback {
+  display: block;
+}
+
+.form-control.is-invalid ~ .invalid-feedback {
+  display: block;
+}
+
+/* ==================== Responsive Design ==================== */
+@media (max-width: 768px) {
+  .form-control {
+    font-size: var(--text-sm);
+  }
+  
+  .form-control-lg {
+    height: 48px;
+    font-size: var(--text-base);
+  }
+  
+  textarea.form-control {
+    min-height: 80px;
+  }
+}

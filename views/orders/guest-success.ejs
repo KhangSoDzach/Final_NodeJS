@@ -1,0 +1,244 @@
+<%- include('../layouts/main', { body: ` 
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- Success Alert -->
+      <div class="text-center mb-5">
+        <div class="success-icon mb-4">
+          <i class="fas fa-check-circle text-success" style="font-size: 80px;"></i>
+        </div>
+        <h1 class="text-success mb-3">Đặt hàng thành công!</h1>
+        <p class="lead text-muted">
+          Cảm ơn bạn đã đặt hàng. Chúng tôi sẽ xử lý đơn hàng trong thời gian sớm nhất.
+        </p>
+      </div>
+      
+      <!-- Order Info Card -->
+      <div class="card shadow mb-4">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-receipt me-2"></i>
+            Thông tin đơn hàng #<%= order._id.toString().slice(-8).toUpperCase() %>
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-user me-2"></i>Thông tin khách hàng
+              </h6>
+              <p><strong><%= order.guestInfo.name %></strong></p>
+              <p class="text-muted mb-1">
+                <i class="fas fa-envelope me-2"></i><%= order.guestInfo.email %>
+              </p>
+              <p class="text-muted">
+                <i class="fas fa-phone me-2"></i><%= order.guestInfo.phone %>
+              </p>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-muted mb-3">
+                <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ giao hàng
+              </h6>
+              <p><strong><%= order.shippingAddress.address %></strong></p>
+              <p class="text-muted">
+                <%= order.shippingAddress.district %>, <%= order.shippingAddress.province %>
+              </p>
+            </div>
+          </div>
+          
+          <hr>
+          
+          <!-- Order Items -->
+          <h6 class="text-muted mb-3">
+            <i class="fas fa-shopping-bag me-2"></i>Sản phẩm đã đặt
+          </h6>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>Sản phẩm</th>
+                  <th class="text-center">SL</th>
+                  <th class="text-end">Giá</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% order.items.forEach(function(item) { %>
+                  <tr>
+                    <td>
+                      <%= item.productName || item.product?.name %>
+                      <% if (item.variant) { %>
+                        <br><small class="text-muted"><%= item.variant.name %>: <%= item.variant.value %></small>
+                      <% } %>
+                    </td>
+                    <td class="text-center"><%= item.quantity %></td>
+                    <td class="text-end"><%= new Intl.NumberFormat('vi-VN').format(item.price * item.quantity) %>đ</td>
+                  </tr>
+                <% }); %>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="2" class="text-end">Tạm tính:</td>
+                  <td class="text-end"><%= new Intl.NumberFormat('vi-VN').format(order.totalAmount - (order.shippingCost || 0)) %>đ</td>
+                </tr>
+                <tr>
+                  <td colspan="2" class="text-end">Phí vận chuyển:</td>
+                  <td class="text-end">
+                    <% if ((order.shippingCost || 0) === 0) { %>
+                      <span class="text-success">Miễn phí</span>
+                    <% } else { %>
+                      <%= new Intl.NumberFormat('vi-VN').format(order.shippingCost) %>đ
+                    <% } %>
+                  </td>
+                </tr>
+                <tr class="table-success">
+                  <td colspan="2" class="text-end"><strong>Tổng cộng:</strong></td>
+                  <td class="text-end"><strong><%= new Intl.NumberFormat('vi-VN').format(order.totalAmount) %>đ</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          
+          <!-- Payment Method -->
+          <div class="alert alert-light mt-3">
+            <i class="fas fa-credit-card me-2"></i>
+            <strong>Phương thức thanh toán:</strong>
+            <% if (order.paymentMethod === 'cod') { %>
+              Thanh toán khi nhận hàng (COD)
+            <% } else if (order.paymentMethod === 'bank_transfer') { %>
+              Chuyển khoản ngân hàng
+            <% } else { %>
+              <%= order.paymentMethod %>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Tracking Token Card -->
+      <div class="card shadow mb-4 border-warning">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0">
+            <i class="fas fa-key me-2"></i>
+            Mã theo dõi đơn hàng
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-warning mb-3">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Quan trọng:</strong> Vui lòng lưu lại mã theo dõi này để tra cứu trạng thái đơn hàng!
+          </div>
+          
+          <div class="tracking-token bg-light p-3 rounded text-center mb-3">
+            <code class="fs-5 user-select-all" id="trackingToken"><%= order.guestInfo.guestToken %></code>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToken()">
+              <i class="fas fa-copy"></i> Sao chép
+            </button>
+          </div>
+          
+          <p class="text-muted small mb-0">
+            <i class="fas fa-info-circle me-1"></i>
+            Mã này cũng đã được gửi đến email <strong><%= order.guestInfo.email %></strong>. 
+            Vui lòng kiểm tra hộp thư (bao gồm cả thư mục spam).
+          </p>
+        </div>
+      </div>
+      
+      <!-- Bank Transfer Info -->
+      <% if (order.paymentMethod === 'bank_transfer') { %>
+        <div class="card shadow mb-4 border-info">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-university me-2"></i>
+              Thông tin chuyển khoản
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong>Ngân hàng:</strong> Vietcombank</p>
+                <p><strong>Số tài khoản:</strong> 1234567890</p>
+              </div>
+              <div class="col-md-6">
+                <p><strong>Chủ tài khoản:</strong> CONG TY TNHH SOURCE COMPUTER</p>
+                <p><strong>Nội dung CK:</strong> DH<%= order._id.toString().slice(-8).toUpperCase() %></p>
+              </div>
+            </div>
+            <div class="alert alert-info mb-0">
+              <i class="fas fa-clock me-2"></i>
+              Vui lòng chuyển khoản trong vòng 24 giờ. Đơn hàng sẽ được xử lý sau khi chúng tôi xác nhận thanh toán.
+            </div>
+          </div>
+        </div>
+      <% } %>
+      
+      <!-- VAT Invoice Request -->
+      <% if (order.vatInvoice) { %>
+        <div class="alert alert-success">
+          <i class="fas fa-file-invoice me-2"></i>
+          <strong>Yêu cầu xuất hóa đơn VAT:</strong> 
+          Hóa đơn sẽ được gửi đến email <%= order.vatInfo.email || order.guestInfo.email %> trong vòng 3-5 ngày làm việc sau khi đơn hàng được giao thành công.
+        </div>
+      <% } %>
+      
+      <!-- Actions -->
+      <div class="d-flex gap-3 justify-content-center">
+        <a href="/orders/track-guest/<%= order.guestInfo.guestToken %>" class="btn btn-success btn-lg">
+          <i class="fas fa-truck me-2"></i>
+          Theo dõi đơn hàng
+        </a>
+        <a href="/" class="btn btn-outline-primary btn-lg">
+          <i class="fas fa-shopping-cart me-2"></i>
+          Tiếp tục mua sắm
+        </a>
+      </div>
+      
+      <!-- Register suggestion -->
+      <div class="text-center mt-5">
+        <div class="card bg-light">
+          <div class="card-body">
+            <h5>Tạo tài khoản để nhận thêm ưu đãi!</h5>
+            <p class="text-muted">
+              Đăng ký tài khoản để tích điểm thưởng, quản lý đơn hàng dễ dàng và nhận ưu đãi độc quyền.
+            </p>
+            <a href="/auth/register" class="btn btn-primary">
+              <i class="fas fa-user-plus me-2"></i>
+              Đăng ký ngay
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyToken() {
+  const token = document.getElementById('trackingToken').innerText;
+  navigator.clipboard.writeText(token).then(function() {
+    alert('Đã sao chép mã theo dõi!');
+  }, function(err) {
+    console.error('Không thể sao chép: ', err);
+  });
+}
+</script>
+
+<style>
+  .success-icon {
+    animation: bounceIn 0.6s ease-out;
+  }
+  
+  @keyframes bounceIn {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  .tracking-token {
+    font-family: monospace;
+    word-break: break-all;
+  }
+  
+  .user-select-all {
+    user-select: all;
+  }
+</style>
+` }) %>

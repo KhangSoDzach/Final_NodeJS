@@ -9,10 +9,10 @@ const couponSchema = new Schema({
     uppercase: true,
     trim: true,
     validate: {
-      validator: function(v) {
-        return v.length === 5;
+      validator: function (v) {
+        return v && v.length >= 5 && v.length <= 9;
       },
-      message: props => 'Mã giảm giá phải có đúng 5 ký tự!'
+      message: props => 'Mã giảm giá phải có từ 5 đến 9 ký tự!'
     }
   },
   description: {
@@ -29,7 +29,16 @@ const couponSchema = new Schema({
     type: Number,
     default: 0,
     min: 0 // Minimum order amount to apply the coupon
-  },  maxUses: {
+  },
+  startDate: {
+    type: Date,
+    default: Date.now
+  },
+  endDate: {
+    type: Date,
+    default: null
+  },
+  maxUses: {
     type: Number,
     default: 10,
     max: 10
@@ -55,7 +64,13 @@ couponSchema.methods.isValid = function () {
   if (!this.active) return false;
   if (this.usedCount >= this.maxUses) return false;
 
+  // Kiểm tra thời hạn coupon
+  const now = new Date();
+  if (this.startDate && now < this.startDate) return false;
+  if (this.endDate && now > this.endDate) return false;
+
   return true;
 };
 
-module.exports = mongoose.model('Coupon', couponSchema);
+module.exports = mongoose.models.Coupon || mongoose.model('Coupon', couponSchema);
+

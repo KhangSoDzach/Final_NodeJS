@@ -1,0 +1,197 @@
+/* ===================================================================
+   Utilities Module Index
+   Import all utility stylesheets
+   ================================================================ */
+
+@import './responsive.css';
+@import './animations.css';
+@import './helpers.css';
+@import './print.css';
+
+/* ===================================================================
+   UTILITIES USAGE GUIDE
+   ================================================================
+
+   ## Responsive Utilities (responsive.css)
+   
+   Mobile-first responsive helper classes for:
+   - Visibility control (.hide-mobile, .show-desktop, etc.)
+   - Responsive containers (.container-fluid)
+   - Flex utilities (.flex-mobile-column)
+   - Grid layouts (.grid-responsive, .grid-auto-fit)
+   - Text alignment (.text-mobile-center)
+   - Spacing (.p-responsive, .m-responsive)
+   - Touch optimizations (.touch-target)
+   - Mobile drawers (.mobile-drawer)
+   - Responsive tables (.table-responsive)
+
+   Example:
+   ```html
+   <div class="hide-mobile show-desktop">
+     Desktop-only content
+   </div>
+   
+   <div class="grid-responsive">
+     <!-- Auto-adjusts: 1 col mobile, 2 tablet, 3-4 desktop -->
+   </div>
+   ```
+
+   ## Animation Utilities (animations.css)
+   
+   Micro-interactions and animation classes:
+   - Fade animations (.animate-fadeIn, .animate-fadeOut)
+   - Slide animations (.animate-slideInLeft, .animate-slideInRight)
+   - Scale animations (.animate-scaleIn, .animate-pulse)
+   - Rotate animations (.animate-spin, .animate-wiggle)
+   - Bounce animations (.animate-bounce, .animate-bounceIn)
+   - Hover effects (.hover-lift, .hover-grow, .hover-glow)
+   - Loading states (.skeleton, .loading-bar)
+   - Scroll animations (.scroll-fade, .scroll-scale)
+   
+   Example:
+   ```html
+   <div class="animate-fadeInUp">
+     Fades in from bottom
+   </div>
+   
+   <button class="hover-lift hover-glow">
+     Lifts and glows on hover
+   </button>
+   
+   <div class="scroll-fade">
+     Animates when scrolled into view
+   </div>
+   ```
+
+   ## Helper Utilities (helpers.css)
+   
+   Common utility classes for quick styling:
+   - Display (.d-flex, .d-grid, .d-none)
+   - Flexbox (.justify-center, .align-center, .gap-4)
+   - Grid (.grid-cols-3, .grid-cols-4)
+   - Spacing (.m-4, .p-6, .mx-auto, .py-4)
+   - Width/Height (.w-full, .h-full, .max-w-screen-lg)
+   - Text (.text-center, .font-bold, .text-xl, .truncate)
+   - Background (.bg-primary, .bg-transparent)
+   - Border (.border, .rounded-lg, .border-primary)
+   - Position (.position-relative, .position-sticky)
+   - Shadow (.shadow-lg, .shadow-glow-primary)
+   - Cursor (.cursor-pointer, .cursor-not-allowed)
+   - Accessibility (.sr-only, .sr-only-focusable)
+   
+   Example:
+   ```html
+   <div class="d-flex justify-between align-center gap-4 p-6">
+     <h2 class="text-2xl font-bold text-primary">Title</h2>
+     <button class="cursor-pointer hover-lift">Click</button>
+   </div>
+   
+   <img class="w-full h-auto object-cover rounded-lg" />
+   ```
+
+   ## Print Styles (print.css)
+   
+   Optimizations for printing:
+   - Removes navigation, buttons, interactive elements
+   - Clean typography for readability
+   - Shows URLs after links
+   - Optimizes tables and images
+   - Hides .no-print elements
+   - Page break controls
+   - Invoice-friendly layouts
+   
+   Example:
+   ```html
+   <div class="no-print">
+     <!-- Hidden when printing -->
+     <button>Edit</button>
+   </div>
+   
+   <div class="print-only">
+     <!-- Only visible when printing -->
+     <p>For inquiries: contact@example.com</p>
+   </div>
+   
+   <div class="page-break-after">
+     <!-- Forces page break after this element -->
+   </div>
+   ```
+
+   ## JavaScript Integration
+   
+   ### Scroll Animations with IntersectionObserver
+   
+   ```javascript
+   // Fade in elements when scrolled into view
+   const observerOptions = {
+     threshold: 0.1,
+     rootMargin: '0px 0px -100px 0px'
+   };
+   
+   const observer = new IntersectionObserver((entries) => {
+     entries.forEach(entry => {
+       if (entry.isIntersecting) {
+         entry.target.classList.add('visible');
+       }
+     });
+   }, observerOptions);
+   
+   document.querySelectorAll('.scroll-fade').forEach(el => {
+     observer.observe(el);
+   });
+   ```
+
+   ### Mobile Drawer Toggle
+   
+   ```javascript
+   const drawerToggle = document.querySelector('[data-drawer-toggle]');
+   const drawer = document.querySelector('.mobile-drawer');
+   const overlay = document.querySelector('.mobile-menu-overlay');
+   
+   drawerToggle.addEventListener('click', () => {
+     drawer.classList.toggle('open');
+     overlay.classList.toggle('active');
+   });
+   
+   overlay.addEventListener('click', () => {
+     drawer.classList.remove('open');
+     overlay.classList.remove('active');
+   });
+   ```
+
+   ### Remove will-change After Animation
+   
+   ```javascript
+   document.querySelectorAll('.animate-fadeIn').forEach(el => {
+     el.addEventListener('animationend', () => {
+       el.classList.add('animation-complete');
+     });
+   });
+   ```
+
+   ## Responsive Breakpoints Reference
+   
+   - **Mobile**: < 576px
+   - **Tablet**: 576px - 991px
+   - **Desktop**: >= 992px
+   - **Large Desktop**: >= 1200px
+   - **Extra Large**: >= 1400px
+
+   ## Performance Tips
+   
+   1. **Animations**: Use sparingly, especially on mobile
+   2. **GPU Acceleration**: Applied automatically for transforms
+   3. **Reduced Motion**: Respects user's OS preference
+   4. **will-change**: Used strategically, removed after animation
+   5. **Intersection Observer**: Use for scroll-triggered animations
+   
+   ## Accessibility
+   
+   All utilities support:
+   - Screen readers (.sr-only)
+   - Keyboard navigation (focus states)
+   - Reduced motion preferences
+   - Touch-friendly targets (44px minimum)
+   - High contrast mode compatible
+
+================================================================ */

@@ -1,0 +1,581 @@
+/* ===================================================================
+   CAROUSEL & SLIDERS
+   Hero slider and product carousels with GSAP integration
+   ================================================================ */
+
+/* Carousel Container */
+.carousel {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+}
+
+/* Carousel Wrapper */
+.carousel-wrapper {
+  display: flex;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+/* Carousel Item */
+.carousel-item {
+  flex: 0 0 100%;
+  width: 100%;
+  position: relative;
+}
+
+.carousel-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ===================================================================
+   HERO SLIDER
+   Full-width hero carousel with GSAP animations
+   ================================================================ */
+
+.hero-slider {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+.hero-slider .carousel-item {
+  height: 100%;
+  position: relative;
+}
+
+.hero-slider .carousel-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 255, 0.15),
+    rgba(124, 58, 237, 0.15)
+  );
+  z-index: 1;
+}
+
+/* Hero Content */
+.hero-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  text-align: center;
+  max-width: 800px;
+  padding: var(--space-6);
+}
+
+.hero-title {
+  font-size: var(--text-6xl);
+  font-weight: 700;
+  color: white;
+  margin-bottom: var(--space-4);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-size: var(--text-xl);
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: var(--space-6);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ===================================================================
+   PRODUCT CAROUSEL
+   Horizontal scrolling product cards
+   ================================================================ */
+
+.product-carousel {
+  position: relative;
+  padding: var(--space-4) 0;
+}
+
+.product-carousel .carousel-wrapper {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-2);
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--glass-bg);
+}
+
+.product-carousel .carousel-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.product-carousel .carousel-wrapper::-webkit-scrollbar-track {
+  background: var(--glass-bg);
+  border-radius: var(--radius-full);
+}
+
+.product-carousel .carousel-wrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: var(--radius-full);
+  box-shadow: var(--glow-primary);
+}
+
+.product-carousel .carousel-item {
+  flex: 0 0 280px;
+  width: 280px;
+}
+
+/* ===================================================================
+   CAROUSEL CONTROLS
+   Navigation arrows and indicators
+   ================================================================ */
+
+/* Navigation Arrows */
+.carousel-control {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--backdrop-blur-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.carousel:hover .carousel-control {
+  opacity: 1;
+  visibility: visible;
+}
+
+.carousel-control:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-control-prev {
+  left: var(--space-4);
+}
+
+.carousel-control-next {
+  right: var(--space-4);
+}
+
+.carousel-control i {
+  font-size: 20px;
+}
+
+/* Carousel Indicators */
+.carousel-indicators {
+  position: absolute;
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: var(--space-2);
+}
+
+.carousel-indicator {
+  width: 32px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(4px);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.carousel-indicator:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.carousel-indicator.active {
+  width: 48px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  box-shadow: var(--glow-primary);
+}
+
+/* ===================================================================
+   THUMBNAIL SLIDER
+   Slider with thumbnail navigation
+   ================================================================ */
+
+.thumbnail-slider {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.main-slider {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+
+.thumbnail-nav {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding: var(--space-2);
+}
+
+.thumbnail-item {
+  flex: 0 0 100px;
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.thumbnail-item:hover {
+  opacity: 0.8;
+  border-color: var(--primary);
+}
+
+.thumbnail-item.active {
+  opacity: 1;
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+.thumbnail-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===================================================================
+   IMAGE GALLERY
+   Lightbox-style image carousel
+   ================================================================ */
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--space-4);
+}
+
+.gallery-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.gallery-item:hover {
+  transform: scale(1.05);
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 255, 0.3),
+    rgba(124, 58, 237, 0.3)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gallery-item:hover::before {
+  opacity: 1;
+}
+
+.gallery-item::after {
+  content: '\f00e'; /* Font Awesome expand icon */
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 32px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.gallery-item:hover::after {
+  opacity: 1;
+}
+
+/* ===================================================================
+   TESTIMONIAL CAROUSEL
+   Customer reviews slider
+   ================================================================ */
+
+.testimonial-carousel {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-8) 0;
+}
+
+.testimonial-item {
+  text-align: center;
+  padding: var(--space-8);
+}
+
+.testimonial-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-full);
+  margin: 0 auto var(--space-4);
+  border: 3px solid var(--primary);
+  box-shadow: var(--glow-primary);
+  overflow: hidden;
+}
+
+.testimonial-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.testimonial-content {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.8;
+  margin-bottom: var(--space-4);
+}
+
+.testimonial-author {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.testimonial-role {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+
+/* ===================================================================
+   BRAND CAROUSEL
+   Logo slider
+   ================================================================ */
+
+.brand-carousel {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-6) 0;
+}
+
+.brand-carousel .carousel-wrapper {
+  display: flex;
+  gap: var(--space-8);
+  animation: brand-scroll 30s linear infinite;
+}
+
+.brand-carousel:hover .carousel-wrapper {
+  animation-play-state: paused;
+}
+
+.brand-item {
+  flex: 0 0 150px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: grayscale(1) opacity(0.6);
+  transition: all 0.3s ease;
+}
+
+.brand-item:hover {
+  filter: grayscale(0) opacity(1);
+}
+
+.brand-item img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* ===================================================================
+   AUTO-PLAY CONTROLS
+   ================================================================ */
+
+.carousel-autoplay {
+  position: absolute;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--backdrop-blur-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carousel-autoplay:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+.carousel-autoplay.paused i::before {
+  content: '\f04b'; /* Play icon */
+}
+
+.carousel-autoplay.playing i::before {
+  content: '\f04c'; /* Pause icon */
+}
+
+/* ===================================================================
+   RESPONSIVE
+   ================================================================ */
+
+@media (max-width: 1200px) {
+  .hero-slider {
+    height: 500px;
+  }
+
+  .hero-title {
+    font-size: var(--text-5xl);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-slider {
+    height: 400px;
+  }
+
+  .hero-title {
+    font-size: var(--text-4xl);
+  }
+
+  .hero-subtitle {
+    font-size: var(--text-base);
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .carousel-control {
+    width: 40px;
+    height: 40px;
+  }
+
+  .carousel-control-prev {
+    left: var(--space-2);
+  }
+
+  .carousel-control-next {
+    right: var(--space-2);
+  }
+
+  .product-carousel .carousel-item {
+    flex: 0 0 240px;
+    width: 240px;
+  }
+
+  .thumbnail-item {
+    flex: 0 0 80px;
+    width: 80px;
+    height: 80px;
+  }
+
+  .gallery {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-2);
+  }
+}
+
+/* ===================================================================
+   ANIMATIONS
+   ================================================================ */
+
+@keyframes brand-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes carousel-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes carousel-slide-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+}
+
+/* GSAP Integration Classes */
+.gsap-fade-in { opacity: 0; }
+.gsap-slide-up { opacity: 0; transform: translateY(40px); }
+.gsap-slide-left { opacity: 0; transform: translateX(-40px); }
+.gsap-slide-right { opacity: 0; transform: translateX(40px); }
+.gsap-scale { opacity: 0; transform: scale(0.8); }

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .alert-section {
+      margin-bottom: 2rem;
+    }
+    .alert-section h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .alert-section h2.danger { color: #dc2626; border-color: #fecaca; }
+    .alert-section h2.warning { color: #d97706; border-color: #fde68a; }
+    .alert-section h2.info { color: #2563eb; border-color: #bfdbfe; }
+    
+    .alert-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+    .alert-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-left: 4px solid;
+      transition: transform 0.2s;
+    }
+    .alert-card:hover { transform: translateY(-2px); }
+    .alert-card.danger { border-color: #dc2626; }
+    .alert-card.warning { border-color: #d97706; }
+    .alert-card.info { border-color: #2563eb; }
+    
+    .alert-card .product-name {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .alert-card .product-name img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+    .alert-card .stock-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+    .alert-card .stock-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .alert-card.danger .stock-value { color: #dc2626; }
+    .alert-card.warning .stock-value { color: #d97706; }
+    
+    .alert-card .actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .alert-card .actions a, .alert-card .actions button {
+      flex: 1;
+      padding: 0.5rem;
+      border-radius: 6px;
+      text-align: center;
+      text-decoration: none;
+      font-size: 0.85rem;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-import { background: #10b981; color: white; }
+    .btn-preorder { background: #8b5cf6; color: white; }
+    
+    .preorder-table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .preorder-table th, .preorder-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .preorder-table th { background: #f1f5f9; font-weight: 600; }
+    
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: #64748b;
+    }
+    .empty-state i { font-size: 3rem; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-bell"></i> <%= title %></h1>
+        <a href="/admin/inventory" style="color:#4f46e5;text-decoration:none;">
+          <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+      </div>
+      
+      <div class="admin-content">
+        <!-- Out of Stock Products -->
+        <div class="alert-section">
+          <h2 class="danger">
+            <i class="fas fa-times-circle"></i> 
+            Sản phẩm hết hàng (<%= outOfStockProducts.length %>)
+          </h2>
+          
+          <% if (outOfStockProducts.length === 0) { %>
+            <div class="empty-state">
+              <i class="fas fa-check-circle" style="color:#10b981;"></i>
+              <p>Không có sản phẩm nào hết hàng!</p>
+            </div>
+          <% } else { %>
+            <div class="alert-grid">
+              <% outOfStockProducts.forEach(product => { %>
+                <div class="alert-card danger">
+                  <div class="product-name">
+                    <img src="<%= product.images[0] || '/image/placeholder.png' %>" alt="">
+                    <%= product.name %>
+                  </div>
+                  <div style="font-size:0.85rem;color:#64748b;">
+                    <%= product.category %> | <%= product.brand %>
+                  </div>
+                  <div class="stock-info">
+                    <span>Tồn kho:</span>
+                    <span class="stock-value">0</span>
+                  </div>
+                  <div class="actions">
+                    <a href="/admin/inventory/import?product=<%= product._id %>" class="btn-import">
+                      <i class="fas fa-plus"></i> Nhập hàng
+                    </a>
+                    <% if (!product.allowPreOrder) { %>
+                      <button class="btn-preorder" onclick="enablePreOrder('<%= product._id %>')">
+                        <i class="fas fa-clock"></i> Bật đặt trước
+                      </button>
+                    <% } else { %>
+                      <span style="flex:1;text-align:center;color:#8b5cf6;font-size:0.85rem;">
+                        <i class="fas fa-check"></i> Đã bật đặt trước
+                      </span>
+                    <% } %>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+        
+        <!-- Low Stock Products -->
+        <div class="alert-section">
+          <h2 class="warning">
+            <i class="fas fa-exclamation-triangle"></i> 
+            Sản phẩm sắp hết (<%= lowStockProducts.length %>)
+          </h2>
+          
+          <% if (lowStockProducts.length === 0) { %>
+            <div class="empty-state">
+              <i class="fas fa-check-circle" style="color:#10b981;"></i>
+              <p>Không có sản phẩm nào sắp hết hàng!</p>
+            </div>
+          <% } else { %>
+            <div class="alert-grid">
+              <% lowStockProducts.forEach(product => { %>
+                <div class="alert-card warning">
+                  <div class="product-name">
+                    <img src="<%= product.images[0] || '/image/placeholder.png' %>" alt="">
+                    <%= product.name %>
+                  </div>
+                  <div style="font-size:0.85rem;color:#64748b;">
+                    Ngưỡng: <%= product.lowStockThreshold %>
+                  </div>
+                  <div class="stock-info">
+                    <span>Còn lại:</span>
+                    <span class="stock-value"><%= product.stock %></span>
+                  </div>
+                  <div class="actions">
+                    <a href="/admin/inventory/import?product=<%= product._id %>" class="btn-import">
+                      <i class="fas fa-plus"></i> Nhập thêm
+                    </a>
+                    <a href="/admin/inventory/adjust/<%= product._id %>" style="flex:1;background:#f59e0b;color:white;padding:0.5rem;border-radius:6px;text-align:center;">
+                      <i class="fas fa-edit"></i> Điều chỉnh
+                    </a>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+        
+        <!-- Low Stock Variants -->
+        <% if (lowStockVariants.length > 0) { %>
+        <div class="alert-section">
+          <h2 class="warning">
+            <i class="fas fa-cubes"></i> 
+            Variants sắp hết (<%= lowStockVariants.length %>)
+          </h2>
+          <div class="alert-grid">
+            <% lowStockVariants.forEach(item => { %>
+              <div class="alert-card warning">
+                <div class="product-name"><%= item.product.name %></div>
+                <div style="font-size:0.9rem;margin:0.5rem 0;">
+                  <strong><%= item.variant %>:</strong> <%= item.option %>
+                </div>
+                <div class="stock-info">
+                  <span>Còn lại:</span>
+                  <span class="stock-value"><%= item.stock %></span>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+        <% } %>
+        
+        <!-- Pending Pre-orders -->
+        <div class="alert-section">
+          <h2 class="info">
+            <i class="fas fa-clock"></i> 
+            Pre-orders đang chờ (<%= pendingPreOrders.length %>)
+          </h2>
+          
+          <% if (pendingPreOrders.length === 0) { %>
+            <div class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>Không có đơn đặt trước nào đang chờ</p>
+            </div>
+          <% } else { %>
+            <table class="preorder-table">
+              <thead>
+                <tr>
+                  <th>Khách hàng</th>
+                  <th>Sản phẩm</th>
+                  <th>SL</th>
+                  <th>Ngày đặt</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% pendingPreOrders.forEach(po => { %>
+                  <tr>
+                    <td>
+                      <strong><%= po.user?.name || 'N/A' %></strong><br>
+                      <small><%= po.contactEmail %></small>
+                    </td>
+                    <td>
+                      <%= po.product?.name || 'N/A' %>
+                      <% if (po.variant && po.variant.name) { %>
+                        <br><small><%= po.variant.name %>: <%= po.variant.value %></small>
+                      <% } %>
+                    </td>
+                    <td><%= po.quantity %></td>
+                    <td><%= new Date(po.createdAt).toLocaleDateString('vi-VN') %></td>
+                    <td>
+                      <% if (po.product && po.product.stock > 0) { %>
+                        <button onclick="notifyPreOrder('<%= po._id %>')" 
+                                style="background:#10b981;color:white;border:none;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;">
+                          <i class="fas fa-bell"></i> Thông báo có hàng
+                        </button>
+                      <% } else { %>
+                        <span style="color:#64748b;">Chờ nhập hàng</span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    function enablePreOrder(productId) {
+      if (!confirm('Bật cho phép đặt trước cho sản phẩm này?')) return;
+      
+      fetch(`/admin/inventory/products/${productId}/allow-preorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allowPreOrder: true })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('Đã bật chế độ đặt trước!');
+          location.reload();
+        } else {
+          alert(data.message || 'Đã xảy ra lỗi');
+        }
+      });
+    }
+    
+    function notifyPreOrder(preOrderId) {
+      if (!confirm('Gửi thông báo có hàng cho khách?')) return;
+      
+      fetch(`/admin/inventory/pre-orders/${preOrderId}/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('Đã gửi thông báo thành công!');
+          location.reload();
+        } else {
+          alert(data.message || 'Đã xảy ra lỗi');
+        }
+      });
+    }
+  </script>
+</body>
+</html>

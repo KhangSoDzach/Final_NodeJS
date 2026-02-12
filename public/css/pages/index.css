@@ -1,0 +1,176 @@
+/* ===================================================================
+   Page-specific Styles Module Index
+   Import all page stylesheets
+   ================================================================ */
+
+@import './home.css';
+@import './products.css';
+@import './product-detail.css';
+@import './cart.css';
+@import './user.css';
+@import './admin.css';
+
+/* ===================================================================
+   PAGE STYLES USAGE GUIDE
+   ================================================================
+
+   ## Home Page
+   
+   The home page includes:
+   - Hero section with animated badge and gradient title
+   - Stats cards with hover effects
+   - Featured categories grid with image overlay
+   - Product tabs and grid
+   - Brand carousel with infinite scroll
+   - Newsletter signup section
+   - Features grid
+
+   Key classes:
+   - .home-hero, .home-hero-content
+   - .home-stats, .stat-card
+   - .featured-categories, .category-card
+   - .featured-products, .products-grid
+   - .newsletter-section, .newsletter-card
+   - .features-section, .feature-card
+
+   ## Products Listing Page
+   
+   Features:
+   - Sidebar filters (sticky on desktop, drawer on mobile)
+   - Grid/List view toggle
+   - Sort dropdown
+   - Active filters display
+   - Quick view modal
+   - Comparison bar (fixed bottom)
+   - Pagination
+
+   Key classes:
+   - .products-page, .products-sidebar, .products-main
+   - .products-header, .view-toggle
+   - .products-grid-view, .products-list-view
+   - .active-filters, .filter-tag
+   - .quick-view-modal
+   - .comparison-bar
+
+   ## Product Detail Page
+   
+   Features:
+   - Image gallery with thumbnails
+   - Product info section with breadcrumb
+   - Rating and reviews
+   - Price display with discount
+   - Variants selector (color, size, etc.)
+   - Quantity selector
+   - Product tabs (description, specs, reviews)
+   - Related products carousel
+
+   Key classes:
+   - .product-detail-page
+   - .product-gallery, .product-main-image, .product-thumbnails
+   - .product-info, .product-title
+   - .product-variants, .variant-option
+   - .product-tabs-section
+   - .reviews-summary, .reviews-list
+
+   ## Cart & Checkout Pages
+   
+   Cart features:
+   - Items list with quantity controls
+   - Cart summary with pricing breakdown
+   - Coupon code input
+   - Applied coupon display
+   - Empty cart state
+
+   Checkout features:
+   - Multi-step process
+   - Address selection/form
+   - Payment method selection
+   - Order review
+   - Place order button
+
+   Key classes:
+   - .cart-page, .cart-container
+   - .cart-items-section, .cart-item
+   - .cart-summary, .cart-checkout-btn
+   - .checkout-page, .checkout-container
+   - .checkout-steps
+   - .saved-addresses, .address-card
+   - .payment-methods, .payment-method
+   - .order-review-items
+
+   ## User Dashboard
+   
+   Features:
+   - Sidebar navigation with user info
+   - Dashboard overview with stats
+   - Orders list with filters and status
+   - Wishlist grid
+   - Profile form with avatar upload
+   - Address book management
+   - Security settings
+   - Notification preferences
+
+   Key classes:
+   - .user-dashboard, .dashboard-container
+   - .dashboard-sidebar, .dashboard-nav
+   - .dashboard-overview-stats
+   - .orders-list, .order-card
+   - .wishlist-grid, .wishlist-item
+   - .profile-form-section
+   - .addresses-grid, .address-card
+
+   ## Admin Panel
+   
+   Features:
+   - Fixed sidebar with navigation
+   - Sticky header with search
+   - Stats dashboard with cards
+   - Data tables with actions
+   - Form sections for CRUD operations
+   - Image upload with preview
+   - Responsive mobile menu
+
+   Key classes:
+   - .admin-layout
+   - .admin-sidebar, .admin-nav
+   - .admin-main, .admin-header
+   - .admin-stats-grid, .admin-stat-card
+   - .admin-table-container, .admin-table
+   - .admin-form-card, .admin-form-grid
+   - .admin-image-upload
+
+   ## Mobile Responsive Notes
+   
+   All pages are mobile-first and responsive:
+   
+   - Breakpoints: 1200px, 992px, 768px
+   - Sidebar becomes drawer on mobile
+   - Grid columns adjust automatically
+   - Tables scroll horizontally
+   - Forms stack vertically
+   - Actions become full-width buttons
+   
+   ## Integration Tips
+   
+   1. **Use with EJS templates:**
+      ```ejs
+      <link rel="stylesheet" href="/css/pages/home.css">
+      ```
+   
+   2. **Combine with components:**
+      Pages use components like buttons, cards, badges, etc.
+      Make sure component CSS is loaded first.
+   
+   3. **JavaScript interactions:**
+      - View toggle (grid/list)
+      - Filter sidebar (mobile)
+      - Image gallery
+      - Quantity selectors
+      - Tab switching
+      - Form validation
+   
+   4. **Dynamic content:**
+      All styles support dynamic content from database.
+      Classes work with server-rendered or client-rendered content.
+
+================================================================ */

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design System Demo - Source Computer</title>
+    <link rel="stylesheet" href="/css/design-system/index.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-primary);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: var(--space-8);
+            line-height: var(--leading-normal);
+        }
+        
+        .demo-container {
+            max-width: var(--container-max-width);
+            margin: 0 auto;
+        }
+        
+        .demo-section {
+            margin-bottom: var(--space-12);
+            padding: var(--space-8);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+        }
+        
+        .demo-section h2 {
+            font-size: var(--text-3xl);
+            margin-bottom: var(--space-6);
+            color: var(--primary);
+        }
+        
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-4);
+            margin-top: var(--space-4);
+        }
+        
+        .color-box {
+            height: 100px;
+            border-radius: var(--radius-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+            border: 1px solid var(--glass-border);
+        }
+        
+        .button-demo {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-6);
+            border-radius: var(--radius-base);
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-primary);
+            font-size: var(--text-base);
+            font-weight: var(--font-medium);
+            transition: var(--transition-all);
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: var(--text-inverse);
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-light);
+            box-shadow: var(--shadow-glow-primary);
+        }
+        
+        .card-demo {
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            margin-top: var(--space-4);
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: var(--space-6);
+            right: var(--space-6);
+            padding: var(--space-3) var(--space-6);
+            background: var(--primary);
+            color: var(--text-inverse);
+            border: none;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            font-weight: var(--font-semibold);
+            box-shadow: var(--shadow-glow-primary);
+            transition: var(--transition-all);
+            z-index: var(--z-fixed);
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-glow-primary-lg);
+        }
+        
+        .shadow-demo-box {
+            width: 150px;
+            height: 100px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: var(--space-4);
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">🌓 Toggle Theme</button>
+    
+    <div class="demo-container">
+        <h1 style="font-size: var(--text-5xl); margin-bottom: var(--space-8); text-align: center;" class="text-gradient-primary">
+            Source Computer Design System
+        </h1>
+        
+        <!-- Colors Section -->
+        <section class="demo-section">
+            <h2>🎨 Color Palette</h2>
+            <div class="color-grid">
+                <div class="color-box" style="background: var(--primary);">Primary</div>
+                <div class="color-box" style="background: var(--accent);">Accent</div>
+                <div class="color-box" style="background: var(--success);">Success</div>
+                <div class="color-box" style="background: var(--danger);">Danger</div>
+                <div class="color-box" style="background: var(--warning); color: var(--text-inverse);">Warning</div>
+                <div class="color-box" style="background: var(--bg-tertiary); color: var(--text-primary);">BG Tertiary</div>
+            </div>
+        </section>
+        
+        <!-- Glassmorphism Section -->
+        <section class="demo-section">
+            <h2>💎 Glassmorphism Effects</h2>
+            <div style="display: flex; gap: var(--space-6); flex-wrap: wrap; margin-top: var(--space-4);">
+                <div class="card-demo glass" style="flex: 1; min-width: 200px;">
+                    <h3 style="margin-bottom: var(--space-2);">Glass Card</h3>
+                    <p style="color: var(--text-secondary);">Basic glass effect with subtle blur</p>
+                </div>
+                <div class="card-demo glass-strong" style="flex: 1; min-width: 200px;">
+                    <h3 style="margin-bottom: var(--space-2);">Strong Glass</h3>
+                    <p style="color: var(--text-secondary);">Enhanced blur effect</p>
+                </div>
+                <div class="card-demo glass glass-hover" style="flex: 1; min-width: 200px;">
+                    <h3 style="margin-bottom: var(--space-2);">Glass Hover</h3>
+                    <p style="color: var(--text-secondary);">Hover me for effect!</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Buttons Section -->
+        <section class="demo-section">
+            <h2>🔘 Buttons</h2>
+            <div style="display: flex; gap: var(--space-4); flex-wrap: wrap; margin-top: var(--space-4);">
+                <button class="button-demo btn-primary">Primary Button</button>
+                <button class="button-demo btn-primary hover-lift">Hover Lift</button>
+                <button class="button-demo btn-primary glow-on-hover">Glow on Hover</button>
+            </div>
+        </section>
+        
+        <!-- Shadows & Glow Section -->
+        <section class="demo-section">
+            <h2>✨ Shadows & Glow Effects</h2>
+            <div style="display: flex; gap: var(--space-6); flex-wrap: wrap;">
+                <div class="shadow-demo-box elevation-2">Elevation 2</div>
+                <div class="shadow-demo-box elevation-4">Elevation 4</div>
+                <div class="shadow-demo-box glow-primary">Primary Glow</div>
+                <div class="shadow-demo-box glow-accent">Accent Glow</div>
+                <div class="shadow-demo-box elevation-primary">Elevated Primary</div>
+            </div>
+        </section>
+        
+        <!-- Hover Effects Section -->
+        <section class="demo-section">
+            <h2>🎭 Hover Effects</h2>
+            <div style="display: flex; gap: var(--space-6); flex-wrap: wrap;">
+                <div class="card-demo glass hover-lift" style="flex: 1; min-width: 150px; text-align: center;">
+                    <p>Hover Lift</p>
+                </div>
+                <div class="card-demo glass hover-scale" style="flex: 1; min-width: 150px; text-align: center;">
+                    <p>Hover Scale</p>
+                </div>
+                <div class="card-demo glass hover-glow-border" style="flex: 1; min-width: 150px; text-align: center;">
+                    <p>Glow Border</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Gradients Section -->
+        <section class="demo-section">
+            <h2>🌈 Gradients</h2>
+            <div style="display: flex; gap: var(--space-6); flex-wrap: wrap;">
+                <div class="card-demo gradient-primary" style="flex: 1; min-width: 200px; color: var(--text-inverse);">
+                    <h3>Primary Gradient</h3>
+                    <p>Cyan to Violet</p>
+                </div>
+                <div class="card-demo gradient-dark" style="flex: 1; min-width: 200px;">
+                    <h3>Dark Gradient</h3>
+                    <p>Background variation</p>
+                </div>
+            </div>
+            <p style="margin-top: var(--space-6); font-size: var(--text-2xl);" class="text-gradient-primary">
+                Text with gradient effect
+            </p>
+        </section>
+        
+        <!-- Loading States Section -->
+        <section class="demo-section">
+            <h2>⏳ Loading States</h2>
+            <div style="display: flex; gap: var(--space-6); flex-wrap: wrap;">
+                <div class="skeleton" style="width: 200px; height: 100px; border-radius: var(--radius-base);"></div>
+                <div class="shimmer" style="width: 200px; height: 100px; background: var(--bg-tertiary); border-radius: var(--radius-base);"></div>
+            </div>
+        </section>
+        
+        <!-- Typography Section -->
+        <section class="demo-section">
+            <h2>✍️ Typography Scale</h2>
+            <div style="margin-top: var(--space-4);">
+                <p style="font-size: var(--text-6xl); line-height: var(--leading-tight); margin-bottom: var(--space-4);">Heading XL (60px)</p>
+                <p style="font-size: var(--text-4xl); line-height: var(--leading-tight); margin-bottom: var(--space-4);">Heading Large (36px)</p>
+                <p style="font-size: var(--text-2xl); margin-bottom: var(--space-4);">Heading Medium (24px)</p>
+                <p style="font-size: var(--text-base); color: var(--text-secondary); margin-bottom: var(--space-4);">Body text (16px) - Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <p style="font-size: var(--text-sm); color: var(--text-muted);">Small text (14px) - Secondary information</p>
+            </div>
+        </section>
+        
+        <!-- Spacing Scale -->
+        <section class="demo-section">
+            <h2>📏 Spacing Scale</h2>
+            <div style="margin-top: var(--space-4);">
+                <div style="background: var(--primary); height: 20px; width: var(--space-4); margin-bottom: var(--space-2); display: inline-block;"></div>
+                <span style="margin-left: var(--space-2); color: var(--text-secondary);">space-4 (16px)</span><br>
+                
+                <div style="background: var(--accent); height: 20px; width: var(--space-8); margin-bottom: var(--space-2); margin-top: var(--space-2); display: inline-block;"></div>
+                <span style="margin-left: var(--space-2); color: var(--text-secondary);">space-8 (32px)</span><br>
+                
+                <div style="background: var(--success); height: 20px; width: var(--space-12); margin-bottom: var(--space-2); margin-top: var(--space-2); display: inline-block;"></div>
+                <span style="margin-left: var(--space-2); color: var(--text-secondary);">space-12 (48px)</span>
+            </div>
+        </section>
+    </div>
+    
+    <script>
+        // Theme toggle functionality
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            console.log(`Theme switched to: ${newTheme}`);
+        }
+        
+        // Load saved theme on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        });
+    </script>
+</body>
+</html>

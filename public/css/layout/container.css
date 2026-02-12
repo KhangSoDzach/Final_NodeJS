@@ -1,0 +1,504 @@
+/* ===================================================================
+   Container & Grid System
+   Responsive container with max-width and grid utilities
+   ================================================================ */
+
+/* ==================== Container ==================== */
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
+}
+
+.container-fluid {
+  width: 100%;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
+}
+
+.container-narrow {
+  max-width: 960px;
+}
+
+.container-wide {
+  max-width: 1600px;
+}
+
+/* ==================== Grid System ==================== */
+
+/* Basic Grid */
+.grid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+/* Grid Columns - Auto-fit (responsive by default) */
+.grid-auto-fit {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.grid-auto-fill {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* Fixed Column Counts */
+.grid-cols-1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.grid-cols-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.grid-cols-6 {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+/* Grid Gap Variations */
+.grid-gap-xs {
+  gap: var(--space-2);
+}
+
+.grid-gap-sm {
+  gap: var(--space-4);
+}
+
+.grid-gap-md {
+  gap: var(--space-6);
+}
+
+.grid-gap-lg {
+  gap: var(--space-8);
+}
+
+.grid-gap-xl {
+  gap: var(--space-12);
+}
+
+/* Grid Item Spanning */
+.col-span-1 {
+  grid-column: span 1;
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+.col-span-3 {
+  grid-column: span 3;
+}
+
+.col-span-4 {
+  grid-column: span 4;
+}
+
+.col-span-full {
+  grid-column: 1 / -1;
+}
+
+.row-span-1 {
+  grid-row: span 1;
+}
+
+.row-span-2 {
+  grid-row: span 2;
+}
+
+.row-span-3 {
+  grid-row: span 3;
+}
+
+/* ==================== Product Grid (Specialized) ==================== */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+/* ==================== Flex Utilities ==================== */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-nowrap {
+  flex-wrap: nowrap;
+}
+
+/* Justify Content */
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+.justify-evenly {
+  justify-content: space-evenly;
+}
+
+/* Align Items */
+.items-start {
+  align-items: flex-start;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.items-stretch {
+  align-items: stretch;
+}
+
+.items-baseline {
+  align-items: baseline;
+}
+
+/* Flex Gap */
+.gap-1 {
+  gap: var(--space-1);
+}
+
+.gap-2 {
+  gap: var(--space-2);
+}
+
+.gap-3 {
+  gap: var(--space-3);
+}
+
+.gap-4 {
+  gap: var(--space-4);
+}
+
+.gap-5 {
+  gap: var(--space-5);
+}
+
+.gap-6 {
+  gap: var(--space-6);
+}
+
+.gap-8 {
+  gap: var(--space-8);
+}
+
+/* Flex Grow/Shrink */
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.flex-auto {
+  flex: 1 1 auto;
+}
+
+.flex-none {
+  flex: none;
+}
+
+/* ==================== Section Styles ==================== */
+section {
+  padding: var(--space-16) 0;
+}
+
+section:first-child {
+  padding-top: var(--space-12);
+}
+
+section:last-child {
+  padding-bottom: var(--space-12);
+}
+
+.section-title {
+  margin-bottom: var(--space-8);
+  text-align: center;
+}
+
+.section-title h2 {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  position: relative;
+  display: inline-block;
+}
+
+.section-title h2::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: var(--radius-full);
+}
+
+.section-title p {
+  font-size: var(--text-lg);
+  color: var(--text-secondary);
+  margin-top: var(--space-4);
+}
+
+/* ==================== View More Button ==================== */
+.view-more {
+  text-align: center;
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-6);
+}
+
+/* ==================== Two Column Layout ==================== */
+.two-column-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.two-column-layout.sidebar-right {
+  grid-template-columns: 1fr 280px;
+}
+
+/* ==================== Three Column Layout ==================== */
+.three-column-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr 250px;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+/* ==================== Split Layout (50/50) ==================== */
+.split-layout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.split-layout.gap-lg {
+  gap: var(--space-12);
+}
+
+/* ==================== Masonry Layout (Optional) ==================== */
+.masonry {
+  columns: 3;
+  column-gap: var(--space-6);
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: var(--space-6);
+}
+
+/* ==================== Sticky Sidebar Wrapper ==================== */
+.sticky-wrapper {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-6));
+}
+
+/* ==================== Responsive Grid Breakpoints ==================== */
+
+/* Extra Large Desktop (1400px+) */
+@media (min-width: 1400px) {
+  .container {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+  
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+/* Large Desktop (1200px - 1399px) */
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .grid-cols-6 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Desktop (992px - 1199px) */
+@media (max-width: 1199px) {
+  .grid-cols-5 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .grid-cols-6 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .three-column-layout {
+    grid-template-columns: 220px 1fr 220px;
+    gap: var(--space-4);
+  }
+}
+
+/* Tablet (768px - 991px) */
+@media (max-width: 991px) {
+  .container {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+  
+  section {
+    padding: var(--space-12) 0;
+  }
+  
+  .grid-cols-4,
+  .grid-cols-5,
+  .grid-cols-6 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--space-4);
+  }
+  
+  .two-column-layout,
+  .two-column-layout.sidebar-right {
+    grid-template-columns: 1fr;
+  }
+  
+  .three-column-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .split-layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+  
+  .masonry {
+    columns: 2;
+  }
+  
+  .section-title h2 {
+    font-size: var(--text-3xl);
+  }
+}
+
+/* Mobile (576px - 767px) */
+@media (max-width: 767px) {
+  .grid-cols-3,
+  .grid-cols-4,
+  .grid-cols-5,
+  .grid-cols-6 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--space-3);
+  }
+  
+  .section-title h2 {
+    font-size: var(--text-2xl);
+  }
+  
+  .section-title p {
+    font-size: var(--text-base);
+  }
+}
+
+/* Small Mobile (< 576px) */
+@media (max-width: 575px) {
+  .container {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+  
+  section {
+    padding: var(--space-10) 0;
+  }
+  
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4,
+  .grid-cols-5,
+  .grid-cols-6 {
+    grid-template-columns: 1fr;
+  }
+  
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-2);
+  }
+  
+  .masonry {
+    columns: 1;
+  }
+  
+  .section-title h2 {
+    font-size: var(--text-xl);
+  }
+}
+
+/* ==================== Print Styles ==================== */
+@media print {
+  .container {
+    max-width: 100%;
+    padding: 0;
+  }
+  
+  section {
+    padding: 1cm 0;
+  }
+  
+  .grid,
+  .product-grid {
+    display: block;
+  }
+  
+  .grid > *,
+  .product-grid > * {
+    page-break-inside: avoid;
+    margin-bottom: 0.5cm;
+  }
+}

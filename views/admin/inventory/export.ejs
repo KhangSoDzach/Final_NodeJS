@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .export-form {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      max-width: 600px;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #374151;
+    }
+    .form-group label .required { color: #ef4444; }
+    .form-control {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .btn-submit {
+      background: #f59e0b;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-submit:hover { background: #d97706; }
+    .btn-cancel {
+      background: #64748b;
+      color: white;
+      text-decoration: none;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-left: 1rem;
+    }
+    .variant-select {
+      display: none;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+    .variant-select.active { display: block; }
+    .current-stock {
+      background: #fef3c7;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .current-stock.show { display: block; }
+    .warning-box {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-minus-circle"></i> <%= title %></h1>
+      </div>
+      
+      <div class="admin-content">
+        <% if (typeof messages !== 'undefined') { %>
+          <% if (messages.error) { %>
+            <div class="alert alert-danger"><%= messages.error %></div>
+          <% } %>
+        <% } %>
+        
+        <div class="warning-box">
+          <i class="fas fa-exclamation-triangle"></i>
+          <strong>Lưu ý:</strong> Xuất kho sẽ giảm số lượng tồn kho. Hãy chắc chắn nhập đúng số lượng.
+        </div>
+        
+        <form class="export-form" method="POST" action="/admin/inventory/export">
+          <div class="form-group">
+            <label>Sản phẩm <span class="required">*</span></label>
+            <select name="productId" id="productSelect" class="form-control" required onchange="onProductChange(this)">
+              <option value="">-- Chọn sản phẩm --</option>
+              <% products.forEach(p => { %>
+                <option value="<%= p._id %>" 
+                        data-stock="<%= p.stock %>" 
+                        data-variants="<%= JSON.stringify(p.variants || []) %>">
+                  <%= p.name %> - Tồn: <%= p.stock %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+          
+          <div id="currentStock" class="current-stock">
+            <strong>Tồn kho hiện tại:</strong> <span id="stockValue">0</span>
+          </div>
+          
+          <div id="variantSection" class="variant-select">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Variant</label>
+                <select name="variantName" id="variantName" class="form-control" onchange="onVariantChange(this)">
+                  <option value="">-- Không chọn variant --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Option</label>
+                <select name="variantValue" id="variantValue" class="form-control">
+                  <option value="">-- Chọn option --</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Số lượng xuất <span class="required">*</span></label>
+              <input type="number" name="quantity" id="quantityInput" class="form-control" min="1" required placeholder="Nhập số lượng">
+            </div>
+            <div class="form-group">
+              <label>Lý do <span class="required">*</span></label>
+              <select name="reason" class="form-control" required>
+                <option value="Xuất kho bán hàng">Xuất kho bán hàng</option>
+                <option value="Xuất hàng lỗi">Xuất hàng lỗi</option>
+                <option value="Chuyển kho">Chuyển kho</option>
+                <option value="Xuất trả nhà cung cấp">Xuất trả nhà cung cấp</option>
+                <option value="Khác">Khác</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Ghi chú</label>
+            <textarea name="notes" class="form-control" rows="3" placeholder="Ghi chú thêm (nếu có)"></textarea>
+          </div>
+          
+          <div style="margin-top: 2rem;">
+            <button type="submit" class="btn-submit">
+              <i class="fas fa-check"></i> Xác nhận xuất kho
+            </button>
+            <a href="/admin/inventory" class="btn-cancel">Hủy</a>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    let currentVariants = [];
+    let currentStock = 0;
+    
+    function onProductChange(select) {
+      const option = select.options[select.selectedIndex];
+      currentStock = parseInt(option.dataset.stock) || 0;
+      const variants = JSON.parse(option.dataset.variants || '[]');
+      
+      const stockDiv = document.getElementById('currentStock');
+      document.getElementById('stockValue').textContent = currentStock;
+      stockDiv.classList.toggle('show', select.value !== '');
+      
+      document.getElementById('quantityInput').max = currentStock;
+      
+      currentVariants = variants;
+      const variantSection = document.getElementById('variantSection');
+      const variantName = document.getElementById('variantName');
+      
+      if (variants.length > 0) {
+        variantSection.classList.add('active');
+        variantName.innerHTML = '<option value="">-- Không chọn variant --</option>';
+        variants.forEach(v => {
+          variantName.innerHTML += `<option value="${v.name}">${v.name}</option>`;
+        });
+      } else {
+        variantSection.classList.remove('active');
+      }
+      
+      document.getElementById('variantValue').innerHTML = '<option value="">-- Chọn option --</option>';
+    }
+    
+    function onVariantChange(select) {
+      const variantValue = document.getElementById('variantValue');
+      variantValue.innerHTML = '<option value="">-- Chọn option --</option>';
+      
+      if (select.value) {
+        const variant = currentVariants.find(v => v.name === select.value);
+        if (variant && variant.options) {
+          variant.options.forEach(o => {
+            variantValue.innerHTML += `<option value="${o.value}" data-stock="${o.stock}">${o.value} (Tồn: ${o.stock})</option>`;
+          });
+        }
+      }
+    }
+    
+    document.getElementById('variantValue').addEventListener('change', function() {
+      const option = this.options[this.selectedIndex];
+      if (option.dataset.stock) {
+        document.getElementById('quantityInput').max = parseInt(option.dataset.stock);
+        document.getElementById('stockValue').textContent = option.dataset.stock;
+      } else {
+        document.getElementById('quantityInput').max = currentStock;
+        document.getElementById('stockValue').textContent = currentStock;
+      }
+    });
+  </script>
+</body>
+</html>

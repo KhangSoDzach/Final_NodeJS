@@ -3,6 +3,7 @@ const router = express.Router();
 const { body } = require('express-validator');
 
 const userController = require('../controllers/user');
+const productsController = require('../controllers/products');
 const { isAuth } = require('../middleware/auth');
 
 // Get user profile
@@ -41,5 +42,15 @@ router.post('/orders/:orderId/cancel', isAuth, userController.cancelOrder);
 
 // Loyalty points
 router.get('/loyalty-points', isAuth, userController.getLoyaltyPoints);
+
+// Pre-orders management
+router.get('/pre-orders', isAuth, productsController.getUserPreOrders);
+
+// Stock notifications management
+router.get('/stock-notifications', isAuth, productsController.getUserNotifications);
+
+// Locale preference API (language & currency)
+router.post('/api/locale', userController.updateLocalePreference);
+router.get('/api/locale', userController.getLocalePreference);
 
 module.exports = router;

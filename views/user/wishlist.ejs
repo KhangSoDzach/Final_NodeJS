@@ -1,0 +1,284 @@
+<!-- views/user/wishlist.ejs -->
+<!-- Trang danh sách yêu thích -->
+
+<div class="container my-4">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+      <li class="breadcrumb-item"><a href="/user/profile">Tài khoản</a></li>
+      <li class="breadcrumb-item active">Danh sách yêu thích</li>
+    </ol>
+  </nav>
+
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3">
+      <%- include('../partials/user-sidebar') %>
+    </div>
+
+    <!-- Main content -->
+    <div class="col-md-9">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="fas fa-heart text-danger me-2"></i>
+            Danh sách yêu thích (<%= itemCount %> sản phẩm)
+          </h5>
+          <% if (items.length > 0) { %>
+            <form action="/user/wishlist/clear" method="POST" 
+                  onsubmit="return confirm('Bạn có chắc muốn xóa tất cả?')">
+              <button type="submit" class="btn btn-outline-danger btn-sm">
+                <i class="fas fa-trash me-1"></i> Xóa tất cả
+              </button>
+            </form>
+          <% } %>
+        </div>
+        <div class="card-body">
+          <% if (items.length === 0) { %>
+            <div class="text-center py-5">
+              <i class="fas fa-heart-broken fa-4x text-muted mb-3"></i>
+              <h5>Danh sách yêu thích trống</h5>
+              <p class="text-muted">Hãy thêm sản phẩm yêu thích để theo dõi giá và mua sau!</p>
+              <a href="/products" class="btn btn-primary">
+                <i class="fas fa-shopping-bag me-1"></i> Khám phá sản phẩm
+              </a>
+            </div>
+          <% } else { %>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th style="width: 100px;">Hình ảnh</th>
+                    <th>Sản phẩm</th>
+                    <th>Giá hiện tại</th>
+                    <th>Tình trạng</th>
+                    <th class="text-center">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% items.forEach(item => { %>
+                    <tr data-product-id="<%= item.product._id %>">
+                      <td>
+                        <a href="/products/<%= item.product.slug %>">
+                           <img src="<%= item.product.images && item.product.images[0] ? '/uploads/products/' + item.product.images[0] : '/image/no-image.png' %>" 
+                               alt="<%= item.product.name %>"
+                               class="img-thumbnail"
+                               style="width: 80px; height: 80px; object-fit: cover;">
+                        </a>
+                      </td>
+                      <td>
+                        <a href="/products/<%= item.product.slug %>" class="text-decoration-none">
+                          <h6 class="mb-1"><%= item.product.name %></h6>
+                        </a>
+                        <small class="text-muted">
+                          <i class="fas fa-tag me-1"></i><%= item.product.category %>
+                          <% if (item.product.brand) { %>
+                            | <i class="fas fa-building me-1"></i><%= item.product.brand %>
+                          <% } %>
+                        </small>
+                        <br>
+                        <small class="text-muted">
+                          <i class="fas fa-calendar me-1"></i>
+                          Đã thêm: <%= new Date(item.addedAt).toLocaleDateString('vi-VN') %>
+                        </small>
+                      </td>
+                      <td>
+                        <% if (item.product.discountPrice && item.product.discountPrice < item.product.price) { %>
+                          <del class="text-muted small"><%= item.product.price.toLocaleString('vi-VN') %>đ</del><br>
+                          <span class="text-danger fw-bold"><%= item.product.discountPrice.toLocaleString('vi-VN') %>đ</span>
+                        <% } else { %>
+                          <span class="fw-bold"><%= item.product.price.toLocaleString('vi-VN') %>đ</span>
+                        <% } %>
+                        
+                        <% if (item.priceDrop > 0) { %>
+                          <br>
+                          <span class="badge bg-success">
+                            <i class="fas fa-arrow-down me-1"></i>
+                            Giảm <%= item.priceDropPercent %>%
+                          </span>
+                        <% } else if (item.priceIncreased) { %>
+                          <br>
+                          <span class="badge bg-warning">
+                            <i class="fas fa-arrow-up me-1"></i>
+                            Giá tăng
+                          </span>
+                        <% } %>
+                      </td>
+                      <td>
+                        <% if (item.product.stock > 0) { %>
+                          <span class="badge bg-success">
+                            <i class="fas fa-check me-1"></i>Còn hàng
+                          </span>
+                        <% } else { %>
+                          <span class="badge bg-danger">
+                            <i class="fas fa-times me-1"></i>Hết hàng
+                          </span>
+                        <% } %>
+                      </td>
+                      <td class="text-center">
+                        <div class="btn-group btn-group-sm">
+                          <% if (item.product.stock > 0) { %>
+                            <button class="btn btn-success btn-move-to-cart" 
+                                    data-product-id="<%= item.product._id %>"
+                                    title="Chuyển vào giỏ hàng">
+                              <i class="fas fa-shopping-cart"></i>
+                            </button>
+                          <% } else { %>
+                            <button class="btn btn-secondary" disabled title="Hết hàng">
+                              <i class="fas fa-shopping-cart"></i>
+                            </button>
+                          <% } %>
+                          <button class="btn btn-danger btn-remove-wishlist" 
+                                  data-product-id="<%= item.product._id %>"
+                                  title="Xóa khỏi danh sách">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <% if (items.length > 0) { %>
+        <!-- Gợi ý: Sản phẩm giảm giá trong wishlist -->
+        <% const discountedItems = items.filter(item => item.priceDrop > 0); %>
+        <% if (discountedItems.length > 0) { %>
+          <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-fire me-2"></i>
+                Sản phẩm đang giảm giá!
+              </h5>
+            </div>
+            <div class="card-body">
+              <p class="text-muted">Những sản phẩm trong danh sách của bạn đang có giá tốt:</p>
+              <div class="row">
+                <% discountedItems.slice(0, 4).forEach(item => { %>
+                  <div class="col-md-3 col-6 mb-3">
+                    <div class="card h-100 border-success">
+                      <a href="/products/<%= item.product.slug %>">
+                            <img src="<%= item.product.images && item.product.images[0] ? '/uploads/products/' + item.product.images[0] : '/image/no-image.png' %>" 
+                             class="card-img-top" 
+                             alt="<%= item.product.name %>"
+                             style="height: 150px; object-fit: cover;">
+                      </a>
+                      <div class="card-body p-2">
+                        <h6 class="card-title small text-truncate"><%= item.product.name %></h6>
+                        <p class="card-text mb-1">
+                          <span class="text-danger fw-bold"><%= item.currentPrice.toLocaleString('vi-VN') %>đ</span>
+                        </p>
+                        <span class="badge bg-success">Giảm <%= item.priceDropPercent %>%</span>
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Xóa khỏi wishlist
+  document.querySelectorAll('.btn-remove-wishlist').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const productId = this.dataset.productId;
+      
+      if (!confirm('Bạn có chắc muốn xóa sản phẩm này?')) return;
+      
+      try {
+        const res = await fetch(`/user/wishlist/remove/${productId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          // Xóa row khỏi bảng
+          const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+          if (row) {
+            row.remove();
+          }
+          
+          // Update count
+          if (typeof updateWishlistCount === 'function') {
+            updateWishlistCount();
+          }
+          
+          // Reload nếu không còn sản phẩm
+          const remainingRows = document.querySelectorAll('tbody tr[data-product-id]');
+          if (remainingRows.length === 0) {
+            location.reload();
+          }
+        } else {
+          alert(data.message || 'Có lỗi xảy ra');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra');
+      }
+    });
+  });
+
+  // Chuyển vào giỏ hàng
+  document.querySelectorAll('.btn-move-to-cart').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const productId = this.dataset.productId;
+      
+      try {
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        const res = await fetch(`/user/wishlist/move-to-cart/${productId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          // Xóa row khỏi bảng
+          const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+          if (row) {
+            row.remove();
+          }
+          
+          // Show success message
+          alert('Đã chuyển sản phẩm vào giỏ hàng');
+          
+          // Update counts
+          if (typeof updateWishlistCount === 'function') {
+            updateWishlistCount();
+          }
+          if (typeof updateCartCount === 'function') {
+            updateCartCount();
+          }
+          
+          // Reload nếu không còn sản phẩm
+          const remainingRows = document.querySelectorAll('tbody tr[data-product-id]');
+          if (remainingRows.length === 0) {
+            location.reload();
+          }
+        } else {
+          alert(data.message || 'Có lỗi xảy ra');
+          this.disabled = false;
+          this.innerHTML = '<i class="fas fa-shopping-cart"></i>';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra');
+        this.disabled = false;
+        this.innerHTML = '<i class="fas fa-shopping-cart"></i>';
+      }
+    });
+  });
+});
+</script>

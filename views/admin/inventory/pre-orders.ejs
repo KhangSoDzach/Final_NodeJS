@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .stats-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-badge {
+      background: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .stat-badge.pending { border-left: 3px solid #f59e0b; }
+    .stat-badge.notified { border-left: 3px solid #3b82f6; }
+    .stat-badge.converted { border-left: 3px solid #10b981; }
+    
+    .filters {
+      background: #f8fafc;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .filters select {
+      padding: 0.5rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    
+    .preorders-table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .preorders-table th, .preorders-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .preorders-table th { background: #f1f5f9; font-weight: 600; }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .status-badge.pending { background: #fef3c7; color: #92400e; }
+    .status-badge.notified { background: #dbeafe; color: #1e40af; }
+    .status-badge.converted { background: #d1fae5; color: #065f46; }
+    .status-badge.cancelled { background: #fee2e2; color: #991b1b; }
+    .status-badge.expired { background: #e2e8f0; color: #64748b; }
+    
+    .action-btns button {
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-right: 0.25rem;
+    }
+    .btn-notify { background: #3b82f6; color: white; }
+    .btn-cancel { background: #ef4444; color: white; }
+    
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+    .pagination a, .pagination span {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+    .pagination a { background: #e2e8f0; color: #475569; }
+    .pagination .active { background: #4f46e5; color: white; }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-clock"></i> <%= title %></h1>
+        <a href="/admin/inventory" style="color:#4f46e5;text-decoration:none;">
+          <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+      </div>
+      
+      <div class="admin-content">
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-badge pending">
+            <strong><%= stats.pending || 0 %></strong> Đang chờ
+          </div>
+          <div class="stat-badge notified">
+            <strong><%= stats.notified || 0 %></strong> Đã thông báo
+          </div>
+          <div class="stat-badge converted">
+            <strong><%= stats.converted || 0 %></strong> Đã chuyển đổi
+          </div>
+        </div>
+        
+        <!-- Filters -->
+        <form class="filters" method="GET">
+          <select name="status">
+            <option value="">-- Trạng thái --</option>
+            <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>Đang chờ</option>
+            <option value="notified" <%= filters.status === 'notified' ? 'selected' : '' %>>Đã thông báo</option>
+            <option value="converted" <%= filters.status === 'converted' ? 'selected' : '' %>>Đã chuyển đổi</option>
+            <option value="cancelled" <%= filters.status === 'cancelled' ? 'selected' : '' %>>Đã hủy</option>
+            <option value="expired" <%= filters.status === 'expired' ? 'selected' : '' %>>Hết hạn</option>
+          </select>
+          <button type="submit" style="background:#4f46e5;color:white;border:none;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;">
+            <i class="fas fa-filter"></i> Lọc
+          </button>
+        </form>
+        
+        <!-- Table -->
+        <table class="preorders-table">
+          <thead>
+            <tr>
+              <th>Khách hàng</th>
+              <th>Sản phẩm</th>
+              <th>SL</th>
+              <th>Giá đặt</th>
+              <th>Trạng thái</th>
+              <th>Ngày đặt</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (preOrders.length === 0) { %>
+              <tr>
+                <td colspan="7" style="text-align:center;padding:3rem;color:#64748b;">
+                  Không có pre-order nào
+                </td>
+              </tr>
+            <% } %>
+            <% preOrders.forEach(po => { %>
+              <tr>
+                <td>
+                  <strong><%= po.user?.name || 'N/A' %></strong><br>
+                  <small><%= po.contactEmail %></small>
+                  <% if (po.contactPhone) { %>
+                    <br><small><%= po.contactPhone %></small>
+                  <% } %>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <% if (po.product && po.product.images) { %>
+                      <img src="<%= po.product.images[0] || '/image/placeholder.png' %>" 
+                           style="width:40px;height:40px;object-fit:cover;border-radius:6px;">
+                    <% } %>
+                    <div>
+                      <%= po.product?.name || 'N/A' %>
+                      <% if (po.variant && po.variant.name) { %>
+                        <br><small style="color:#64748b;"><%= po.variant.name %>: <%= po.variant.value %></small>
+                      <% } %>
+                      <br><small style="color:#64748b;">Tồn kho: <%= po.product?.stock || 0 %></small>
+                    </div>
+                  </div>
+                </td>
+                <td><%= po.quantity %></td>
+                <td><%= new Intl.NumberFormat('vi-VN').format(po.priceAtOrder) %>đ</td>
+                <td>
+                  <span class="status-badge <%= po.status %>">
+                    <% 
+                      const statusMap = {
+                        pending: 'Đang chờ',
+                        notified: 'Đã thông báo',
+                        converted: 'Đã chuyển đổi',
+                        cancelled: 'Đã hủy',
+                        expired: 'Hết hạn'
+                      };
+                    %>
+                    <%= statusMap[po.status] || po.status %>
+                  </span>
+                  <% if (po.notifiedAt) { %>
+                    <br><small style="color:#64748b;">TB: <%= new Date(po.notifiedAt).toLocaleDateString('vi-VN') %></small>
+                  <% } %>
+                </td>
+                <td>
+                  <%= new Date(po.createdAt).toLocaleDateString('vi-VN') %>
+                  <% if (po.estimatedDate) { %>
+                    <br><small style="color:#64748b;">Dự kiến: <%= new Date(po.estimatedDate).toLocaleDateString('vi-VN') %></small>
+                  <% } %>
+                </td>
+                <td class="action-btns">
+                  <% if (po.status === 'pending' && po.product && po.product.stock >= po.quantity) { %>
+                    <button class="btn-notify" onclick="notifyPreOrder('<%= po._id %>')">
+                      <i class="fas fa-bell"></i> Thông báo
+                    </button>
+                  <% } %>
+                  <% if (po.status === 'pending' || po.status === 'notified') { %>
+                    <button class="btn-cancel" onclick="cancelPreOrder('<%= po._id %>')">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        <% if (pagination.totalPages > 1) { %>
+        <div class="pagination">
+          <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+            <% if (i === pagination.page) { %>
+              <span class="active"><%= i %></span>
+            <% } else { %>
+              <a href="?page=<%= i %>&status=<%= filters.status || '' %>"><%= i %></a>
+            <% } %>
+          <% } %>
+        </div>
+        <% } %>
+      </div>
+    </main>
+  </div>
+  
+  <script>
+    function notifyPreOrder(id) {
+      if (!confirm('Gửi thông báo có hàng cho khách?')) return;
+      
+      fetch(`/admin/inventory/pre-orders/${id}/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        if (data.success) location.reload();
+      });
+    }
+    
+    function cancelPreOrder(id) {
+      const reason = prompt('Lý do hủy (không bắt buộc):');
+      if (reason === null) return; // User clicked cancel
+      
+      fetch(`/admin/inventory/pre-orders/${id}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminNotes: reason })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        if (data.success) location.reload();
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .inventory-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .stat-card.warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .stat-card.danger { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
+    .stat-card.success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .stat-card h3 { font-size: 2rem; margin: 0; }
+    .stat-card p { margin: 0.5rem 0 0; opacity: 0.9; }
+    
+    .inventory-actions {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    .action-btn.primary { background: #4f46e5; color: white; }
+    .action-btn.success { background: #10b981; color: white; }
+    .action-btn.warning { background: #f59e0b; color: white; }
+    .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    
+    .filters {
+      background: #f8fafc;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filters input, .filters select {
+      padding: 0.5rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    
+    .inventory-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .inventory-table th, .inventory-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .inventory-table th {
+      background: #f1f5f9;
+      font-weight: 600;
+      color: #475569;
+    }
+    .inventory-table tr:hover { background: #f8fafc; }
+    
+    .stock-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .stock-badge.in-stock { background: #d1fae5; color: #065f46; }
+    .stock-badge.low-stock { background: #fef3c7; color: #92400e; }
+    .stock-badge.out-of-stock { background: #fee2e2; color: #991b1b; }
+    .stock-badge.pre-order { background: #e0e7ff; color: #3730a3; }
+    
+    .product-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .product-info img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .product-info .name { font-weight: 500; }
+    .product-info .sku { font-size: 0.8rem; color: #64748b; }
+    
+    .action-btns {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .action-btns a, .action-btns button {
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .btn-edit { background: #3b82f6; color: white; }
+    .btn-history { background: #8b5cf6; color: white; }
+    .btn-adjust { background: #f59e0b; color: white; }
+    
+    .low-stock-alert {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 1rem;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 1.5rem;
+    }
+    .low-stock-alert h4 { margin: 0 0 0.5rem; color: #92400e; }
+    .low-stock-alert ul { margin: 0; padding-left: 1.5rem; }
+    .low-stock-alert li { margin: 0.25rem 0; }
+    
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+    .pagination a, .pagination span {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+    .pagination a { background: #e2e8f0; color: #475569; }
+    .pagination a:hover { background: #cbd5e1; }
+    .pagination .active { background: #4f46e5; color: white; }
+    
+    /* Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      border-radius: 24px;
+      transition: .3s;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .3s;
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: #10b981;
+    }
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(26px);
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-warehouse"></i> <%= title %></h1>
+      </div>
+      
+      <div class="admin-content">
+        <% if (typeof messages !== 'undefined') { %>
+          <% if (messages.success) { %>
+            <div class="alert alert-success"><%= messages.success %></div>
+          <% } %>
+          <% if (messages.error) { %>
+            <div class="alert alert-danger"><%= messages.error %></div>
+          <% } %>
+        <% } %>
+        
+        <!-- Stats Cards -->
+        <div class="inventory-stats">
+          <div class="stat-card">
+            <h3><%= stats.totalProducts %></h3>
+            <p><i class="fas fa-box"></i> Tổng sản phẩm</p>
+          </div>
+          <div class="stat-card danger">
+            <h3><%= stats.outOfStockCount %></h3>
+            <p><i class="fas fa-times-circle"></i> Hết hàng</p>
+          </div>
+          <div class="stat-card warning">
+            <h3><%= stats.lowStockCount %></h3>
+            <p><i class="fas fa-exclamation-triangle"></i> Sắp hết</p>
+          </div>
+          <div class="stat-card success">
+            <h3><%= new Intl.NumberFormat('vi-VN').format(stats.totalStockValue) %>đ</h3>
+            <p><i class="fas fa-coins"></i> Giá trị tồn kho</p>
+          </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="inventory-actions">
+          <a href="/admin/inventory/import" class="action-btn success">
+            <i class="fas fa-plus-circle"></i> Nhập kho
+          </a>
+          <a href="/admin/inventory/export" class="action-btn warning">
+            <i class="fas fa-minus-circle"></i> Xuất kho
+          </a>
+          <a href="/admin/inventory/movements" class="action-btn primary">
+            <i class="fas fa-history"></i> Lịch sử
+          </a>
+          <a href="/admin/inventory/alerts" class="action-btn" style="background:#ef4444;color:white;">
+            <i class="fas fa-bell"></i> Cảnh báo (<%= stats.lowStockCount + stats.outOfStockCount %>)
+          </a>
+          <a href="/admin/inventory/pre-orders" class="action-btn" style="background:#8b5cf6;color:white;">
+            <i class="fas fa-clock"></i> Đặt trước (<%= stats.preOrderCount %>)
+          </a>
+          <a href="/admin/inventory/report" class="action-btn" style="background:#06b6d4;color:white;">
+            <i class="fas fa-chart-bar"></i> Báo cáo
+          </a>
+        </div>
+        
+        <!-- Low Stock Alert -->
+        <% if (stats.lowStockProducts && stats.lowStockProducts.length > 0) { %>
+        <div class="low-stock-alert">
+          <h4><i class="fas fa-exclamation-triangle"></i> Sản phẩm sắp hết hàng</h4>
+          <ul>
+            <% stats.lowStockProducts.slice(0, 5).forEach(p => { %>
+              <li><strong><%= p.name %></strong> - Còn <%= p.stock %> (ngưỡng: <%= p.lowStockThreshold %>)</li>
+            <% }) %>
+          </ul>
+          <% if (stats.lowStockProducts.length > 5) { %>
+            <p style="margin-top:0.5rem;"><a href="/admin/inventory/alerts">Xem tất cả <%= stats.lowStockProducts.length %> sản phẩm →</a></p>
+          <% } %>
+        </div>
+        <% } %>
+        
+        <!-- Filters -->
+        <form class="filters" method="GET">
+          <input type="text" name="search" placeholder="Tìm tên hoặc SKU..." value="<%= filters.search || '' %>">
+          <select name="category">
+            <option value="">-- Danh mục --</option>
+            <% categories.forEach(cat => { %>
+              <option value="<%= cat %>" <%= filters.category === cat ? 'selected' : '' %>><%= cat %></option>
+            <% }) %>
+          </select>
+          <select name="stockStatus">
+            <option value="">-- Trạng thái --</option>
+            <option value="in-stock" <%= filters.stockStatus === 'in-stock' ? 'selected' : '' %>>Còn hàng</option>
+            <option value="low-stock" <%= filters.stockStatus === 'low-stock' ? 'selected' : '' %>>Sắp hết</option>
+            <option value="out-of-stock" <%= filters.stockStatus === 'out-of-stock' ? 'selected' : '' %>>Hết hàng</option>
+          </select>
+          <select name="sortBy">
+            <option value="">-- Sắp xếp --</option>
+            <option value="stock-asc" <%= filters.sortBy === 'stock-asc' ? 'selected' : '' %>>Tồn kho tăng</option>
+            <option value="stock-desc" <%= filters.sortBy === 'stock-desc' ? 'selected' : '' %>>Tồn kho giảm</option>
+            <option value="name" <%= filters.sortBy === 'name' ? 'selected' : '' %>>Tên A-Z</option>
+            <option value="sold" <%= filters.sortBy === 'sold' ? 'selected' : '' %>>Bán chạy</option>
+          </select>
+          <button type="submit" class="action-btn primary" style="padding:0.5rem 1rem;">
+            <i class="fas fa-search"></i> Lọc
+          </button>
+          <a href="/admin/inventory" style="color:#64748b;">Xóa bộ lọc</a>
+        </form>
+        
+        <!-- Products Table -->
+        <table class="inventory-table">
+          <thead>
+            <tr>
+              <th>Sản phẩm</th>
+              <th>Danh mục</th>
+              <th>Tồn kho</th>
+              <th>Đã bán</th>
+              <th>Trạng thái</th>
+              <th>Đặt trước</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% products.forEach(product => { %>
+              <% 
+                let stockStatus = 'in-stock';
+                let statusText = 'Còn hàng';
+                if (product.stock <= 0) {
+                  stockStatus = product.allowPreOrder ? 'pre-order' : 'out-of-stock';
+                  statusText = product.allowPreOrder ? 'Đặt trước' : 'Hết hàng';
+                } else if (product.stock <= product.lowStockThreshold) {
+                  stockStatus = 'low-stock';
+                  statusText = 'Sắp hết';
+                }
+              %>
+              <tr>
+                <td>
+                  <div class="product-info">
+                    <img src="<%= product.images[0] || '/image/placeholder.png' %>" alt="<%= product.name %>">
+                    <div>
+                      <div class="name"><%= product.name %></div>
+                      <div class="sku"><%= product.sku || 'N/A' %></div>
+                    </div>
+                  </div>
+                </td>
+                <td><%= product.category %></td>
+                <td>
+                  <strong><%= product.stock %></strong>
+                  <% if (product.variants && product.variants.length > 0) { %>
+                    <br><small style="color:#64748b;">
+                      <% product.variants.forEach(v => { %>
+                        <% v.options.forEach(o => { %>
+                          <%= v.name %>: <%= o.value %> (<%= o.stock %>)<br>
+                        <% }) %>
+                      <% }) %>
+                    </small>
+                  <% } %>
+                </td>
+                <td><%= product.sold %></td>
+                <td>
+                  <span class="stock-badge <%= stockStatus %>"><%= statusText %></span>
+                </td>
+                <td>
+                  <label class="toggle-switch">
+                    <input type="checkbox" 
+                           onchange="togglePreOrder('<%= product._id %>', this.checked)"
+                           <%= product.allowPreOrder ? 'checked' : '' %>>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </td>
+                <td>
+                  <div class="action-btns">
+                    <a href="/admin/inventory/adjust/<%= product._id %>" class="btn-adjust" title="Điều chỉnh">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <button class="btn-history" onclick="showHistory('<%= product._id %>')" title="Lịch sử">
+                      <i class="fas fa-history"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        <% if (pagination.totalPages > 1) { %>
+        <div class="pagination">
+          <% if (pagination.page > 1) { %>
+            <a href="?page=<%= pagination.page - 1 %>&search=<%= filters.search || '' %>&category=<%= filters.category || '' %>&stockStatus=<%= filters.stockStatus || '' %>&sortBy=<%= filters.sortBy || '' %>">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          <% } %>
+          
+          <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+            <% if (i === pagination.page) { %>
+              <span class="active"><%= i %></span>
+            <% } else if (i === 1 || i === pagination.totalPages || (i >= pagination.page - 2 && i <= pagination.page + 2)) { %>
+              <a href="?page=<%= i %>&search=<%= filters.search || '' %>&category=<%= filters.category || '' %>&stockStatus=<%= filters.stockStatus || '' %>&sortBy=<%= filters.sortBy || '' %>"><%= i %></a>
+            <% } else if (i === pagination.page - 3 || i === pagination.page + 3) { %>
+              <span>...</span>
+            <% } %>
+          <% } %>
+          
+          <% if (pagination.page < pagination.totalPages) { %>
+            <a href="?page=<%= pagination.page + 1 %>&search=<%= filters.search || '' %>&category=<%= filters.category || '' %>&stockStatus=<%= filters.stockStatus || '' %>&sortBy=<%= filters.sortBy || '' %>">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          <% } %>
+        </div>
+        <% } %>
+      </div>
+    </main>
+  </div>
+  
+  <!-- History Modal -->
+  <div id="historyModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:2rem;max-width:800px;width:90%;max-height:80vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <h3 style="margin:0;">Lịch sử tồn kho</h3>
+        <button onclick="closeHistory()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">&times;</button>
+      </div>
+      <div id="historyContent">Đang tải...</div>
+    </div>
+  </div>
+  
+  <script>
+    function togglePreOrder(productId, allowed) {
+      fetch(`/admin/inventory/products/${productId}/allow-preorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allowPreOrder: allowed })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success) {
+          alert(data.message);
+          location.reload();
+        }
+      })
+      .catch(err => {
+        alert('Đã xảy ra lỗi');
+        location.reload();
+      });
+    }
+    
+    function showHistory(productId) {
+      const modal = document.getElementById('historyModal');
+      const content = document.getElementById('historyContent');
+      modal.style.display = 'flex';
+      content.innerHTML = 'Đang tải...';
+      
+      fetch(`/admin/inventory/api/product/${productId}/history`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.movements.length > 0) {
+            let html = '<table style="width:100%;border-collapse:collapse;">';
+            html += '<tr style="background:#f1f5f9;"><th style="padding:0.5rem;text-align:left;">Thời gian</th><th style="padding:0.5rem;text-align:left;">Loại</th><th style="padding:0.5rem;text-align:left;">Số lượng</th><th style="padding:0.5rem;text-align:left;">Lý do</th><th style="padding:0.5rem;text-align:left;">Người thực hiện</th></tr>';
+            data.movements.forEach(m => {
+              const typeMap = {import:'Nhập kho',export:'Xuất kho',adjustment:'Điều chỉnh',return:'Hoàn trả',order:'Đơn hàng',cancel:'Hủy đơn'};
+              html += `<tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:0.5rem;">${new Date(m.createdAt).toLocaleString('vi-VN')}</td>
+                <td style="padding:0.5rem;">${typeMap[m.type] || m.type}</td>
+                <td style="padding:0.5rem;color:${m.quantity > 0 ? 'green' : 'red'};">${m.quantity > 0 ? '+' : ''}${m.quantity} (${m.previousStock}→${m.newStock})</td>
+                <td style="padding:0.5rem;">${m.reason}</td>
+                <td style="padding:0.5rem;">${m.createdBy?.name || 'N/A'}</td>
+              </tr>`;
+            });
+            html += '</table>';
+            content.innerHTML = html;
+          } else {
+            content.innerHTML = '<p>Chưa có lịch sử tồn kho</p>';
+          }
+        })
+        .catch(err => {
+          content.innerHTML = '<p style="color:red;">Đã xảy ra lỗi khi tải dữ liệu</p>';
+        });
+    }
+    
+    function closeHistory() {
+      document.getElementById('historyModal').style.display = 'none';
+    }
+    
+    // Close modal on outside click
+    document.getElementById('historyModal').addEventListener('click', function(e) {
+      if (e.target === this) closeHistory();
+    });
+  </script>
+</body>
+</html>

@@ -209,3 +209,197 @@ exports.sendOrderConfirmationEmail = async (email, order) => {
     return false;
   }
 };
+
+/**
+ * Gửi email thông báo pre-order có hàng
+ */
+exports.sendPreOrderNotification = async (preOrder) => {
+  try {
+    const productUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/products/${preOrder.product.slug}`;
+    
+    const mailOptions = {
+      from: `"Source Computer" <${process.env.EMAIL_USER || emailConfig.auth.user}>`,
+      to: preOrder.contactEmail,
+      subject: `🎉 Sản phẩm bạn đặt trước đã có hàng - ${preOrder.product.name}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #10b981;">🎉 Tin vui!</h1>
+          </div>
+          
+          <p>Xin chào <strong>${preOrder.user?.name || 'bạn'}</strong>,</p>
+          
+          <p>Sản phẩm bạn đã đặt trước <strong>${preOrder.product.name}</strong> hiện đã có hàng!</p>
+          
+          <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+              ${preOrder.product.images && preOrder.product.images[0] ? 
+                `<img src="${preOrder.product.images[0]}" alt="${preOrder.product.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">` : ''
+              }
+              <div>
+                <h3 style="margin: 0 0 5px;">${preOrder.product.name}</h3>
+                ${preOrder.variant && preOrder.variant.name ? 
+                  `<p style="margin: 0; color: #64748b;">${preOrder.variant.name}: ${preOrder.variant.value}</p>` : ''
+                }
+                <p style="margin: 5px 0 0; font-size: 18px; color: #dc2626; font-weight: bold;">
+                  ${new Intl.NumberFormat('vi-VN').format(preOrder.priceAtOrder)}đ
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <p style="color: #dc2626;"><strong>⚠️ Lưu ý:</strong> Giá đặt trước của bạn sẽ được bảo đảm trong <strong>48 giờ</strong>. Vui lòng hoàn tất đơn hàng trước khi hết hạn.</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${productUrl}" style="background-color: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+              Mua ngay
+            </a>
+          </div>
+          
+          <p style="color: #64748b; font-size: 14px;">
+            Nếu bạn không muốn mua nữa, vui lòng bỏ qua email này. Đơn đặt trước sẽ tự động hủy sau 48 giờ.
+          </p>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 12px;">
+            <p>Source Computer - Đồng hành cùng công nghệ</p>
+            <p>Hotline: 1900 1234 | Email: support@sourcecomputer.vn</p>
+          </div>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Pre-order notification sent to:', preOrder.contactEmail);
+    return true;
+  } catch (error) {
+    console.error('Pre-order notification email error:', error);
+    return false;
+  }
+};
+
+/**
+ * Gửi email thông báo sản phẩm có hàng lại (Back in Stock)
+ */
+exports.sendBackInStockNotification = async (subscription) => {
+  try {
+    const productUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/products/${subscription.product.slug}`;
+    
+    const mailOptions = {
+      from: `"Source Computer" <${process.env.EMAIL_USER || emailConfig.auth.user}>`,
+      to: subscription.email,
+      subject: `📦 Sản phẩm bạn quan tâm đã có hàng trở lại!`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #3b82f6;">📦 Đã có hàng!</h1>
+          </div>
+          
+          <p>Xin chào,</p>
+          
+          <p>Sản phẩm bạn đăng ký theo dõi hiện đã có hàng trở lại!</p>
+          
+          <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            ${subscription.product.images && subscription.product.images[0] ? 
+              `<img src="${subscription.product.images[0]}" alt="${subscription.product.name}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">` : ''
+            }
+            <h3 style="margin: 10px 0 5px;">${subscription.product.name}</h3>
+            ${subscription.variant && subscription.variant.name ? 
+              `<p style="margin: 0; color: #64748b;">${subscription.variant.name}: ${subscription.variant.value}</p>` : ''
+            }
+            <p style="margin: 10px 0 0; font-size: 20px; color: #dc2626; font-weight: bold;">
+              ${new Intl.NumberFormat('vi-VN').format(subscription.product.discountPrice || subscription.product.price)}đ
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${productUrl}" style="background-color: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+              Xem sản phẩm
+            </a>
+          </div>
+          
+          <p style="color: #64748b; font-size: 14px; text-align: center;">
+            Hãy nhanh tay đặt hàng trước khi sản phẩm hết hàng lần nữa! 🔥
+          </p>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 12px;">
+            <p>Source Computer - Đồng hành cùng công nghệ</p>
+            <p>Hotline: 1900 1234 | Email: support@sourcecomputer.vn</p>
+            <p style="margin-top: 10px;">
+              <a href="${process.env.BASE_URL || 'http://localhost:3000'}/user/notifications/unsubscribe?email=${subscription.email}&product=${subscription.product._id}" style="color: #64748b;">
+                Hủy đăng ký thông báo
+              </a>
+            </p>
+          </div>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Back in stock notification sent to:', subscription.email);
+    return true;
+  } catch (error) {
+    console.error('Back in stock notification email error:', error);
+    return false;
+  }
+};
+
+/**
+ * Gửi email cảnh báo tồn kho thấp cho admin
+ */
+exports.sendLowStockAlert = async (products, adminEmail) => {
+  try {
+    const productList = products.map(p => `
+      <tr>
+        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${p.name}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${p.sku || 'N/A'}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; color: #dc2626; font-weight: bold;">${p.stock}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${p.lowStockThreshold}</td>
+      </tr>
+    `).join('');
+    
+    const mailOptions = {
+      from: `"Source Computer" <${process.env.EMAIL_USER || emailConfig.auth.user}>`,
+      to: adminEmail,
+      subject: `⚠️ Cảnh báo: ${products.length} sản phẩm sắp hết hàng`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #dc2626;">⚠️ Cảnh báo tồn kho thấp</h2>
+          
+          <p>Các sản phẩm sau đây đang có tồn kho thấp và cần được nhập thêm:</p>
+          
+          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <thead>
+              <tr style="background: #f1f5f9;">
+                <th style="padding: 10px; text-align: left;">Sản phẩm</th>
+                <th style="padding: 10px; text-align: left;">SKU</th>
+                <th style="padding: 10px; text-align: left;">Tồn kho</th>
+                <th style="padding: 10px; text-align: left;">Ngưỡng</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${productList}
+            </tbody>
+          </table>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.BASE_URL || 'http://localhost:3000'}/admin/inventory/alerts" 
+               style="background-color: #f59e0b; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+              Xem chi tiết
+            </a>
+          </div>
+          
+          <p style="color: #64748b; font-size: 12px;">
+            Email này được gửi tự động từ hệ thống quản lý kho của Source Computer.
+          </p>
+        </div>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Low stock alert sent to admin:', adminEmail);
+    return true;
+  } catch (error) {
+    console.error('Low stock alert email error:', error);
+    return false;
+  }
+};

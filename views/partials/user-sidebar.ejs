@@ -1,0 +1,118 @@
+<div class="profile-sidebar">
+    <div class="user-info">
+        <div class="user-avatar">
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <h3><%= user.name %></h3>
+        <p><%= user.email %></p>
+        <p class="loyalty-points">
+            <i class="fas fa-award"></i> Điểm tích lũy: <strong><%= user.loyaltyPoints || 0 %></strong>
+        </p>
+    </div>
+    
+    <nav class="profile-nav">
+        <ul>
+            <li class="<%= typeof activePage !== 'undefined' && activePage === 'profile' ? 'active' : '' %>">
+                <a href="/user/profile"><i class="fas fa-user"></i> Thông tin tài khoản</a>
+            </li>
+            <li class="<%= typeof activePage !== 'undefined' && activePage === 'orders' ? 'active' : '' %>">
+                <a href="/user/orders"><i class="fas fa-shopping-bag"></i> Lịch sử đơn hàng</a>
+            </li>
+            <li class="<%= typeof activePage !== 'undefined' && activePage === 'addresses' ? 'active' : '' %>">
+                <a href="/user/addresses"><i class="fas fa-map-marker-alt"></i> Địa chỉ</a>
+            </li>
+            <li class="<%= typeof activePage !== 'undefined' && activePage === 'loyalty' ? 'active' : '' %>">
+                <a href="/user/loyalty-points"><i class="fas fa-award"></i> Điểm tích lũy</a>
+            </li>
+            <li class="<%= typeof activePage !== 'undefined' && activePage === 'pre-orders' ? 'active' : '' %>">
+                <a href="/user/pre-orders"><i class="fas fa-calendar-check"></i> Đơn đặt trước</a>
+            </li>
+            <li class="<%= typeof activePage !== 'undefined' && activePage === 'notifications' ? 'active' : '' %>">
+                <a href="/user/stock-notifications"><i class="fas fa-bell"></i> Thông báo hàng về</a>
+            </li>
+            <li class="<%= typeof activePage !== 'undefined' && activePage === 'password' ? 'active' : '' %>">
+                <a href="/user/change-password"><i class="fas fa-key"></i> Đổi mật khẩu</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<style>
+.profile-sidebar {
+    background: #fff;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.user-info {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+.user-avatar {
+    font-size: 60px;
+    color: #3b82f6;
+    margin-bottom: 10px;
+}
+
+.user-info h3 {
+    margin: 0 0 5px;
+    font-size: 18px;
+    color: #333;
+}
+
+.user-info p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.user-info .loyalty-points {
+    margin-top: 10px;
+    color: #f59e0b;
+}
+
+.user-info .loyalty-points strong {
+    color: #d97706;
+}
+
+.profile-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.profile-nav li {
+    margin-bottom: 5px;
+}
+
+.profile-nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    color: #4b5563;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.profile-nav a:hover {
+    background: #f3f4f6;
+    color: #3b82f6;
+}
+
+.profile-nav li.active a {
+    background: #eff6ff;
+    color: #3b82f6;
+    font-weight: 500;
+}
+
+.profile-nav i {
+    width: 20px;
+    text-align: center;
+}
+</style>

@@ -1,0 +1,416 @@
+/* ===================================================================
+   TOOLTIPS & POPOVERS
+   Glassmorphism tooltips with auto-positioning
+   ================================================================ */
+
+/* Tooltip Base */
+.tooltip {
+  position: absolute;
+  z-index: var(--z-tooltip);
+  padding: var(--space-2) var(--space-3);
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--backdrop-blur-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  box-shadow: var(--shadow-elevated-primary);
+}
+
+.tooltip.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Tooltip Arrow */
+.tooltip::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+}
+
+/* Tooltip Positions */
+.tooltip[data-position='top'] {
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+}
+
+.tooltip[data-position='top'].show {
+  transform: translateX(-50%) translateY(0);
+}
+
+.tooltip[data-position='top']::before {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: var(--glass-border);
+}
+
+.tooltip[data-position='bottom'] {
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+.tooltip[data-position='bottom'].show {
+  transform: translateX(-50%) translateY(0);
+}
+
+.tooltip[data-position='bottom']::before {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-color: var(--glass-border);
+}
+
+.tooltip[data-position='left'] {
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%) translateX(4px);
+}
+
+.tooltip[data-position='left'].show {
+  transform: translateY(-50%) translateX(0);
+}
+
+.tooltip[data-position='left']::before {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left-color: var(--glass-border);
+}
+
+.tooltip[data-position='right'] {
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+}
+
+.tooltip[data-position='right'].show {
+  transform: translateY(-50%) translateX(0);
+}
+
+.tooltip[data-position='right']::before {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-right-color: var(--glass-border);
+}
+
+/* Tooltip Variants */
+.tooltip.tooltip-primary {
+  background: linear-gradient(135deg, 
+    rgba(0, 212, 255, 0.15), 
+    rgba(124, 58, 237, 0.15)
+  );
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+.tooltip.tooltip-danger {
+  background: rgba(255, 82, 82, 0.15);
+  border-color: var(--danger);
+  box-shadow: 0 0 20px rgba(255, 82, 82, 0.3);
+}
+
+.tooltip.tooltip-success {
+  background: rgba(0, 230, 118, 0.15);
+  border-color: var(--success);
+  box-shadow: 0 0 20px rgba(0, 230, 118, 0.3);
+}
+
+/* Tooltip with Icon */
+.tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tooltip-icon i {
+  font-size: var(--text-base);
+  color: var(--primary);
+}
+
+/* ===================================================================
+   POPOVERS
+   Rich content tooltips with interactive elements
+   ================================================================ */
+
+.popover {
+  position: absolute;
+  z-index: var(--z-popover);
+  min-width: 200px;
+  max-width: 320px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: var(--backdrop-blur-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elevated-primary);
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+.popover.show {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+/* Popover Header */
+.popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.popover-header h4 {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.popover-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--text-lg);
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.popover-close:hover {
+  color: var(--text-primary);
+  background: var(--glass-bg-hover);
+}
+
+/* Popover Body */
+.popover-body {
+  padding: var(--space-4);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+/* Popover Footer */
+.popover-footer {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+/* Popover Arrow */
+.popover::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+}
+
+/* Popover Positions */
+.popover[data-position='top'] {
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+}
+
+.popover[data-position='top'].show {
+  transform: translateX(-50%) scale(1);
+}
+
+.popover[data-position='top']::before {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: var(--glass-border);
+}
+
+.popover[data-position='bottom'] {
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+}
+
+.popover[data-position='bottom'].show {
+  transform: translateX(-50%) scale(1);
+}
+
+.popover[data-position='bottom']::before {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-color: var(--glass-border);
+}
+
+.popover[data-position='left'] {
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) scale(0.95);
+}
+
+.popover[data-position='left'].show {
+  transform: translateY(-50%) scale(1);
+}
+
+.popover[data-position='left']::before {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left-color: var(--glass-border);
+}
+
+.popover[data-position='right'] {
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) scale(0.95);
+}
+
+.popover[data-position='right'].show {
+  transform: translateY(-50%) scale(1);
+}
+
+.popover[data-position='right']::before {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-right-color: var(--glass-border);
+}
+
+/* ===================================================================
+   TOOLTIP TRIGGER
+   Add data-tooltip attribute to any element
+   ================================================================ */
+
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]:hover .tooltip,
+[data-tooltip]:focus .tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===================================================================
+   INFO ICON WITH TOOLTIP
+   ================================================================ */
+
+.info-tooltip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--primary);
+  font-size: 12px;
+  cursor: help;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.info-tooltip:hover {
+  background: var(--glass-bg-hover);
+  box-shadow: var(--glow-primary);
+  transform: scale(1.1);
+}
+
+/* ===================================================================
+   RESPONSIVE
+   ================================================================ */
+
+@media (max-width: 768px) {
+  .tooltip {
+    font-size: 12px;
+    padding: var(--space-1-5) var(--space-2-5);
+    max-width: 200px;
+    white-space: normal;
+  }
+
+  .popover {
+    min-width: 280px;
+    max-width: calc(100vw - 32px);
+  }
+
+  /* Force bottom position on mobile for better visibility */
+  .popover[data-position='top'],
+  .popover[data-position='left'],
+  .popover[data-position='right'] {
+    top: calc(100% + 12px);
+    bottom: auto;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%) scale(0.95);
+  }
+
+  .popover[data-position='top'].show,
+  .popover[data-position='left'].show,
+  .popover[data-position='right'].show {
+    transform: translateX(-50%) scale(1);
+  }
+
+  .popover[data-position='top']::before,
+  .popover[data-position='left']::before,
+  .popover[data-position='right']::before {
+    bottom: 100%;
+    top: auto;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    border-bottom-color: var(--glass-border);
+    border-top-color: transparent;
+    border-left-color: transparent;
+    border-right-color: transparent;
+  }
+}
+
+/* ===================================================================
+   ANIMATIONS
+   ================================================================ */
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes popover-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

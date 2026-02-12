@@ -379,4 +379,165 @@ document.addEventListener('DOMContentLoaded', function() {
             // ...AJAX code gửi productId, quantity, variants...
         });
     }
+    
+    // ===== PRE-ORDER & NOTIFICATION HANDLERS =====
+    
+    // Pre-order button handler
+    const preOrderBtn = document.getElementById('preOrderBtn');
+    if (preOrderBtn) {
+        preOrderBtn.addEventListener('click', async function() {
+            const productId = this.dataset.id;
+            const quantityInput = document.getElementById('quantity');
+            const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+            
+            // Get selected variant if any
+            let variant = null;
+            const variantSelect = document.querySelector('.variant-select');
+            if (variantSelect) {
+                variant = {
+                    name: variantSelect.dataset.name,
+                    value: variantSelect.value
+                };
+            }
+            
+            try {
+                const response = await fetch('/products/pre-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId,
+                        quantity,
+                        variant
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('success', data.message);
+                    // Optionally disable button
+                    preOrderBtn.disabled = true;
+                    preOrderBtn.innerHTML = '<i class="fas fa-check"></i> Đã đặt trước';
+                } else {
+                    if (response.status === 401) {
+                        // Redirect to login
+                        window.location.href = '/auth/login?returnTo=' + encodeURIComponent(window.location.pathname);
+                    } else {
+                        showToast('error', data.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Pre-order error:', error);
+                showToast('error', 'Đã xảy ra lỗi khi đặt trước. Vui lòng thử lại.');
+            }
+        });
+    }
+    
+    // Notify button handler (Back in stock notification)
+    const notifyBtn = document.getElementById('notifyBtn');
+    if (notifyBtn) {
+        notifyBtn.addEventListener('click', async function() {
+            const productId = this.dataset.id;
+            const emailInput = document.getElementById('notifyEmail');
+            const email = emailInput ? emailInput.value.trim() : '';
+            
+            if (!email) {
+                showToast('error', 'Vui lòng nhập email');
+                emailInput.focus();
+                return;
+            }
+            
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showToast('error', 'Email không hợp lệ');
+                emailInput.focus();
+                return;
+            }
+            
+            // Get selected variant if any
+            let variant = null;
+            const variantSelect = document.querySelector('.variant-select');
+            if (variantSelect) {
+                variant = {
+                    name: variantSelect.dataset.name,
+                    value: variantSelect.value
+                };
+            }
+            
+            try {
+                const response = await fetch('/products/notify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId,
+                        email,
+                        variant
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('success', data.message);
+                    // Update UI
+                    notifyBtn.disabled = true;
+                    notifyBtn.innerHTML = '<i class="fas fa-check"></i> Đã đăng ký';
+                } else {
+                    showToast('error', data.message);
+                }
+            } catch (error) {
+                console.error('Notify subscription error:', error);
+                showToast('error', 'Đã xảy ra lỗi. Vui lòng thử lại.');
+            }
+        });
+    }
+    
+    // Helper function to show toast notifications
+    function showToast(type, message) {
+        // Check if toast container exists, if not create one
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container';
+            toastContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999;';
+            document.body.appendChild(toastContainer);
+        }
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.style.cssText = `
+            background: ${type === 'success' ? '#10b981' : '#ef4444'};
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        toast.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.remove()" style="background:none;border:none;color:white;cursor:pointer;margin-left:10px;">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
 });

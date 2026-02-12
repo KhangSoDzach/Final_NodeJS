@@ -1,0 +1,132 @@
+/* ===================================================================
+   Source Computer - Light Theme Design Tokens (Fallback)
+   For users who prefer light mode or accessibility needs
+   ================================================================ */
+
+:root[data-theme="light"] {
+  /* ==================== Color Palette ==================== */
+  
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f1f3f5;
+  --bg-elevated: #ffffff;
+  
+  /* Glass effect (minimal in light mode) */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-bg-hover: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-border-hover: rgba(0, 0, 0, 0.15);
+  
+  /* Brand Colors - adjusted for light background */
+  --primary: #0066cc;
+  --primary-dark: #0052a3;
+  --primary-light: #3385d6;
+  --primary-glow: rgba(0, 102, 204, 0.2);
+  --primary-glow-intense: rgba(0, 102, 204, 0.3);
+  
+  --accent: #6d28d9;
+  --accent-dark: #5b21b6;
+  --accent-light: #7c3aed;
+  --accent-glow: rgba(109, 40, 217, 0.2);
+  --accent-glow-intense: rgba(109, 40, 217, 0.3);
+  
+  /* Semantic Colors */
+  --success: #00c853;
+  --success-dark: #00a843;
+  --success-glow: rgba(0, 200, 83, 0.2);
+  
+  --danger: #dc3545;
+  --danger-dark: #c82333;
+  --danger-glow: rgba(220, 53, 69, 0.2);
+  
+  --warning: #ffc107;
+  --warning-dark: #e0a800;
+  --warning-glow: rgba(255, 193, 7, 0.2);
+  
+  --info: #0066cc;
+  --info-glow: var(--primary-glow);
+  
+  /* Text Colors */
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #adb5bd;
+  --text-inverse: #ffffff;
+  
+  /* Border & Divider Colors */
+  --border-default: #dee2e6;
+  --border-hover: #adb5bd;
+  --border-focus: var(--primary);
+  --divider: #e9ecef;
+  
+  /* Overlay Colors */
+  --overlay-dark: rgba(0, 0, 0, 0.5);
+  --overlay-darker: rgba(0, 0, 0, 0.75);
+  --backdrop-blur: blur(8px);
+  --backdrop-blur-strong: blur(16px);
+  
+  /* Shadow System - lighter shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  --shadow-base: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 8px 16px 0 rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 12px 24px 0 rgba(0, 0, 0, 0.15);
+  
+  /* Glow effects - more subtle in light mode */
+  --shadow-glow-primary: 0 0 12px var(--primary-glow);
+  --shadow-glow-primary-lg: 0 0 24px var(--primary-glow-intense);
+  --shadow-glow-accent: 0 0 12px var(--accent-glow);
+  --shadow-glow-accent-lg: 0 0 24px var(--accent-glow-intense);
+  --shadow-glow-success: 0 0 12px var(--success-glow);
+  --shadow-glow-danger: 0 0 12px var(--danger-glow);
+  --shadow-glow-warning: 0 0 12px var(--warning-glow);
+  
+  /* Combined Shadows */
+  --shadow-elevated-primary: 
+    0 8px 16px rgba(0, 0, 0, 0.12),
+    0 0 20px var(--primary-glow);
+  
+  --shadow-elevated-accent: 
+    0 8px 16px rgba(0, 0, 0, 0.12),
+    0 0 20px var(--accent-glow);
+  
+  /* Card Backgrounds */
+  --card-bg: var(--bg-elevated);
+  --card-border: var(--border-default);
+  
+  /* Input Backgrounds */
+  --input-bg: var(--bg-primary);
+  --input-border: var(--border-default);
+  --input-border-focus: var(--primary);
+  
+  /* Navbar */
+  --navbar-bg: rgba(255, 255, 255, 0.95);
+  --navbar-border: var(--border-default);
+  
+  /* Sidebar */
+  --sidebar-bg: var(--bg-secondary);
+  
+  /* Focus Ring */
+  --focus-ring: 0 0 0 3px var(--primary-glow);
+  --focus-ring-danger: 0 0 0 3px var(--danger-glow);
+  
+  /* Note: All other tokens (spacing, typography, radius, z-index, etc.) 
+     remain the same as dark theme - inherited from variables-dark.css */
+}
+
+/* ==================== Theme Toggle Utility ==================== */
+/* 
+  Usage in JavaScript:
+  
+  // Switch to dark theme
+  document.documentElement.setAttribute('data-theme', 'dark');
+  
+  // Switch to light theme
+  document.documentElement.setAttribute('data-theme', 'light');
+  
+  // Toggle theme
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+*/

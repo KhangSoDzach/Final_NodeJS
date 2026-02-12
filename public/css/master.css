@@ -1,0 +1,415 @@
+/* ===================================================================
+   Source Computer E-Commerce - Master Stylesheet
+   Neomorphism + Dark Mode Design System
+   Version: 1.0.0
+   Author: Source Computer Team
+   Last Updated: February 2026
+   ================================================================ */
+
+/* ===================================================================
+   LOADING ORDER:
+   1. Design System (variables, mixins)
+   2. Layout (structure)
+   3. Components (reusable UI elements)
+   4. Interactive (dynamic elements)
+   5. Pages (page-specific styles)
+   6. Utilities (helper classes)
+   7. Animations (effects & transitions)
+   ================================================================ */
+
+/* ===================================================================
+   1. DESIGN SYSTEM FOUNDATION
+   ================================================================ */
+
+/* Design tokens and CSS custom properties */
+@import './design-system/variables-dark.css';
+@import './design-system/mixins.css';
+
+/* Theme variations */
+[data-theme="light"] {
+  @import './design-system/variables-light.css';
+}
+
+/* ===================================================================
+   2. LAYOUT STRUCTURE
+   ================================================================ */
+
+@import './layout/header.css';
+@import './layout/footer.css';
+@import './layout/container.css';
+@import './layout/sidebar.css';
+
+/* ===================================================================
+   3. CORE COMPONENTS
+   ================================================================ */
+
+@import './components/cards.css';
+@import './components/buttons.css';
+@import './components/forms.css';
+@import './components/badges.css';
+@import './components/modals.css';
+@import './components/alerts.css';
+
+/* ===================================================================
+   4. INTERACTIVE ELEMENTS
+   ================================================================ */
+
+@import './interactive/tooltips.css';
+@import './interactive/dropdowns.css';
+@import './interactive/accordion.css';
+@import './interactive/tabs.css';
+@import './interactive/loaders.css';
+@import './interactive/carousel.css';
+
+/* ===================================================================
+   5. PAGE-SPECIFIC STYLES
+   ================================================================ */
+
+@import './pages/home.css';
+@import './pages/products.css';
+@import './pages/product-detail.css';
+@import './pages/cart.css';
+@import './pages/user.css';
+@import './pages/admin.css';
+
+/* ===================================================================
+   6. UTILITY CLASSES
+   ================================================================ */
+
+@import './utilities/responsive.css';
+@import './utilities/animations.css';
+@import './utilities/helpers.css';
+@import './utilities/print.css';
+
+/* ===================================================================
+   7. ANIMATIONS & TRANSITIONS
+   ================================================================ */
+
+@import './animations/page-load.css';
+
+/* ===================================================================
+   GLOBAL RESET & BASE STYLES
+   ================================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ===================================================================
+   TYPOGRAPHY BASE
+   ================================================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+}
+
+h1 {
+  font-size: var(--font-size-4xl);
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: var(--font-size-3xl);
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: var(--font-size-2xl);
+}
+
+h4 {
+  font-size: var(--font-size-xl);
+}
+
+h5 {
+  font-size: var(--font-size-lg);
+}
+
+h6 {
+  font-size: var(--font-size-base);
+}
+
+p {
+  margin-bottom: var(--space-4);
+  color: var(--text-secondary);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--transition-base);
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ===================================================================
+   LISTS
+   ================================================================ */
+
+ul, ol {
+  margin-bottom: var(--space-4);
+  padding-left: var(--space-6);
+}
+
+li {
+  margin-bottom: var(--space-2);
+  color: var(--text-secondary);
+}
+
+/* ===================================================================
+   IMAGES & MEDIA
+   ================================================================ */
+
+img,
+video,
+iframe {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+img {
+  border-radius: var(--radius-md);
+}
+
+/* ===================================================================
+   FORM ELEMENTS BASE
+   ================================================================ */
+
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ===================================================================
+   FOCUS STYLES
+   ================================================================ */
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Remove outline for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ===================================================================
+   SELECTION STYLES
+   ================================================================ */
+
+::selection {
+  background: rgba(0, 212, 255, 0.3);
+  color: var(--text-primary);
+}
+
+::-moz-selection {
+  background: rgba(0, 212, 255, 0.3);
+  color: var(--text-primary);
+}
+
+/* ===================================================================
+   SCROLLBAR STYLES
+   ================================================================ */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--bg-secondary);
+}
+
+/* Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
+/* ===================================================================
+   ACCESSIBILITY
+   ================================================================ */
+
+/* Skip to main content link */
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--primary);
+  color: var(--bg-primary);
+  padding: var(--space-2) var(--space-4);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  z-index: 10000;
+}
+
+.skip-to-main:focus {
+  top: var(--space-2);
+  left: var(--space-2);
+}
+
+/* Focus indicators for keyboard navigation */
+.keyboard-nav *:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ===================================================================
+   PRINT STYLES
+   ================================================================ */
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* ===================================================================
+   DARK MODE SPECIFIC ADJUSTMENTS
+   ================================================================ */
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* ===================================================================
+   PERFORMANCE OPTIMIZATIONS
+   ================================================================ */
+
+/* GPU acceleration for frequently animated elements */
+.btn,
+.card,
+.modal,
+.dropdown {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Contain paint for performance */
+.card,
+.product-card,
+.modal-content {
+  contain: layout style paint;
+}
+
+/* ===================================================================
+   RESPONSIVE BREAKPOINTS REFERENCE
+   
+   Mobile First Approach:
+   - Base styles: < 576px (mobile)
+   - Small: >= 576px (large mobile)
+   - Medium: >= 768px (tablet)
+   - Large: >= 992px (desktop)
+   - XL: >= 1200px (large desktop)
+   - XXL: >= 1400px (extra large)
+   
+   Usage in imported modules:
+   @media (min-width: 768px) { ... }
+   ================================================================ */
+
+/* ===================================================================
+   BROWSER-SPECIFIC HACKS (Use sparingly)
+   ================================================================ */
+
+/* Safari-specific fixes */
+@supports (-webkit-appearance: none) {
+  input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+  }
+}
+
+/* Edge-specific fixes */
+@supports (-ms-ime-align: auto) {
+  .edge-fix {
+    /* Edge-specific styles */
+  }
+}
+
+/* ===================================================================
+   END OF MASTER STYLESHEET
+   
+   Total Size: ~345 KB uncompressed (~69 KB gzipped)
+   
+   CSS Architecture:
+   - 35 modular CSS files
+   - Design token system
+   - Mobile-first responsive
+   - Accessibility compliant
+   - Performance optimized
+   
+   For documentation, see: /docs/CSS_INTEGRATION_GUIDE.md
+   ================================================================ */

@@ -1,0 +1,394 @@
+<!-- views/partials/product-qa.ejs -->
+<!-- Component hỏi đáp sản phẩm -->
+
+<div class="product-qa-section" id="product-qa" data-product-id="<%= product._id %>">
+  <h4 class="mb-4">
+    <i class="fas fa-question-circle text-primary me-2"></i>
+    Hỏi đáp về sản phẩm
+  </h4>
+  
+  <!-- Form đặt câu hỏi -->
+  <% if (typeof user !== 'undefined' && user) { %>
+    <div class="card mb-4">
+      <div class="card-body">
+        <form id="form-ask-question">
+          <div class="mb-3">
+            <label class="form-label">
+              <i class="fas fa-edit me-1"></i>
+              Bạn có câu hỏi về sản phẩm này?
+            </label>
+            <textarea class="form-control" 
+                      id="question-input" 
+                      rows="3" 
+                      placeholder="Nhập câu hỏi của bạn (tối thiểu 10 ký tự)..."
+                      minlength="10"
+                      required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-paper-plane me-1"></i>
+            Gửi câu hỏi
+          </button>
+        </form>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="alert alert-info mb-4">
+      <i class="fas fa-info-circle me-2"></i>
+      Vui lòng <a href="/auth/login?redirect=<%= encodeURIComponent('/products/' + product.slug + '#product-qa') %>">đăng nhập</a> 
+      để đặt câu hỏi về sản phẩm này.
+    </div>
+  <% } %>
+  
+  <!-- Danh sách câu hỏi -->
+  <div id="questions-list">
+    <div class="text-center py-3">
+      <i class="fas fa-spinner fa-spin"></i> Đang tải câu hỏi...
+    </div>
+  </div>
+  
+  <!-- Pagination -->
+  <div id="questions-pagination" class="mt-3"></div>
+</div>
+
+<style>
+.question-item {
+  border-left: 3px solid #0d6efd;
+  padding-left: 15px;
+  margin-bottom: 20px;
+}
+
+.question-text {
+  font-weight: 500;
+  color: #333;
+}
+
+.answer-item {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  margin-left: 20px;
+}
+
+.answer-item.official {
+  background-color: #e7f5ff;
+  border-left: 3px solid #0d6efd;
+}
+
+.answer-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.answer-user {
+  font-weight: 500;
+}
+
+.answer-user.admin {
+  color: #0d6efd;
+}
+
+.answer-text {
+  color: #555;
+}
+
+.helpful-btn {
+  font-size: 0.85rem;
+}
+
+.helpful-btn.voted {
+  color: #0d6efd;
+}
+
+.no-questions {
+  text-align: center;
+  padding: 40px;
+  color: #6c757d;
+}
+
+.reply-form {
+  margin-top: 10px;
+  margin-left: 20px;
+}
+</style>
+
+<script>
+(function() {
+  const productId = '<%= product._id %>';
+  const questionsList = document.getElementById('questions-list');
+  const paginationEl = document.getElementById('questions-pagination');
+  const isLoggedIn = <%= typeof user !== 'undefined' && user ? 'true' : 'false' %>;
+  const isAdmin = <%= typeof user !== 'undefined' && user && user.role === 'admin' ? 'true' : 'false' %>;
+  let currentPage = 1;
+  
+  // Load questions
+  async function loadQuestions(page = 1) {
+    try {
+      const res = await fetch(`/questions/product/${productId}?page=${page}&limit=5`);
+      const data = await res.json();
+      
+      renderQuestions(data.questions);
+      renderPagination(data.pagination);
+      currentPage = page;
+    } catch (error) {
+      console.error('Error loading questions:', error);
+      questionsList.innerHTML = '<div class="alert alert-danger">Không thể tải câu hỏi</div>';
+    }
+  }
+  
+  // Render questions
+  function renderQuestions(questions) {
+    if (!questions || questions.length === 0) {
+      questionsList.innerHTML = `
+        <div class="no-questions">
+          <i class="fas fa-comments fa-3x mb-3"></i>
+          <h5>Chưa có câu hỏi nào</h5>
+          <p>Hãy là người đầu tiên đặt câu hỏi về sản phẩm này!</p>
+        </div>
+      `;
+      return;
+    }
+    
+    let html = '';
+    questions.forEach(q => {
+      html += `
+        <div class="question-item" data-question-id="${q._id}">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="question-text">
+              <i class="fas fa-question text-primary me-1"></i>
+              ${escapeHtml(q.question)}
+            </div>
+          </div>
+          <div class="question-meta text-muted small mt-1">
+            <i class="fas fa-user me-1"></i>
+            ${q.user?.name || 'Người dùng'} | 
+            <i class="fas fa-clock me-1"></i>
+            ${formatDate(q.createdAt)}
+            ${q.status === 'answered' ? '<span class="badge bg-success ms-2">Đã trả lời</span>' : ''}
+          </div>
+          
+          <!-- Answers -->
+          <div class="answers-list">
+            ${q.answers?.map(a => renderAnswer(q._id, a)).join('') || ''}
+          </div>
+          
+          <!-- Reply form (for logged in users) -->
+          ${isLoggedIn ? `
+            <div class="reply-form">
+              <button class="btn btn-sm btn-outline-primary btn-toggle-reply" data-question-id="${q._id}">
+                <i class="fas fa-reply me-1"></i>Trả lời
+              </button>
+              <div class="reply-input-wrapper mt-2" style="display: none;">
+                <div class="input-group">
+                  <input type="text" class="form-control reply-input" 
+                         placeholder="Nhập câu trả lời..." data-question-id="${q._id}">
+                  <button class="btn btn-primary btn-send-reply" data-question-id="${q._id}">
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    });
+    
+    questionsList.innerHTML = html;
+    attachEventListeners();
+  }
+  
+  // Render single answer
+  function renderAnswer(questionId, answer) {
+    const isOfficial = answer.isOfficial;
+    const userClass = isOfficial ? 'admin' : '';
+    const officialBadge = isOfficial ? '<span class="badge bg-primary ms-1">Admin</span>' : '';
+    
+    return `
+      <div class="answer-item ${isOfficial ? 'official' : ''}">
+        <div class="answer-header">
+          <span class="answer-user ${userClass}">
+            <i class="fas fa-user-circle me-1"></i>
+            ${answer.user?.name || 'Người dùng'}
+          </span>
+          ${officialBadge}
+          <small class="text-muted">${formatDate(answer.createdAt)}</small>
+        </div>
+        <div class="answer-text">${escapeHtml(answer.content)}</div>
+        <div class="mt-2">
+          <button class="btn btn-sm btn-link helpful-btn ${answer.helpfulBy?.includes('<%= typeof user !== "undefined" && user ? user._id : "" %>') ? 'voted' : ''}" 
+                  data-question-id="${questionId}" 
+                  data-answer-id="${answer._id}"
+                  ${!isLoggedIn ? 'disabled title="Đăng nhập để đánh giá"' : ''}>
+            <i class="fas fa-thumbs-up me-1"></i>
+            Hữu ích (${answer.helpfulCount || 0})
+          </button>
+        </div>
+      </div>
+    `;
+  }
+  
+  // Render pagination
+  function renderPagination(pagination) {
+    if (!pagination || pagination.totalPages <= 1) {
+      paginationEl.innerHTML = '';
+      return;
+    }
+    
+    let html = '<nav><ul class="pagination pagination-sm justify-content-center">';
+    
+    for (let i = 1; i <= pagination.totalPages; i++) {
+      html += `
+        <li class="page-item ${i === pagination.currentPage ? 'active' : ''}">
+          <a class="page-link" href="#" data-page="${i}">${i}</a>
+        </li>
+      `;
+    }
+    
+    html += '</ul></nav>';
+    paginationEl.innerHTML = html;
+    
+    // Attach pagination events
+    paginationEl.querySelectorAll('.page-link').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        loadQuestions(parseInt(this.dataset.page));
+      });
+    });
+  }
+  
+  // Attach event listeners
+  function attachEventListeners() {
+    // Toggle reply form
+    document.querySelectorAll('.btn-toggle-reply').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const wrapper = this.nextElementSibling;
+        wrapper.style.display = wrapper.style.display === 'none' ? 'block' : 'none';
+        if (wrapper.style.display === 'block') {
+          wrapper.querySelector('.reply-input').focus();
+        }
+      });
+    });
+    
+    // Send reply
+    document.querySelectorAll('.btn-send-reply').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const questionId = this.dataset.questionId;
+        const input = document.querySelector(`.reply-input[data-question-id="${questionId}"]`);
+        const content = input.value.trim();
+        
+        if (content.length < 5) {
+          alert('Câu trả lời phải có ít nhất 5 ký tự');
+          return;
+        }
+        
+        try {
+          const res = await fetch(`/questions/${questionId}/answer`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+          });
+          const data = await res.json();
+          
+          if (data.success) {
+            input.value = '';
+            loadQuestions(currentPage);
+          } else {
+            alert(data.message || 'Có lỗi xảy ra');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Có lỗi xảy ra');
+        }
+      });
+    });
+    
+    // Mark helpful
+    document.querySelectorAll('.helpful-btn:not([disabled])').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const questionId = this.dataset.questionId;
+        const answerId = this.dataset.answerId;
+        
+        try {
+          const res = await fetch(`/questions/${questionId}/answer/${answerId}/helpful`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          const data = await res.json();
+          
+          if (data.success) {
+            loadQuestions(currentPage);
+          }
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      });
+    });
+  }
+  
+  // Helper functions
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  
+  function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+  
+  // Form submit
+  const askForm = document.getElementById('form-ask-question');
+  if (askForm) {
+    askForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const input = document.getElementById('question-input');
+      const question = input.value.trim();
+      
+      if (question.length < 10) {
+        alert('Câu hỏi phải có ít nhất 10 ký tự');
+        return;
+      }
+      
+      try {
+        const btn = this.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang gửi...';
+        
+        const res = await fetch(`/questions/product/${productId}/ask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          input.value = '';
+          alert('Câu hỏi đã được gửi thành công!');
+          loadQuestions(1);
+        } else {
+          alert(data.message || 'Có lỗi xảy ra');
+        }
+        
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Gửi câu hỏi';
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra');
+      }
+    });
+  }
+  
+  // Initial load
+  loadQuestions();
+})();
+</script>

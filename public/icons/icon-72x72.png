@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0066cc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#004499;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="24" fill="url(#grad)"/>
+  <g fill="white">
+    <!-- Computer Monitor -->
+    <rect x="36" y="40" width="120" height="75" rx="6" fill="none" stroke="white" stroke-width="6"/>
+    <rect x="46" y="50" width="100" height="55" rx="2" fill="white" opacity="0.2"/>
+    <!-- Monitor Stand -->
+    <rect x="86" y="115" width="20" height="15" fill="white"/>
+    <rect x="66" y="130" width="60" height="8" rx="4" fill="white"/>
+    <!-- S Letter -->
+    <text x="130" y="95" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white" opacity="0.9">S</text>
+  </g>
+  <!-- Accent circle -->
+  <circle cx="160" cy="36" r="16" fill="#ff4500" opacity="0.9"/>
+  <text x="160" y="42" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" text-anchor="middle">C</text>
+</svg>

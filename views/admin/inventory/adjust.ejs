@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - Admin</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .adjust-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    @media (max-width: 900px) {
+      .adjust-container { grid-template-columns: 1fr; }
+    }
+    
+    .product-info-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .product-header {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .product-header img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .product-header h2 { margin: 0 0 0.5rem; }
+    .product-header .sku { color: #64748b; font-size: 0.9rem; }
+    
+    .stock-display {
+      text-align: center;
+      padding: 2rem;
+      background: #f8fafc;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+    .stock-display .current {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #1e293b;
+    }
+    .stock-display .label { color: #64748b; margin-top: 0.5rem; }
+    
+    .variants-list {
+      margin-top: 1rem;
+    }
+    .variant-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem;
+      background: #f1f5f9;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .adjust-form {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    .form-control {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .btn-submit {
+      background: #f59e0b;
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn-submit:hover { background: #d97706; }
+    
+    .history-section {
+      margin-top: 2rem;
+    }
+    .history-section h3 {
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.9rem;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-item .change.positive { color: #10b981; }
+    .history-item .change.negative { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <%- include('../partials/sidebar') %>
+    
+    <main class="admin-main">
+      <div class="admin-header">
+        <h1><i class="fas fa-edit"></i> <%= title %></h1>
+        <a href="/admin/inventory" style="color:#4f46e5;text-decoration:none;">
+          <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+      </div>
+      
+      <div class="admin-content">
+        <% if (typeof messages !== 'undefined') { %>
+          <% if (messages.error) { %>
+            <div class="alert alert-danger"><%= messages.error %></div>
+          <% } %>
+          <% if (messages.info) { %>
+            <div class="alert alert-info"><%= messages.info %></div>
+          <% } %>
+        <% } %>
+        
+        <div class="adjust-container">
+          <!-- Product Info -->
+          <div class="product-info-card">
+            <div class="product-header">
+              <img src="<%= product.images[0] || '/image/placeholder.png' %>" alt="<%= product.name %>">
+              <div>
+                <h2><%= product.name %></h2>
+                <div class="sku">SKU: <%= product.sku || 'N/A' %></div>
+                <div style="margin-top:0.5rem;">
+                  <span style="background:#e2e8f0;padding:0.25rem 0.5rem;border-radius:4px;font-size:0.85rem;">
+                    <%= product.category %>
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="stock-display">
+              <div class="current"><%= product.stock %></div>
+              <div class="label">Tồn kho hiện tại</div>
+            </div>
+            
+            <% if (product.variants && product.variants.length > 0) { %>
+              <h4>Tồn kho theo Variant:</h4>
+              <div class="variants-list">
+                <% product.variants.forEach(v => { %>
+                  <% v.options.forEach(o => { %>
+                    <div class="variant-item">
+                      <span><%= v.name %>: <%= o.value %></span>
+                      <strong><%= o.stock %></strong>
+                    </div>
+                  <% }) %>
+                <% }) %>
+              </div>
+            <% } %>
+            
+            <!-- Recent History -->
+            <div class="history-section">
+              <h3><i class="fas fa-history"></i> Lịch sử gần đây</h3>
+              <% if (recentMovements.length === 0) { %>
+                <p style="color:#64748b;text-align:center;">Chưa có lịch sử</p>
+              <% } else { %>
+                <% recentMovements.forEach(m => { %>
+                  <div class="history-item">
+                    <div>
+                      <div><%= new Date(m.createdAt).toLocaleDateString('vi-VN') %></div>
+                      <small style="color:#64748b;"><%= m.reason %></small>
+                    </div>
+                    <div class="change <%= m.quantity > 0 ? 'positive' : 'negative' %>">
+                      <%= m.quantity > 0 ? '+' : '' %><%= m.quantity %>
+                    </div>
+                  </div>
+                <% }) %>
+              <% } %>
+            </div>
+          </div>
+          
+          <!-- Adjust Form -->
+          <div class="adjust-form">
+            <h3 style="margin:0 0 1.5rem;"><i class="fas fa-sliders-h"></i> Điều chỉnh tồn kho</h3>
+            
+            <form method="POST" action="/admin/inventory/adjust/<%= product._id %>">
+              <% if (product.variants && product.variants.length > 0) { %>
+                <div class="form-group">
+                  <label>Chọn Variant (để trống nếu điều chỉnh stock chính)</label>
+                  <select name="variantName" id="variantName" class="form-control" onchange="onVariantChange(this)">
+                    <option value="">-- Stock chính --</option>
+                    <% product.variants.forEach(v => { %>
+                      <option value="<%= v.name %>"><%= v.name %></option>
+                    <% }) %>
+                  </select>
+                </div>
+                
+                <div class="form-group" id="variantValueGroup" style="display:none;">
+                  <label>Option</label>
+                  <select name="variantValue" id="variantValue" class="form-control">
+                    <option value="">-- Chọn option --</option>
+                  </select>
+                </div>
+              <% } %>
+              
+              <div class="form-group">
+                <label>Số lượng mới <span style="color:#ef4444;">*</span></label>
+                <input type="number" name="newQuantity" id="newQuantity" class="form-control" 
+                       min="0" required value="<%= product.stock %>" placeholder="Nhập số lượng mới">
+                <small style="color:#64748b;">Hiện tại: <span id="currentVal"><%= product.stock %></span></small>
+              </div>
+              
+              <div class="form-group">
+                <label>Lý do điều chỉnh <span style="color:#ef4444;">*</span></label>
+                <select name="reason" class="form-control" required>
+                  <option value="Kiểm kê kho">Kiểm kê kho</option>
+                  <option value="Sửa lỗi dữ liệu">Sửa lỗi dữ liệu</option>
+                  <option value="Hàng hỏng/mất">Hàng hỏng/mất</option>
+                  <option value="Điều chỉnh theo yêu cầu">Điều chỉnh theo yêu cầu</option>
+                  <option value="Khác">Khác</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>Ghi chú</label>
+                <textarea name="notes" class="form-control" rows="3" placeholder="Ghi chú chi tiết (không bắt buộc)"></textarea>
+              </div>
+              
+              <button type="submit" class="btn-submit">
+                <i class="fas fa-check"></i> Xác nhận điều chỉnh
+              </button>
+            </form>
+            
+            <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid #e2e8f0;">
+              <h4 style="margin:0 0 1rem;">Điều chỉnh ngưỡng cảnh báo</h4>
+              <form id="thresholdForm" style="display:flex;gap:0.5rem;">
+                <input type="number" id="thresholdInput" class="form-control" 
+                       value="<%= product.lowStockThreshold %>" min="0" style="flex:1;">
+                <button type="submit" style="background:#8b5cf6;color:white;border:none;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;">
+                  Cập nhật
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script id="productData" type="application/json"><%- JSON.stringify({ variants: product.variants || [], mainStock: product.stock }) %></script>
+  <script>
+    const productData = JSON.parse(document.getElementById('productData').textContent);
+    const variants = productData.variants;
+    const mainStock = productData.mainStock;
+    
+    function onVariantChange(select) {
+      const valueGroup = document.getElementById('variantValueGroup');
+      const valueSelect = document.getElementById('variantValue');
+      const currentVal = document.getElementById('currentVal');
+      const newQuantity = document.getElementById('newQuantity');
+      
+      if (select.value) {
+        valueGroup.style.display = 'block';
+        valueSelect.innerHTML = '<option value="">-- Chọn option --</option>';
+        
+        const variant = variants.find(v => v.name === select.value);
+        if (variant && variant.options) {
+          variant.options.forEach(o => {
+            valueSelect.innerHTML += `<option value="${o.value}" data-stock="${o.stock}">${o.value} (Tồn: ${o.stock})</option>`;
+          });
+        }
+      } else {
+        valueGroup.style.display = 'none';
+        currentVal.textContent = mainStock;
+        newQuantity.value = mainStock;
+      }
+    }
+    
+    document.getElementById('variantValue')?.addEventListener('change', function() {
+      const option = this.options[this.selectedIndex];
+      const stock = option.dataset.stock || mainStock;
+      document.getElementById('currentVal').textContent = stock;
+      document.getElementById('newQuantity').value = stock;
+    });
+    
+    // Threshold form
+    document.getElementById('thresholdForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const threshold = document.getElementById('thresholdInput').value;
+      
+      fetch('/admin/inventory/threshold/<%= product._id %>', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lowStockThreshold: threshold })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('Đã cập nhật ngưỡng cảnh báo!');
+        } else {
+          alert(data.message || 'Đã xảy ra lỗi');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

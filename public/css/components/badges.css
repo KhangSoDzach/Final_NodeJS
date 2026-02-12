@@ -1,0 +1,317 @@
+/* ===================================================================
+   Badge & Label Components
+   Status indicators, tags, and labels
+   ================================================================ */
+
+/* ==================== Base Badge ==================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ==================== Badge Variants ==================== */
+.badge-primary,
+.bg-primary.badge {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-glow-primary);
+}
+
+.badge-secondary {
+  background: var(--glass-bg-hover);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+}
+
+.badge-success,
+.bg-success.badge {
+  background: var(--success);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-glow-success);
+}
+
+.badge-danger,
+.bg-danger.badge {
+  background: var(--danger);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-glow-danger);
+}
+
+.badge-warning,
+.bg-warning.badge {
+  background: var(--warning);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-glow-warning);
+}
+
+.badge-info {
+  background: var(--info);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-glow-primary);
+}
+
+/* ==================== Badge Styles ==================== */
+.badge-pill {
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-full);
+}
+
+.badge-square {
+  border-radius: var(--radius-sm);
+}
+
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border-radius: var(--radius-full);
+}
+
+/* ==================== Badge with Icon ==================== */
+.badge i {
+  margin-right: var(--space-1);
+  font-size: 10px;
+}
+
+.badge i:only-child {
+  margin: 0;
+}
+
+/* ==================== Outline Badges ==================== */
+.badge-outline-primary {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.badge-outline-success {
+  background: transparent;
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+
+.badge-outline-danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.badge-outline-warning {
+  background: transparent;
+  color: var(--warning);
+  border: 1px solid var(--warning);
+}
+
+/* ==================== Badge Glow Effect ==================== */
+.badge-glow {
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+/* ==================== Status Labels ==================== */
+.status-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-base);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+}
+
+.status-label::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+}
+
+.status-label.status-active::before {
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success-glow);
+  animation: pulse-dot 2s infinite;
+}
+
+.status-label.status-pending::before {
+  background: var(--warning);
+}
+
+.status-label.status-inactive::before {
+  background: var(--text-muted);
+}
+
+.status-label.status-error::before {
+  background: var(--danger);
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ==================== Tag Component ==================== */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-base);
+  color: var(--text-primary);
+  transition: var(--transition-all);
+}
+
+.tag:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.tag.tag-removable {
+  padding-right: var(--space-2);
+}
+
+.tag-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: transparent;
+  border: none;
+  color: currentColor;
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  transition: var(--transition-all);
+  padding: 0;
+  margin-left: var(--space-1);
+}
+
+.tag-close:hover {
+  background: var(--danger);
+  color: var(--text-inverse);
+}
+
+/* ==================== Notification Badge ==================== */
+.notification-badge {
+  position: relative;
+  display: inline-block;
+}
+
+.notification-badge::after {
+  content: attr(data-count);
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-1);
+  background: var(--danger);
+  color: var(--text-inverse);
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-glow-danger);
+  animation: notification-pulse 2s infinite;
+}
+
+.notification-badge[data-count="0"]::after {
+  display: none;
+}
+
+@keyframes notification-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* ==================== Category Badge ==================== */
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: var(--transition-all);
+}
+
+.category-badge:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-glow-primary);
+  transform: translateY(-2px);
+}
+
+.category-badge i {
+  font-size: var(--text-base);
+}
+
+/* ==================== Label Sizes ==================== */
+.badge-sm {
+  padding: 2px var(--space-2);
+  font-size: 10px;
+}
+
+.badge-lg {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+}
+
+/* ==================== Responsive Design ==================== */
+@media (max-width: 768px) {
+  .badge {
+    font-size: 10px;
+    padding: 2px var(--space-2);
+  }
+  
+  .status-label {
+    font-size: var(--text-xs);
+  }
+  
+  .tag {
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-2);
+  }
+}

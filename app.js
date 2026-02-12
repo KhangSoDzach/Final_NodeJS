@@ -12,6 +12,7 @@ const compression = require('compression');
 const WebSocket = require('ws');
 const http = require('http');
 const fs = require('fs');
+const cookieParser = require('cookie-parser');
 
 require('dotenv').config();
 
@@ -62,9 +63,9 @@ global.broadcastReview = (productSlug, review) => {
 };
 
 // Database connection - Sửa đường dẫn kết nối
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/sourcecomputer')
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sourcecomputer')
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // View engine setup
 app.set('view engine', 'ejs');
@@ -75,9 +76,17 @@ app.set('layout', 'layouts/main');
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Thêm dòng này để phục vụ thư mục uploads
+
+// Service Worker - Serve with correct scope
+app.get('/service-worker.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.sendFile(path.join(__dirname, 'public', 'service-worker.js'));
+});
 
 // Security middleware
 app.use(helmet({
@@ -85,13 +94,24 @@ app.use(helmet({
 }));
 app.use(compression());
 
+// Trust proxy - QUAN TRỌNG khi dùng Nginx reverse proxy
+app.set('trust proxy', 1);
+
 // Session configuration
 app.use(session({
   secret: process.env.SESSION_SECRET || 'e2f3c4d5e6f7a8b9c0d1e2f3c4d5e6f7a8b9c0d1e2f3',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:27017/sourcecomputer' }),
-  cookie: { maxAge: 1000 * 60 * 60 * 24 } // 1 ngày
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/sourcecomputer',
+    ttl: 24 * 60 * 60 // Session expire sau 1 ngày
+  }),
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24, // 1 ngày
+    secure: false, // Set true nếu dùng HTTPS
+    httpOnly: true,
+    sameSite: 'lax'
+  }
 }));
 
 // Initialize Passport
@@ -108,29 +128,32 @@ app.use(flash());
 const bannedCheck = require('./middleware/bannedCheck');
 app.use(bannedCheck);
 
+// i18n middleware for multi-language and currency support
+const { i18nMiddleware, syncUserPreferences } = require('./middleware/i18n');
+app.use(i18nMiddleware);
+
 // Flash and User Middleware - setting up global variables for templates
 app.use((req, res, next) => {
   // User authentication data
   res.locals.isAuthenticated = req.isAuthenticated();
   res.locals.isAdmin = req.user && req.user.role === 'admin';
   res.locals.user = req.user || null;
-  
+
   // Flash messages
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.warning = req.flash('warning');
-  
-  // For debugging
-  console.log('Session ID:', req.sessionID);
-  console.log('Flash messages:', { 
-    success: res.locals.success,
-    error: res.locals.error
-  });
-  
+
   next();
 });
 
+// Sync user locale preferences after authentication
+app.use(syncUserPreferences);
+
 // Cart middleware
+const { initGuestCart } = require('./middleware/guestCart');
+app.use(initGuestCart);
+
 app.use(async (req, res, next) => {
   try {
     // Kiểm tra nếu user đã đăng nhập
@@ -142,13 +165,19 @@ app.use(async (req, res, next) => {
         await cart.save();
       }
       res.locals.cart = cart;
+      res.locals.cartCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
     } else {
-      // Xử lý cart cho khách không đăng nhập (nếu cần)
-      if (req.session.cartId) {
+      // Xử lý cart cho khách không đăng nhập (guest cart từ session)
+      if (req.session.guestCart && req.session.guestCart.items) {
+        res.locals.cart = req.session.guestCart;
+        res.locals.cartCount = req.session.guestCart.items.reduce((sum, item) => sum + item.quantity, 0);
+        res.locals.isGuestCart = true;
+      } else if (req.session.cartId) {
         const Cart = require('./models/cart');
         let cart = await Cart.findOne({ sessionId: req.session.cartId });
         if (cart) {
           res.locals.cart = cart;
+          res.locals.cartCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
         }
       }
     }
@@ -168,6 +197,11 @@ const orderRoutes = require('./routes/order');
 const userRoutes = require('./routes/user');
 const adminRoutes = require('./routes/admin');
 const adminProductRoutes = require('./routes/admin/products');
+const adminInventoryRoutes = require('./routes/admin/inventory');
+const compareRoutes = require('./routes/compare');
+const questionRoutes = require('./routes/questions');
+const wishlistRoutes = require('./routes/wishlist');
+const searchRoutes = require('./routes/search');
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
@@ -177,9 +211,44 @@ app.use('/orders', orderRoutes);
 app.use('/user', userRoutes);
 app.use('/admin', adminRoutes);
 app.use('/admin/products', adminProductRoutes);
+app.use('/admin/inventory', adminInventoryRoutes);
+app.use('/compare', compareRoutes);
+app.use('/questions', questionRoutes);
+app.use('/user/wishlist', wishlistRoutes);
+app.use('/search', searchRoutes);
+
+// API routes (kept parallel to existing EJS routes)
+app.use('/api', require('./routes/api'));
+
+// Serve React SPA build (production)
+const distPath = path.join(__dirname, 'dist');
+
+
+// Check if dist/index.html exists (React build)
+if (fs.existsSync(path.join(distPath, 'index.html'))) {
+  app.use(express.static(distPath));
+
+  // SPA fallback - Serve index.html for all non-API routes
+  app.get('*', (req, res, next) => {
+    // Skip if it's an API route or EJS route
+    if (req.path.startsWith('/api') ||
+      req.path.startsWith('/auth') ||
+      req.path.startsWith('/admin') ||
+      req.path.startsWith('/user') ||
+      req.path.startsWith('/products') ||
+      req.path.startsWith('/cart') ||
+      req.path.startsWith('/orders')) {
+      return next();
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 // Error handling
 app.use((req, res, next) => {
+  if (req.originalUrl && req.originalUrl.startsWith('/api')) {
+    return res.status(404).json({ success: false, error: 'Not Found' });
+  }
   res.status(404).render('404', {
     title: 'Page Not Found'
   });
@@ -187,6 +256,9 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
   console.error(err);
+  if (req.originalUrl && req.originalUrl.startsWith('/api')) {
+    return res.status(err.status || 500).json({ success: false, error: process.env.NODE_ENV === 'development' ? err.message : 'Đã xảy ra lỗi trong hệ thống.' });
+  }
   res.status(err.status || 500).render('error', {
     title: 'Error',
     error: process.env.NODE_ENV === 'development' ? err.message : 'Đã xảy ra lỗi trong hệ thống.'
@@ -200,3 +272,4 @@ server.listen(PORT, () => {
 });
 
 module.exports = app;
+

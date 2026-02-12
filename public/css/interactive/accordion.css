@@ -1,0 +1,419 @@
+/* ===================================================================
+   ACCORDION & COLLAPSE
+   Expandable content panels with smooth animations
+   ================================================================ */
+
+/* Accordion Container */
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Accordion Item */
+.accordion-item {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.accordion-item:hover {
+  border-color: rgba(0, 212, 255, 0.3);
+  box-shadow: var(--glow-primary-subtle);
+}
+
+.accordion-item.active {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+/* Accordion Header */
+.accordion-header {
+  position: relative;
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  transition: all 0.2s ease;
+}
+
+.accordion-header:hover {
+  background: var(--glass-bg-hover);
+}
+
+.accordion-item.active .accordion-header {
+  background: var(--glass-bg-hover);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* Accordion Title */
+.accordion-title {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  flex: 1;
+}
+
+.accordion-item.active .accordion-title {
+  color: var(--primary);
+}
+
+/* Accordion Icon */
+.accordion-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.accordion-item.active .accordion-icon {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+/* Accordion Body */
+.accordion-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.accordion-item.active .accordion-body {
+  max-height: 1000px; /* Adjust based on content */
+}
+
+/* Accordion Content */
+.accordion-content {
+  padding: var(--space-5);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+}
+
+/* ===================================================================
+   ACCORDION VARIANTS
+   ================================================================ */
+
+/* Flush Accordion (no borders) */
+.accordion-flush .accordion-item {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--glass-border);
+  border-radius: 0;
+}
+
+.accordion-flush .accordion-item:last-child {
+  border-bottom: none;
+}
+
+/* Separated Accordion */
+.accordion-separated {
+  gap: var(--space-4);
+}
+
+.accordion-separated .accordion-item {
+  box-shadow: var(--shadow-base);
+}
+
+/* FAQ Style Accordion */
+.accordion-faq .accordion-title::before {
+  content: 'Q:';
+  display: inline-block;
+  margin-right: var(--space-2);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.accordion-faq .accordion-content::before {
+  content: 'A:';
+  display: inline-block;
+  margin-right: var(--space-2);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ===================================================================
+   SIMPLE COLLAPSE
+   Single collapsible element
+   ================================================================ */
+
+.collapse {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collapse.show {
+  max-height: 1000px;
+}
+
+/* Collapse Toggle Button */
+.collapse-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collapse-toggle:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+.collapse-toggle::after {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid currentColor;
+  transition: transform 0.3s ease;
+}
+
+.collapse-toggle[aria-expanded='true']::after {
+  transform: rotate(180deg);
+}
+
+/* ===================================================================
+   EXPANDABLE CARD
+   Card with expandable content
+   ================================================================ */
+
+.expandable-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  transition: all 0.3s ease;
+}
+
+.expandable-card.expanded {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+.expandable-card-header {
+  padding: var(--space-4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.2s ease;
+}
+
+.expandable-card-header:hover {
+  background: var(--glass-bg-hover);
+}
+
+.expandable-card-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-top: 1px solid transparent;
+}
+
+.expandable-card.expanded .expandable-card-body {
+  max-height: 800px;
+  border-top-color: var(--glass-border);
+}
+
+.expandable-card-content {
+  padding: var(--space-4);
+}
+
+/* ===================================================================
+   DETAILS/SUMMARY STYLING
+   Native HTML details element
+   ================================================================ */
+
+details {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  transition: all 0.3s ease;
+}
+
+details:hover {
+  border-color: rgba(0, 212, 255, 0.3);
+  box-shadow: var(--glow-primary-subtle);
+}
+
+details[open] {
+  border-color: var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: var(--space-2);
+  margin: calc(var(--space-4) * -1);
+  margin-bottom: var(--space-4);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+summary:hover {
+  background: var(--glass-bg-hover);
+  border-radius: var(--radius-lg);
+}
+
+summary::after {
+  content: '+';
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--primary);
+  transition: transform 0.3s ease;
+}
+
+details[open] summary::after {
+  content: '−';
+}
+
+/* Remove default marker */
+summary::-webkit-details-marker {
+  display: none;
+}
+
+/* ===================================================================
+   NESTED ACCORDION
+   Multi-level accordion
+   ================================================================ */
+
+.accordion-nested {
+  margin-left: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+.accordion-nested .accordion-item {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* ===================================================================
+   SHOW MORE / LESS
+   Expandable text content
+   ================================================================ */
+
+.show-more-container {
+  position: relative;
+}
+
+.show-more-content {
+  max-height: 200px;
+  overflow: hidden;
+  position: relative;
+  transition: max-height 0.4s ease;
+}
+
+.show-more-content.expanded {
+  max-height: none;
+}
+
+.show-more-content::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(transparent, var(--bg-primary));
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.show-more-content.expanded::after {
+  opacity: 0;
+}
+
+.show-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--primary);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.show-more-btn:hover {
+  background: var(--glass-bg-hover);
+  box-shadow: var(--glow-primary);
+}
+
+/* ===================================================================
+   RESPONSIVE
+   ================================================================ */
+
+@media (max-width: 768px) {
+  .accordion-header {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .accordion-content {
+    padding: var(--space-4);
+  }
+
+  .accordion-title {
+    font-size: var(--text-sm);
+  }
+
+  .show-more-content {
+    max-height: 150px;
+  }
+}
+
+/* ===================================================================
+   ANIMATIONS
+   ================================================================ */
+
+@keyframes accordion-expand {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 1000px;
+    opacity: 1;
+  }
+}
+
+@keyframes accordion-collapse {
+  from {
+    max-height: 1000px;
+    opacity: 1;
+  }
+  to {
+    max-height: 0;
+    opacity: 0;
+  }
+}

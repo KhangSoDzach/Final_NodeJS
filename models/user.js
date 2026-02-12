@@ -2,17 +2,29 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const addressSchema = new Schema({
+  fullName: {
+    type: String,
+    required: false
+  },
+  phone: {
+    type: String,
+    required: false
+  },
+  address: {
+    type: String,
+    required: false
+  },
   street: {
     type: String,
-    required: true
+    required: false
   },
   district: {
     type: String,
-    required: true
+    required: false
   },
   province: {
     type: String,
-    required: true
+    required: false
   },
   default: {
     type: Boolean,
@@ -32,7 +44,7 @@ const userSchema = new Schema({
   },
   password: {
     type: String,
-    required: function() {
+    required: function () {
       // Only require password if googleId is not present
       return !this.googleId;
     }
@@ -45,10 +57,12 @@ const userSchema = new Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'admin', 'customer'],
-    default: 'user'
+    enum: ['customer', 'admin'],  // BUG-011 FIX: Thống nhất chỉ dùng 'customer' và 'admin'
+    default: 'customer'
   },
   addresses: [addressSchema],
+  defaultAddress: addressSchema,
+  savedAddresses: [addressSchema],
   loyaltyPoints: {
     type: Number,
     default: 0
@@ -69,6 +83,17 @@ const userSchema = new Schema({
   resetTokenExpiration: {
     type: Date
   },
+  // Locale preferences for i18n
+  preferredLanguage: {
+    type: String,
+    enum: ['vi', 'en'],
+    default: 'vi'
+  },
+  preferredCurrency: {
+    type: String,
+    enum: ['VND', 'USD', 'EUR'],
+    default: 'VND'
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -77,4 +102,5 @@ const userSchema = new Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.models.User || mongoose.model('User', userSchema);
+

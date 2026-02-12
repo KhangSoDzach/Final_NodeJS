@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hóa đơn #<%= order.invoiceNumber || order._id %> - SourceComputer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    
+    .invoice-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    /* Header */
+    .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid #28a745;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .company-info h1 {
+      color: #28a745;
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+    
+    .company-info p {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .invoice-title {
+      text-align: right;
+    }
+    
+    .invoice-title h2 {
+      color: #333;
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    
+    .invoice-title .invoice-number {
+      font-size: 16px;
+      color: #28a745;
+      font-weight: bold;
+    }
+    
+    .invoice-title .invoice-date {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    /* Info sections */
+    .invoice-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+    
+    .info-section {
+      width: 48%;
+    }
+    
+    .info-section h3 {
+      color: #28a745;
+      font-size: 14px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+    }
+    
+    .info-section p {
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+    
+    .info-section strong {
+      color: #333;
+    }
+    
+    /* Items table */
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+    }
+    
+    .invoice-table th {
+      background: #28a745;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .invoice-table th:last-child,
+    .invoice-table td:last-child {
+      text-align: right;
+    }
+    
+    .invoice-table td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+    
+    .invoice-table tbody tr:hover {
+      background: #f9f9f9;
+    }
+    
+    .product-name {
+      font-weight: 500;
+    }
+    
+    .product-variant {
+      color: #666;
+      font-size: 12px;
+    }
+    
+    /* Totals */
+    .invoice-totals {
+      width: 300px;
+      margin-left: auto;
+      margin-bottom: 30px;
+    }
+    
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 14px;
+    }
+    
+    .totals-row.subtotal {
+      border-bottom: 1px solid #eee;
+    }
+    
+    .totals-row.vat {
+      color: #666;
+    }
+    
+    .totals-row.shipping {
+      border-bottom: 1px solid #eee;
+    }
+    
+    .totals-row.total {
+      font-size: 18px;
+      font-weight: bold;
+      color: #28a745;
+      padding-top: 15px;
+      border-top: 2px solid #28a745;
+    }
+    
+    /* VAT Info */
+    .vat-info-box {
+      background: #f8f9fa;
+      border-left: 4px solid #28a745;
+      padding: 15px 20px;
+      margin-bottom: 30px;
+    }
+    
+    .vat-info-box h4 {
+      color: #28a745;
+      margin-bottom: 10px;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+    
+    .vat-info-box p {
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+    
+    /* Payment info */
+    .payment-info {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 5px;
+      padding: 15px 20px;
+      margin-bottom: 30px;
+    }
+    
+    .payment-info h4 {
+      color: #856404;
+      margin-bottom: 10px;
+    }
+    
+    .payment-info p {
+      font-size: 14px;
+      color: #856404;
+    }
+    
+    /* Footer */
+    .invoice-footer {
+      text-align: center;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+    
+    .invoice-footer p {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    
+    .invoice-footer .thank-you {
+      font-size: 18px;
+      color: #28a745;
+      font-weight: bold;
+    }
+    
+    /* Print button */
+    .print-actions {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .print-actions button {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 30px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0 10px;
+    }
+    
+    .print-actions button:hover {
+      background: #218838;
+    }
+    
+    .print-actions .btn-secondary {
+      background: #6c757d;
+    }
+    
+    .print-actions .btn-secondary:hover {
+      background: #545b62;
+    }
+    
+    /* Print styles */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      
+      .invoice-container {
+        box-shadow: none;
+        padding: 20px;
+      }
+      
+      .print-actions {
+        display: none;
+      }
+    }
+    
+    @page {
+      margin: 1cm;
+    }
+  </style>
+</head>
+<body>
+  <div class="print-actions">
+    <button onclick="window.print()">
+      <i class="fas fa-print"></i> In hóa đơn
+    </button>
+    <a href="/orders/invoice/<%= order._id %>/pdf">
+      <button type="button" class="btn-secondary">
+        <i class="fas fa-file-pdf"></i> Tải PDF
+      </button>
+    </a>
+    <a href="<%= user ? '/user/orders' : '/orders/track' %>">
+      <button type="button" class="btn-secondary">
+        Quay lại
+      </button>
+    </a>
+  </div>
+  
+  <div class="invoice-container">
+    <!-- Header -->
+    <div class="invoice-header">
+      <div class="company-info">
+        <h1>🖥️ SourceComputer</h1>
+        <p>123 Đường Nguyễn Văn A, Quận 1</p>
+        <p>TP. Hồ Chí Minh, Việt Nam</p>
+        <p>Hotline: 1900-xxxx | Email: support@sourcecomputer.vn</p>
+        <p>MST: 0123456789</p>
+      </div>
+      <div class="invoice-title">
+        <h2>HÓA ĐƠN</h2>
+        <p class="invoice-number">Số: <%= order.invoiceNumber || order._id.toString().slice(-8).toUpperCase() %></p>
+        <p class="invoice-date">Ngày: <%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></p>
+      </div>
+    </div>
+    
+    <!-- Customer & Order Info -->
+    <div class="invoice-info">
+      <div class="info-section">
+        <h3>Thông tin khách hàng</h3>
+        <% if (order.isGuestOrder) { %>
+          <p><strong><%= order.guestInfo.name %></strong></p>
+          <p>Email: <%= order.guestInfo.email %></p>
+          <p>SĐT: <%= order.guestInfo.phone %></p>
+        <% } else { %>
+          <p><strong><%= order.user.name %></strong></p>
+          <p>Email: <%= order.user.email %></p>
+          <p>SĐT: <%= order.user.phone %></p>
+        <% } %>
+      </div>
+      <div class="info-section">
+        <h3>Địa chỉ giao hàng</h3>
+        <p><strong><%= order.shippingAddress.address %></strong></p>
+        <p><%= order.shippingAddress.district %>, <%= order.shippingAddress.province %></p>
+        <p>SĐT: <%= order.shippingAddress.phone %></p>
+      </div>
+    </div>
+    
+    <!-- Order Info -->
+    <div class="invoice-info">
+      <div class="info-section">
+        <h3>Thông tin đơn hàng</h3>
+        <p>Mã đơn: <strong><%= order._id %></strong></p>
+        <p>Trạng thái: <strong>
+          <% if (order.status === 'pending') { %>Chờ xử lý
+          <% } else if (order.status === 'confirmed') { %>Đã xác nhận
+          <% } else if (order.status === 'processing') { %>Đang xử lý
+          <% } else if (order.status === 'shipped') { %>Đang giao
+          <% } else if (order.status === 'delivered') { %>Đã giao
+          <% } else if (order.status === 'cancelled') { %>Đã hủy
+          <% } else { %><%= order.status %>
+          <% } %>
+        </strong></p>
+        <p>Thanh toán: <strong>
+          <% if (order.paymentMethod === 'cod') { %>COD - Thanh toán khi nhận hàng
+          <% } else if (order.paymentMethod === 'bank_transfer') { %>Chuyển khoản ngân hàng
+          <% } else { %><%= order.paymentMethod %>
+          <% } %>
+        </strong></p>
+      </div>
+      <div class="info-section">
+        <h3>Thời gian</h3>
+        <p>Đặt hàng: <%= new Date(order.createdAt).toLocaleString('vi-VN') %></p>
+        <% if (order.deliveredAt) { %>
+          <p>Giao hàng: <%= new Date(order.deliveredAt).toLocaleString('vi-VN') %></p>
+        <% } %>
+      </div>
+    </div>
+    
+    <!-- Items Table -->
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th style="width: 50%">Sản phẩm</th>
+          <th style="width: 15%">Đơn giá</th>
+          <th style="width: 10%">SL</th>
+          <th style="width: 25%">Thành tiền</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% order.items.forEach(function(item) { %>
+          <tr>
+            <td>
+              <div class="product-name"><%= item.product ? item.product.name : item.productName %></div>
+              <% if (item.variant) { %>
+                <div class="product-variant"><%= item.variant.name %>: <%= item.variant.value %></div>
+              <% } %>
+            </td>
+            <td><%= new Intl.NumberFormat('vi-VN').format(item.price) %>đ</td>
+            <td><%= item.quantity %></td>
+            <td><%= new Intl.NumberFormat('vi-VN').format(item.price * item.quantity) %>đ</td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+    
+    <!-- Totals -->
+    <div class="invoice-totals">
+      <div class="totals-row subtotal">
+        <span>Tạm tính:</span>
+        <span><%= new Intl.NumberFormat('vi-VN').format(order.totalAmount - (order.shippingCost || 0)) %>đ</span>
+      </div>
+      
+      <% if (order.vatInvoice && order.vatInfo) { %>
+        <div class="totals-row vat">
+          <span>Giá trước VAT:</span>
+          <span><%= new Intl.NumberFormat('vi-VN').format(order.vatInfo.priceBeforeVat || 0) %>đ</span>
+        </div>
+        <div class="totals-row vat">
+          <span>VAT (10%):</span>
+          <span><%= new Intl.NumberFormat('vi-VN').format(order.vatInfo.vatAmount || 0) %>đ</span>
+        </div>
+      <% } %>
+      
+      <div class="totals-row shipping">
+        <span>Phí vận chuyển:</span>
+        <span>
+          <% if ((order.shippingCost || 0) === 0) { %>
+            Miễn phí
+          <% } else { %>
+            <%= new Intl.NumberFormat('vi-VN').format(order.shippingCost) %>đ
+          <% } %>
+        </span>
+      </div>
+      
+      <% if (order.discount && order.discount > 0) { %>
+        <div class="totals-row">
+          <span>Giảm giá:</span>
+          <span>-<%= new Intl.NumberFormat('vi-VN').format(order.discount) %>đ</span>
+        </div>
+      <% } %>
+      
+      <div class="totals-row total">
+        <span>Tổng cộng:</span>
+        <span><%= new Intl.NumberFormat('vi-VN').format(order.totalAmount) %>đ</span>
+      </div>
+    </div>
+    
+    <!-- VAT Info Box -->
+    <% if (order.vatInvoice && order.vatInfo) { %>
+      <div class="vat-info-box">
+        <h4>Thông tin xuất hóa đơn VAT</h4>
+        <p><strong>Tên đơn vị:</strong> <%= order.vatInfo.companyName %></p>
+        <% if (order.vatInfo.taxCode) { %>
+          <p><strong>Mã số thuế:</strong> <%= order.vatInfo.taxCode %></p>
+        <% } %>
+        <p><strong>Địa chỉ:</strong> <%= order.vatInfo.address %></p>
+        <% if (order.vatInfo.email) { %>
+          <p><strong>Email:</strong> <%= order.vatInfo.email %></p>
+        <% } %>
+      </div>
+    <% } %>
+    
+    <!-- Payment Info -->
+    <% if (order.paymentMethod === 'bank_transfer' && order.paymentStatus !== 'paid') { %>
+      <div class="payment-info">
+        <h4>⚠️ Thông tin chuyển khoản</h4>
+        <p><strong>Ngân hàng:</strong> Vietcombank</p>
+        <p><strong>Số tài khoản:</strong> 1234567890</p>
+        <p><strong>Chủ tài khoản:</strong> CONG TY TNHH SOURCE COMPUTER</p>
+        <p><strong>Nội dung:</strong> DH<%= order._id.toString().slice(-8).toUpperCase() %></p>
+      </div>
+    <% } %>
+    
+    <!-- Footer -->
+    <div class="invoice-footer">
+      <p class="thank-you">Cảm ơn quý khách đã mua hàng!</p>
+      <p>Mọi thắc mắc xin liên hệ: 1900-xxxx hoặc support@sourcecomputer.vn</p>
+      <p style="font-size: 12px; color: #999; margin-top: 15px;">
+        Đây là hóa đơn được tạo tự động bởi hệ thống SourceComputer.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

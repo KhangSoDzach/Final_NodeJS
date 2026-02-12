@@ -1,127 +1,173 @@
 <%- include('../partials/sidebar') %>
 
-<div class="admin-content">
+  <div class="admin-content">
     <div class="admin-header">
-        <h1>Chỉnh sửa sản phẩm</h1>
-        <div class="admin-header-actions">
-            <a href="/admin/products" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Quay lại
-            </a>
-        </div>
+      <h1>Chỉnh sửa sản phẩm</h1>
+      <div class="admin-header-actions">
+        <a href="/admin/products" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+      </div>
     </div>
 
     <div class="admin-card">
-        <div class="card-header">
-            <h2>Thông tin sản phẩm</h2>
-        </div>
-        <div class="card-body">
-            <form action="/admin/products/edit/<%= product._id %>" method="POST" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="name">Tên sản phẩm</label>
-                    <input type="text" id="name" name="name" class="form-control" value="<%= product.name %>" required>
-                </div>
+      <div class="card-header">
+        <h2>Thông tin sản phẩm</h2>
+      </div>
+      <div class="card-body">
+        <form action="/admin/products/edit/<%= product._id %>" method="POST" enctype="multipart/form-data">
+          <div class="form-group">
+            <label for="name">Tên sản phẩm</label>
+            <input type="text" id="name" name="name" class="form-control" value="<%= product.name %>" required>
+          </div>
 
-                <div class="form-group">
-                    <label for="description">Mô tả</label>
-                    <textarea id="description" name="description" class="form-control" rows="5" required><%= product.description %></textarea>
-                </div>
+          <div class="form-group">
+            <label for="description">Mô tả</label>
+            <textarea id="description" name="description" class="form-control" rows="5"
+              required><%= product.description %></textarea>
+          </div>
 
-                <div class="form-group">
-                    <label for="price">Giá</label>
-                    <input type="number" id="price" name="price" class="form-control" min="0" value="<%= product.price %>" required>
-                </div>
+          <div class="form-group">
+            <label for="price">Giá</label>
+            <input type="number" id="price" name="price" class="form-control" min="0" value="<%= product.price %>"
+              required>
+          </div>
 
-                <div class="form-group">
-                    <label for="discountPrice">Giá khuyến mãi</label>
-                    <input type="number" id="discountPrice" name="discountPrice" class="form-control" min="0" value="<%= product.discountPrice %>">
-                </div>
+          <div class="form-group">
+            <label for="discountPrice">Giá khuyến mãi</label>
+            <input type="number" id="discountPrice" name="discountPrice" class="form-control" min="0"
+              value="<%= product.discountPrice %>">
+          </div>
 
-                <div class="form-group">
-                    <label for="category">Danh mục</label>
-                    <select id="category" name="category" class="form-select" required>
-                        <% categories.forEach(category => { %>
-                            <option value="<%= category %>" <%= product.category === category ? 'selected' : '' %>><%= category %></option>
-                        <% }) %>
-                    </select>
-                </div>
+          <div class="form-group">
+            <label for="category">Danh mục</label>
+            <select id="category" name="category" class="form-select" required>
+              <% categories.forEach(category=> { %>
+                <option value="<%= category %>" <%=product.category===category ? 'selected' : '' %>><%= category %>
+                </option>
+                <% }) %>
+            </select>
+          </div>
 
-                <div class="form-group">
-                    <label for="brand">Thương hiệu</label>
-                    <select id="brand" name="brand" class="form-select" required>
-                        <% brands.forEach(brand => { %>
-                            <option value="<%= brand %>" <%= product.brand === brand ? 'selected' : '' %>><%= brand %></option>
-                        <% }) %>
-                    </select>
-                </div>
+          <div class="form-group">
+            <label for="brand">Thương hiệu</label>
+            <select id="brand" name="brand" class="form-select" required>
+              <% brands.forEach(brand=> { %>
+                <option value="<%= brand %>" <%=product.brand===brand ? 'selected' : '' %>><%= brand %>
+                </option>
+                <% }) %>
+            </select>
+          </div>
 
-                <div class="form-group">
-                    <label for="stock">Tồn kho</label>
-                    <input type="number" id="stock" name="stock" class="form-control" min="0" value="<%= product.stock %>" required>
-                </div>
+          <div class="form-group">
+            <label for="stock">Tồn kho</label>
+            <input type="number" id="stock" name="stock" class="form-control" min="0" value="<%= product.stock %>"
+              required>
+          </div>
 
-                <div class="form-group">
-                    <label for="images">Hình ảnh</label>
-                    <input type="file" id="images" name="images" class="form-control" multiple>
-                    <div id="current-images" style="margin-top: 10px;">
-                        <% product.images.forEach(image => { %>
-                            <img src="<%= image %>" alt="Product Image" style="width: 100px; height: 100px; object-fit: cover; margin-right: 10px;">
-                        <% }) %>
+          <div class="form-group">
+            <label for="images">Hình ảnh</label>
+            <input type="file" id="images" name="images" class="form-control" multiple>
+            <div id="current-images" style="margin-top: 10px;">
+              <% product.images.forEach(image=> { %>
+                <img src="/uploads/products/<%= image %>" alt="Product Image"
+                  style="width: 100px; height: 100px; object-fit: cover; margin-right: 10px;">
+                <% }) %>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="featured">Nổi bật</label>
+            <input type="checkbox" id="featured" name="featured" <%=product.featured ? 'checked' : '' %>>
+          </div>
+
+          <div class="form-group">
+            <label>Thông số kỹ thuật (Specifications)</label>
+            <div id="spec-list">
+              <% if (product.specifications && product.specifications.length> 0) { %>
+                <% product.specifications.forEach(spec=> { %>
+                  <div class="spec-row" style="display:flex;gap:8px;margin-bottom:6px;">
+                    <input type="text" name="specifications[name][]" value="<%= spec.name %>"
+                      placeholder="Tên thông số (VD: CPU, RAM...)" class="form-control" style="width:35%;" required>
+                    <input type="text" name="specifications[value][]" value="<%= spec.value %>"
+                      placeholder="Giá trị (VD: Intel Core i5...)" class="form-control" style="width:55%;" required>
+                    <button type="button" class="btn btn-danger btn-sm remove-spec">X</button>
+                  </div>
+                  <% }) %>
+                    <% } %>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="add-spec-btn">+ Thêm thông số</button>
+          </div>
+
+          <div class="form-group">
+            <label>Tuỳ chọn sản phẩm (Option/Variant)</label>
+            <div id="variant-list">
+              <% if (product.variants && product.variants.length> 0) { %>
+                <% product.variants.forEach(variant=> { %>
+                  <% variant.options.forEach(option=> { %>
+                    <div class="variant-row" style="display:flex;gap:8px;margin-bottom:6px;">
+                      <input type="text" name="variants[name][]" value="<%= variant.name %>" placeholder="Tên tuỳ chọn"
+                        class="form-control" style="width:20%;" required>
+                      <input type="text" name="variants[value][]" value="<%= option.value %>" placeholder="Giá trị"
+                        class="form-control" style="width:20%;" required>
+                      <input type="number" name="variants[additionalPrice][]" value="<%= option.additionalPrice %>"
+                        placeholder="Giá cộng thêm" class="form-control" style="width:20%;">
+                      <input type="number" name="variants[stock][]" value="<%= option.stock %>"
+                        placeholder="Tồn kho cho option" class="form-control" style="width:20%;">
+                      <button type="button" class="btn btn-danger btn-sm remove-variant">X</button>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="featured">Nổi bật</label>
-                    <input type="checkbox" id="featured" name="featured" <%= product.featured ? 'checked' : '' %>>
-                </div>
-
-                <div class="form-group">
-                    <label>Tuỳ chọn sản phẩm (Option/Variant)</label>
-                    <div id="variant-list">
-                        <% if (product.variants && product.variants.length > 0) { %>
-                            <% product.variants.forEach(variant => { %>
-                                <% variant.options.forEach(option => { %>
-                                    <div class="variant-row" style="display:flex;gap:8px;margin-bottom:6px;">
-                                        <input type="text" name="variantName" value="<%= variant.name %>" placeholder="Tên tuỳ chọn" class="form-control" style="width:20%;" required>
-                                        <input type="text" name="variantValue" value="<%= option.value %>" placeholder="Giá trị" class="form-control" style="width:20%;" required>
-                                        <input type="number" name="variantAdditionalPrice" value="<%= option.additionalPrice %>" placeholder="Giá cộng thêm" class="form-control" style="width:20%;">
-                                        <input type="number" name="variantStock" value="<%= option.stock %>" placeholder="Tồn kho cho option" class="form-control" style="width:20%;">
-                                        <button type="button" class="btn btn-danger btn-sm remove-variant">X</button>
-                                    </div>
-                                <% }) %>
-                            <% }) %>
+                    <% }) %>
+                      <% }) %>
                         <% } %>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-variant-btn">+ Thêm tuỳ chọn</button>
-                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="add-variant-btn">+ Thêm tuỳ chọn</button>
+          </div>
 
-                <button type="submit" class="btn btn-primary">Cập nhật sản phẩm</button>
-            </form>
-        </div>
+          <button type="submit" class="btn btn-primary">Cập nhật sản phẩm</button>
+        </form>
+      </div>
     </div>
-</div>
+  </div>
 
-<script>
+  <script>
     // Option/Variant dynamic fields
-    document.getElementById('add-variant-btn').addEventListener('click', function() {
-        const container = document.getElementById('variant-list');
-        const idx = container.children.length;
-        const html = `
+    document.getElementById('add-variant-btn').addEventListener('click', function () {
+      const container = document.getElementById('variant-list');
+      const idx = container.children.length;
+      const html = `
         <div class="variant-row" style="display:flex;gap:8px;margin-bottom:6px;">
-            <input type="text" name="variantName" placeholder="Tên tuỳ chọn (VD: Màu, RAM...)" class="form-control" style="width:20%;" required>
-            <input type="text" name="variantValue" placeholder="Giá trị (VD: Đỏ, 16GB...)" class="form-control" style="width:20%;" required>
-            <input type="number" name="variantAdditionalPrice" placeholder="Giá cộng thêm" class="form-control" style="width:20%;">
-            <input type="number" name="variantStock" placeholder="Tồn kho cho option" class="form-control" style="width:20%;">
+            <input type="text" name="variants[name][]" placeholder="Tên tuỳ chọn (VD: Màu, RAM...)" class="form-control" style="width:20%;" required>
+            <input type="text" name="variants[value][]" placeholder="Giá trị (VD: Đỏ, 16GB...)" class="form-control" style="width:20%;" required>
+            <input type="number" name="variants[additionalPrice][]" placeholder="Giá cộng thêm" class="form-control" style="width:20%;">
+            <input type="number" name="variants[stock][]" placeholder="Tồn kho cho option" class="form-control" style="width:20%;">
             <button type="button" class="btn btn-danger btn-sm remove-variant">X</button>
         </div>`;
-        container.insertAdjacentHTML('beforeend', html);
+      container.insertAdjacentHTML('beforeend', html);
     });
-    document.getElementById('variant-list').addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-variant')) {
-            e.target.parentElement.remove();
-        }
+    document.getElementById('variant-list').addEventListener('click', function (e) {
+      if (e.target.classList.contains('remove-variant')) {
+        e.target.parentElement.remove();
+      }
     });
-</script>
-<!-- <style>
+
+    // Specifications dynamic fields
+    document.getElementById('add-spec-btn').addEventListener('click', function () {
+      const container = document.getElementById('spec-list');
+      const html = `
+        <div class="spec-row" style="display:flex;gap:8px;margin-bottom:6px;">
+            <input type="text" name="specifications[name][]" placeholder="Tên thông số (VD: CPU, RAM...)" class="form-control" style="width:35%;" required>
+            <input type="text" name="specifications[value][]" placeholder="Giá trị (VD: Intel Core i5...)" class="form-control" style="width:55%;" required>
+            <button type="button" class="btn btn-danger btn-sm remove-spec">X</button>
+        </div>`;
+      container.insertAdjacentHTML('beforeend', html);
+    });
+    document.getElementById('spec-list').addEventListener('click', function (e) {
+      if (e.target.classList.contains('remove-spec')) {
+        e.target.parentElement.remove();
+      }
+    });
+  </script>
+  <!-- <style>
     :root {
       --primary-color: #2196F3;
       --primary-color-dark: #1769AA;

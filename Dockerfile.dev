@@ -1,0 +1,22 @@
+# Development Dockerfile with nodemon
+FROM node:18-alpine
+
+WORKDIR /usr/src/app
+
+# Install nodemon globally
+RUN npm install -g nodemon
+
+# Copy package files first (for caching)
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies)
+RUN npm install
+
+# Note: Source code will be mounted via volume in docker-compose.dev.yml
+# This ensures node_modules persists even with bind mount
+
+# Expose the port
+EXPOSE 3000
+
+# Use nodemon for hot-reload
+CMD ["npm", "run", "dev"]

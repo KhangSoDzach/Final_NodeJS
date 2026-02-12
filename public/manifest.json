@@ -1,0 +1,68 @@
+{
+  "name": "Source Computer - Máy tính & Linh kiện",
+  "short_name": "SourceComputer",
+  "description": "Cửa hàng máy tính và linh kiện chính hãng - Laptop, PC Gaming, Màn hình, Phụ kiện",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#0066cc",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "vi",
+  "categories": ["shopping", "electronics"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.svg",
+      "sizes": "72x72 96x96 128x128 144x144 152x152 192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.svg",
+      "sizes": "384x384 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tìm kiếm sản phẩm",
+      "short_name": "Tìm kiếm",
+      "description": "Tìm kiếm laptop, PC, linh kiện",
+      "url": "/products",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Giỏ hàng",
+      "short_name": "Giỏ hàng",
+      "description": "Xem giỏ hàng của bạn",
+      "url": "/cart",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Đơn hàng",
+      "short_name": "Đơn hàng",
+      "description": "Theo dõi đơn hàng",
+      "url": "/user/orders",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icons/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Trang chủ Source Computer"
+    },
+    {
+      "src": "/icons/screenshot-narrow.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Trang chủ trên điện thoại"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

@@ -1,0 +1,440 @@
+/* ===================================================================
+   Print Styles
+   Optimize layout and appearance for printing
+   ================================================================ */
+
+@media print {
+  
+  /* ===================================================================
+     Reset & Basic Styles
+     ================================================================ */
+  
+  * {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+  
+  /* ===================================================================
+     Typography
+     ================================================================ */
+  
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+    color: #000 !important;
+  }
+  
+  h1 { font-size: 24pt; }
+  h2 { font-size: 20pt; }
+  h3 { font-size: 16pt; }
+  h4 { font-size: 14pt; }
+  h5 { font-size: 12pt; }
+  h6 { font-size: 11pt; }
+  
+  p {
+    orphans: 3;
+    widows: 3;
+    page-break-inside: avoid;
+  }
+  
+  /* ===================================================================
+     Links
+     ================================================================ */
+  
+  a,
+  a:visited {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+  
+  /* Show URL after link text */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+    color: #666 !important;
+  }
+  
+  /* Don't show URLs for internal links */
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+  
+  /* ===================================================================
+     Images
+     ================================================================ */
+  
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+  
+  /* ===================================================================
+     Tables
+     ================================================================ */
+  
+  table {
+    border-collapse: collapse !important;
+    width: 100%;
+    page-break-inside: avoid;
+  }
+  
+  thead {
+    display: table-header-group;
+  }
+  
+  tr,
+  th,
+  td {
+    page-break-inside: avoid;
+  }
+  
+  th,
+  td {
+    border: 1px solid #ddd !important;
+    padding: 8pt;
+    text-align: left;
+  }
+  
+  th {
+    background: #f5f5f5 !important;
+    font-weight: bold;
+  }
+  
+  /* ===================================================================
+     Lists
+     ================================================================ */
+  
+  ul,
+  ol {
+    page-break-inside: avoid;
+  }
+  
+  /* ===================================================================
+     Code Blocks
+     ================================================================ */
+  
+  pre,
+  code {
+    font-family: 'Courier New', monospace;
+    border: 1px solid #ddd !important;
+    padding: 4pt;
+    background: #f9f9f9 !important;
+    page-break-inside: avoid;
+  }
+  
+  /* ===================================================================
+     Hide Elements Not Needed for Print
+     ================================================================ */
+  
+  /* Navigation */
+  nav,
+  .nav,
+  .navbar,
+  .navigation,
+  header nav {
+    display: none !important;
+  }
+  
+  /* Buttons & Forms */
+  button,
+  .btn,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    display: none !important;
+  }
+  
+  /* Form controls except for display */
+  .form-control:not([readonly]) {
+    border: 1px solid #000 !important;
+  }
+  
+  /* Sidebars */
+  .sidebar,
+  .side-nav,
+  aside {
+    display: none !important;
+  }
+  
+  /* Footer */
+  .footer-nav,
+  .footer-social,
+  .newsletter-section {
+    display: none !important;
+  }
+  
+  /* Interactive elements */
+  .modal,
+  .tooltip,
+  .dropdown,
+  .popup,
+  .overlay {
+    display: none !important;
+  }
+  
+  /* Video & Audio */
+  video,
+  audio,
+  iframe {
+    display: none !important;
+  }
+  
+  /* Ads & Social */
+  .advertisement,
+  .ads,
+  .social-share,
+  .share-buttons {
+    display: none !important;
+  }
+  
+  /* Elements with no-print class */
+  .no-print,
+  .hide-print {
+    display: none !important;
+  }
+  
+  /* ===================================================================
+     Specific Component Overrides
+     ================================================================ */
+  
+  /* Product Cards - Show essential info only */
+  .product-card {
+    page-break-inside: avoid;
+    border: 1px solid #ddd !important;
+    padding: 10pt;
+    margin-bottom: 10pt;
+  }
+  
+  .product-card .product-actions,
+  .product-card .btn,
+  .product-card .wishlist-btn,
+  .product-card .compare-btn {
+    display: none !important;
+  }
+  
+  /* Orders - Print-friendly layout */
+  .order-card {
+    page-break-inside: avoid;
+    border: 1px solid #000 !important;
+    padding: 10pt;
+    margin-bottom: 15pt;
+  }
+  
+  /* Cart - Show items and totals */
+  .cart-item {
+    page-break-inside: avoid;
+    border-bottom: 1px solid #ddd !important;
+    padding: 8pt 0;
+  }
+  
+  .cart-item .quantity-selector {
+    display: none !important;
+  }
+  
+  .cart-summary {
+    border: 2px solid #000 !important;
+    padding: 10pt;
+    margin-top: 15pt;
+  }
+  
+  /* Invoice Styles */
+  .invoice {
+    page-break-inside: avoid;
+  }
+  
+  .invoice-header {
+    border-bottom: 2px solid #000 !important;
+    padding-bottom: 10pt;
+    margin-bottom: 15pt;
+  }
+  
+  .invoice-footer {
+    border-top: 2px solid #000 !important;
+    padding-top: 10pt;
+    margin-top: 15pt;
+  }
+  
+  /* ===================================================================
+     Page Layout
+     ================================================================ */
+  
+  @page {
+    margin: 2cm;
+    size: A4;
+  }
+  
+  /* Header for each printed page */
+  @page :first {
+    margin-top: 1cm;
+  }
+  
+  /* ===================================================================
+     Print-specific Utilities
+     ================================================================ */
+  
+  /* Force page break */
+  .page-break-before {
+    page-break-before: always;
+  }
+  
+  .page-break-after {
+    page-break-after: always;
+  }
+  
+  .page-break-inside-avoid {
+    page-break-inside: avoid;
+  }
+  
+  /* Show only in print */
+  .print-only {
+    display: block !important;
+  }
+  
+  /* ===================================================================
+     Content Adjustments
+     ================================================================ */
+  
+  /* Make main content full width */
+  .container,
+  .main-content {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  /* Remove glassmorphism effects */
+  .glass-card,
+  .glass-effect {
+    background: #fff !important;
+    backdrop-filter: none !important;
+    border: 1px solid #ddd !important;
+  }
+  
+  /* Remove shadows and glows */
+  .shadow,
+  .shadow-lg,
+  .glow-effect {
+    box-shadow: none !important;
+  }
+  
+  /* ===================================================================
+     Typography Adjustments
+     ================================================================ */
+  
+  /* Ensure text is readable */
+  .text-primary,
+  .text-accent,
+  .text-muted {
+    color: #000 !important;
+  }
+  
+  /* Badge colors */
+  .badge {
+    border: 1px solid #000 !important;
+    padding: 2pt 4pt;
+  }
+  
+  .badge-success::before {
+    content: "✓ ";
+  }
+  
+  .badge-danger::before {
+    content: "✗ ";
+  }
+  
+  /* ===================================================================
+     User Dashboard - Print Profile
+     ================================================================ */
+  
+  .dashboard-sidebar {
+    display: none !important;
+  }
+  
+  .dashboard-main {
+    width: 100% !important;
+  }
+  
+  /* ===================================================================
+     Admin Panel - Print Reports
+     ================================================================ */
+  
+  .admin-sidebar,
+  .admin-header {
+    display: none !important;
+  }
+  
+  .admin-main {
+    width: 100% !important;
+    padding: 0 !important;
+  }
+  
+  .admin-table {
+    font-size: 10pt;
+  }
+  
+  .admin-table .actions-cell {
+    display: none !important;
+  }
+  
+  /* ===================================================================
+     Product Pages
+     ================================================================ */
+  
+  /* Product detail - Show main info */
+  .product-gallery {
+    float: left;
+    width: 40%;
+    margin-right: 15pt;
+  }
+  
+  .product-info {
+    float: left;
+    width: 55%;
+  }
+  
+  .product-actions,
+  .product-share,
+  .product-wishlist {
+    display: none !important;
+  }
+  
+  /* Reviews - Show text only */
+  .review-actions,
+  .review-vote {
+    display: none !important;
+  }
+  
+  /* ===================================================================
+     Branding
+     ================================================================ */
+  
+  /* Add company info to print */
+  body::before {
+    content: "Source Computer E-Commerce";
+    display: block;
+    font-size: 18pt;
+    font-weight: bold;
+    margin-bottom: 10pt;
+    border-bottom: 2px solid #000;
+    padding-bottom: 5pt;
+  }
+  
+  /* Add page numbers */
+  @page {
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: 10pt;
+    }
+  }
+}
