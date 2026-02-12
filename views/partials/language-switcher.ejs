@@ -7,7 +7,7 @@
       <span class="locale-name"><%= (typeof currentLocale !== 'undefined' && currentLocale) ? currentLocale.name : 'Tiếng Việt' %></span>
     </button>
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-      <li class="dropdown-header"><%= __('common.language') %></li>
+      <li class="dropdown-header"><%= (typeof __ === 'function' ? __('common.language') : 'Language') %></li>
       <% (typeof availableLocales !== 'undefined' ? availableLocales : []).forEach(function(loc) { %>
         <li>
           <a class="dropdown-item <%= loc.code === (locale || 'vi') ? 'active' : '' %>" href="<%= typeof localeUrl === 'function' ? localeUrl(loc.code) : ('?lang=' + loc.code) %>">
@@ -29,7 +29,7 @@
       <span class="currency-code"><%= currency || 'VND' %></span>
     </button>
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="currencyDropdown">
-      <li class="dropdown-header"><%= __('common.currency') %></li>
+      <li class="dropdown-header"><%= (typeof __ === 'function' ? __('common.currency') : 'Currency') %></li>
       <% (typeof availableCurrencies !== 'undefined' ? availableCurrencies : []).forEach(function(curr) { %>
         <li>
           <a class="dropdown-item <%= curr.code === (currency || 'VND') ? 'active' : '' %>" href="<%= typeof currencyUrl === 'function' ? currencyUrl(curr.code) : ('?currency=' + curr.code) %>">
