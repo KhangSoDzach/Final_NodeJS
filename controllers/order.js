@@ -1,4 +1,4 @@
-const Order = require('../models/Order');
+const Order = require('../models/order');
 const Cart = require('../models/cart');
 const User = require('../models/user');
 const Product = require('../models/product');
@@ -98,7 +98,7 @@ exports.applyLoyaltyPoints = async (req, res) => {
 exports.postCheckout = async (req, res) => {
   try {
     const { name, email, address, district, province, phone, paymentMethod, loyaltyPointsToUse } = req.body;
-    
+
     // Find cart based on user or session ID
     let cart;
     if (req.user) {
@@ -167,7 +167,7 @@ exports.postCheckout = async (req, res) => {
 
     // Tạo mã đơn hàng duy nhất
     const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    
+
     // Tạo đơn hàng với thông tin phù hợp cho cả khách và người dùng đã đăng nhập
     const orderData = {
       orderNumber,
@@ -258,7 +258,7 @@ exports.postCheckout = async (req, res) => {
       // Add the current order ID to the session
       req.session.guestOrderIds.push(order._id.toString());
     }
-    
+
     // Chuyển hướng đến trang success với thông tin đơn hàng
     return res.redirect(`/orders/success/${order._id}`);
   } catch (err) {
@@ -638,7 +638,7 @@ exports.oneClickCheckout = async (req, res) => {
     // Lấy địa chỉ mặc định
     const user = await User.findById(req.user._id);
     let defaultAddress = user.addresses?.find(addr => addr.default === true);
-    
+
     // Fallback to defaultAddress field if addresses array not used
     if (!defaultAddress && user.defaultAddress) {
       defaultAddress = user.defaultAddress;
