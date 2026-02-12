@@ -10,7 +10,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
-        value: 18.20.4
+        value: 22
       - key: MONGODB_URI
         sync: false # Set manually in Render Dashboard
       - key: SESSION_SECRET
