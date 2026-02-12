@@ -68,7 +68,13 @@ exports.postLogin = (req, res, next) => {
         console.error('Error merging guest cart:', mergeErr);
       }
       
-      return res.redirect(returnTo);
+      // Save session before redirect to ensure login state is persisted
+      req.session.save((err) => {
+        if (err) {
+          return next(err);
+        }
+        return res.redirect(returnTo);
+      });
     });
   })(req, res, next);
 };
@@ -150,8 +156,14 @@ exports.postRegister = async (req, res) => {
         return res.redirect('/auth/login');
       }
       
-      req.flash('success', 'Đăng ký thành công!');
-      res.redirect('/');
+      // Save session before redirect to ensure login state is persisted
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+        }
+        req.flash('success', 'Đăng ký thành công!');
+        res.redirect('/');
+      });
     });
   } catch (err) {
     console.error('Registration error:', err);
@@ -202,8 +214,14 @@ exports.getGoogleCallback = (req, res, next) => {
         return next(err);
       }
       
-      req.flash('success', 'Đăng nhập thành công!');
-      return res.redirect(returnTo);
+      // Save session before redirect to ensure login state is persisted
+      req.session.save((err) => {
+        if (err) {
+          return next(err);
+        }
+        req.flash('success', 'Đăng nhập thành công!');
+        return res.redirect(returnTo);
+      });
     });
   })(req, res, next);
 };
@@ -345,6 +363,12 @@ exports.getLogout = (req, res) => {
       console.error('Logout error:', err);
     }
     
-    res.redirect('/');
+    // Save session before redirect to ensure logout state is persisted
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+      }
+      res.redirect('/');
+    });
   });
 };
