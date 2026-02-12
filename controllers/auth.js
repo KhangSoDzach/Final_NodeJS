@@ -68,7 +68,14 @@ exports.postLogin = (req, res, next) => {
         console.error('Error merging guest cart:', mergeErr);
       }
       
-      return res.redirect(returnTo);
+      // Save session before redirect to ensure login state is persisted
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error('Session save error:', saveErr);
+          return next(saveErr);
+        }
+        return res.redirect(returnTo);
+      });
     });
   })(req, res, next);
 };
