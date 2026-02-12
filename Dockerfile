@@ -1,5 +1,5 @@
 # Multi-stage build for optimized production image
-FROM node:18-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /usr/src/app
 
@@ -14,7 +14,7 @@ COPY . .
 RUN npm run frontend:build || echo "No frontend build step"
 
 # Production stage
-FROM node:18-alpine
+FROM node:24-alpine
 
 WORKDIR /usr/src/app
 
@@ -37,7 +37,7 @@ COPY --from=builder /usr/src/app/app.js ./
 
 # Create upload directories (will be mounted as volume)
 RUN mkdir -p uploads/products && \
-    chown -R node:node /usr/src/app
+  chown -R node:node /usr/src/app
 
 # Use non-root user
 USER node

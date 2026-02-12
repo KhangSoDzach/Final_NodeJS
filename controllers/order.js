@@ -1,6 +1,6 @@
 const Order = require('../models/Order');
 const Cart = require('../models/cart');
-const User = require('../models/user');https://github.com/KhangSoDzach/Final_NodeJS/pull/26/conflict?name=package-lock.json&ancestor_oid=5b55dd347f37ba96a2b06e72fc02fce161c64d3e&base_oid=6e12b0c70176363e9392573c52b41acf74b8d151&head_oid=62096f4f9e20ede86b6c737337f09addb5f8d4cb
+const User = require('../models/user');
 const Product = require('../models/product');
 const nodemailer = require('nodemailer');
 const emailService = require('../utils/emailService');
@@ -291,6 +291,12 @@ exports.getCheckout = async (req, res) => {
     // If user is logged in, fetch their data
     if (req.user) {
       user = await User.findById(req.user._id);
+      defaultAddress = user.addresses ? user.addresses.find(addr => addr.isDefault) : null;
+      loyaltyPoints = user.loyaltyPoints || 0;
+      // Allow using up to 50% of order value with points (1 point = 1000 VND)
+      const cartTotal = cart.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+      maxPointsApplicable = Math.min(loyaltyPoints, Math.floor(cartTotal / 2000));
+    }
 
     res.render('orders/checkout', {
       title: 'Thanh toán',
