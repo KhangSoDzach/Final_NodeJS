@@ -4,16 +4,16 @@
   <div class="dropdown locale-dropdown">
     <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
       <i class="fas fa-globe me-1"></i>
-      <span class="locale-name"><%= currentLocale.name %></span>
+      <span class="locale-name"><%= (typeof currentLocale !== 'undefined' && currentLocale) ? currentLocale.name : 'Tiếng Việt' %></span>
     </button>
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
       <li class="dropdown-header"><%= __('common.language') %></li>
-      <% availableLocales.forEach(function(loc) { %>
+      <% (typeof availableLocales !== 'undefined' ? availableLocales : []).forEach(function(loc) { %>
         <li>
-          <a class="dropdown-item <%= loc.code === locale ? 'active' : '' %>" href="<%= localeUrl(loc.code) %>">
+          <a class="dropdown-item <%= loc.code === (locale || 'vi') ? 'active' : '' %>" href="<%= typeof localeUrl === 'function' ? localeUrl(loc.code) : ('?lang=' + loc.code) %>">
             <span class="locale-flag"><%= loc.code === 'vi' ? '🇻🇳' : '🇺🇸' %></span>
             <%= loc.name %>
-            <% if (loc.code === locale) { %>
+            <% if (loc.code === (locale || 'vi')) { %>
               <i class="fas fa-check ms-2"></i>
             <% } %>
           </a>
@@ -25,18 +25,18 @@
   <!-- Currency Switcher -->
   <div class="dropdown currency-dropdown ms-2">
     <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="currencyDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      <span class="currency-symbol"><%= currentCurrency.symbol %></span>
-      <span class="currency-code"><%= currency %></span>
+      <span class="currency-symbol"><%= (typeof currentCurrency !== 'undefined' && currentCurrency) ? currentCurrency.symbol : '₫' %></span>
+      <span class="currency-code"><%= currency || 'VND' %></span>
     </button>
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="currencyDropdown">
       <li class="dropdown-header"><%= __('common.currency') %></li>
-      <% availableCurrencies.forEach(function(curr) { %>
+      <% (typeof availableCurrencies !== 'undefined' ? availableCurrencies : []).forEach(function(curr) { %>
         <li>
-          <a class="dropdown-item <%= curr.code === currency ? 'active' : '' %>" href="<%= currencyUrl(curr.code) %>">
+          <a class="dropdown-item <%= curr.code === (currency || 'VND') ? 'active' : '' %>" href="<%= typeof currencyUrl === 'function' ? currencyUrl(curr.code) : ('?currency=' + curr.code) %>">
             <span class="currency-symbol me-2"><%= curr.symbol %></span>
-            <span class="currency-name"><%= locale === 'vi' ? curr.name : curr.nameEn %></span>
+            <span class="currency-name"><%= (locale || 'vi') === 'vi' ? curr.name : curr.nameEn %></span>
             (<%= curr.code %>)
-            <% if (curr.code === currency) { %>
+            <% if (curr.code === (currency || 'VND')) { %>
               <i class="fas fa-check ms-2"></i>
             <% } %>
           </a>
