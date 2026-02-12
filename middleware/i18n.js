@@ -175,8 +175,8 @@ function i18nMiddleware(req, res, next) {
   }
   
   // Make available to views
-  res.locals.locale = locale;
-  res.locals.currency = currency;
+  res.locals.locale = locale || 'vi';
+  res.locals.currency = currency || 'VND';
   res.locals.__ = req.__ || function(key) { return key; };
   res.locals.t = req.t || function(key) { return key; };
   res.locals.formatter = req.formatter;

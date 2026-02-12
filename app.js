@@ -202,6 +202,7 @@ const compareRoutes = require('./routes/compare');
 const questionRoutes = require('./routes/questions');
 const wishlistRoutes = require('./routes/wishlist');
 const searchRoutes = require('./routes/search');
+const seedRoutes = require('./routes/seed'); // TEMPORARY - delete after seeding!
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
@@ -216,6 +217,7 @@ app.use('/compare', compareRoutes);
 app.use('/questions', questionRoutes);
 app.use('/user/wishlist', wishlistRoutes);
 app.use('/search', searchRoutes);
+app.use('/utils', seedRoutes); // TEMPORARY - delete after seeding!
 
 // API routes (kept parallel to existing EJS routes)
 app.use('/api', require('./routes/api'));
