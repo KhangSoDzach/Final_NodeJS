@@ -50,7 +50,7 @@ router.get('/seed-database', allowSeedOnce, async (req, res) => {
       {
         name: 'Laptop Dell XPS 13',
         slug: 'laptop-dell-xps-13',
-        description: 'Laptop cao cấp cho dân văn phòng',
+        description: 'Laptop cao cấp cho dân văn phòng, thiết kế mỏng nhẹ, màn hình InfinityEdge',
         price: 25000000,
         discountPrice: 23000000,
         category: 'laptop',
@@ -58,38 +58,49 @@ router.get('/seed-database', allowSeedOnce, async (req, res) => {
         brand: 'Dell',
         stock: 10,
         images: ['dell-xps-13.jpg'],
-        specifications: {
-          'CPU': 'Intel Core i7-1165G7',
-          'RAM': '16GB',
-          'Storage': '512GB SSD'
-        }
+        specifications: [
+          { name: 'CPU', value: 'Intel Core i7-1165G7' },
+          { name: 'RAM', value: '16GB LPDDR4x' },
+          { name: 'Storage', value: '512GB NVMe SSD' },
+          { name: 'Display', value: '13.4" FHD+ InfinityEdge' },
+          { name: 'Graphics', value: 'Intel Iris Xe Graphics' }
+        ]
       },
       {
         name: 'MacBook Pro 14"',
         slug: 'macbook-pro-14',
-        description: 'Laptop Apple chip M3 Pro',
+        description: 'Laptop Apple chip M3 Pro mạnh mẽ, màn hình Liquid Retina XDR',
         price: 52000000,
         category: 'laptop',
         brand: 'Apple',
         stock: 5,
         images: ['macbook-pro-14.jpg'],
-        specifications: {
-          'CPU': 'Apple M3 Pro',
-          'RAM': '18GB',
-          'Storage': '512GB SSD'
-        }
+        specifications: [
+          { name: 'CPU', value: 'Apple M3 Pro 11-core' },
+          { name: 'RAM', value: '18GB Unified Memory' },
+          { name: 'Storage', value: '512GB SSD' },
+          { name: 'Display', value: '14.2" Liquid Retina XDR' },
+          { name: 'Graphics', value: '14-core GPU' }
+        ]
       },
       {
         name: 'PC Gaming RTX 4070',
         slug: 'pc-gaming-rtx-4070',
-        description: 'PC gaming mạnh mẽ',
+        description: 'PC gaming mạnh mẽ với RTX 4070, chơi game 2K/4K mượt mà',
         price: 30000000,
         discountPrice: 28000000,
         category: 'pc',
         subcategory: 'gaming',
         brand: 'Custom Build',
         stock: 3,
-        images: ['pc-gaming.jpg']
+        images: ['pc-gaming.jpg'],
+        specifications: [
+          { name: 'CPU', value: 'Intel Core i7-13700K' },
+          { name: 'RAM', value: '32GB DDR5' },
+          { name: 'Storage', value: '1TB NVMe SSD' },
+          { name: 'Graphics', value: 'NVIDIA RTX 4070 12GB' },
+          { name: 'PSU', value: '750W 80+ Gold' }
+        ]
       }
     ];
     
