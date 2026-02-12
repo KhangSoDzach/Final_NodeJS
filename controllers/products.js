@@ -15,18 +15,18 @@ function getEquivalentCategories(category) {
   const vietnameseName = categoryMappings[category];
   // Tìm tên tiếng Anh nếu đầu vào là tiếng Việt
   const englishName = Object.keys(categoryMappings).find(key => categoryMappings[key] === category);
-  
+
   // Trả về tất cả các tên có thể cho danh mục
   const allNames = [category];
-  
+
   if (vietnameseName && vietnameseName !== category) {
     allNames.push(vietnameseName);
   }
-  
+
   if (englishName && englishName !== category) {
     allNames.push(englishName);
   }
-  
+
   return allNames;
 }
 
@@ -38,10 +38,10 @@ exports.getProducts = async (req, res) => {
     if (page < 1) page = 1;
     const limit = 12;
     const skip = (page - 1) * limit;
-    
+
     // Build filter
     const filter = {};
-    
+
     // Search query - tìm kiếm trong name, description, brand
     if (req.query.search) {
       const searchRegex = { $regex: req.query.search, $options: 'i' };
@@ -51,19 +51,19 @@ exports.getProducts = async (req, res) => {
         { brand: searchRegex }
       ];
     }
-    
+
     // Category filter - hỗ trợ cả tên tiếng Anh và tiếng Việt
     if (req.query.category) {
       const equivalentCategories = getEquivalentCategories(req.query.category);
       const regexPattern = equivalentCategories.map(cat => `^${cat}$`).join('|');
       filter.category = { $regex: new RegExp(regexPattern, 'i') };
     }
-    
+
     // Subcategory filter
     if (req.query.subcategory) {
       filter.subcategory = { $regex: new RegExp(`^${req.query.subcategory}$`, 'i') };
     }
-    
+
     // Brand filter (can be multiple)
     if (req.query.brand) {
       if (Array.isArray(req.query.brand)) {
@@ -72,13 +72,13 @@ exports.getProducts = async (req, res) => {
         filter.brand = { $regex: new RegExp(`^${req.query.brand}$`, 'i') };
       }
     }
-    
+
     // Price range filter
     if (req.query.minPrice || req.query.maxPrice) {
       // Sử dụng $expr để filter cả price và discountPrice
       const minPrice = req.query.minPrice ? parseInt(req.query.minPrice) : 0;
       const maxPrice = req.query.maxPrice ? parseInt(req.query.maxPrice) : Number.MAX_SAFE_INTEGER;
-      
+
       filter.$and = filter.$and || [];
       filter.$and.push({
         $expr: {
@@ -89,7 +89,7 @@ exports.getProducts = async (req, res) => {
         }
       });
     }
-    
+
     // Rating filter - Lọc theo đánh giá tối thiểu
     if (req.query.rating) {
       const minRating = parseInt(req.query.rating);
@@ -99,7 +99,7 @@ exports.getProducts = async (req, res) => {
         filter.$and.push({
           $expr: {
             $gte: [
-              { 
+              {
                 $cond: {
                   if: { $eq: [{ $size: '$ratings' }, 0] },
                   then: 0,
@@ -112,7 +112,7 @@ exports.getProducts = async (req, res) => {
         });
       }
     }
-    
+
     // Stock filter - Lọc theo tình trạng tồn kho
     if (req.query.stock) {
       switch (req.query.stock) {
@@ -129,7 +129,7 @@ exports.getProducts = async (req, res) => {
           break;
       }
     }
-    
+
     // Discount filter - Lọc sản phẩm đang giảm giá
     if (req.query.discount) {
       if (req.query.discount === 'has-discount') {
@@ -143,7 +143,7 @@ exports.getProducts = async (req, res) => {
         );
       }
     }
-    
+
     // Specifications filter - Lọc theo thông số kỹ thuật
     if (req.query.specs) {
       let specs = req.query.specs;
@@ -154,7 +154,7 @@ exports.getProducts = async (req, res) => {
           specs = {};
         }
       }
-      
+
       // specs format: { "RAM": ["8GB", "16GB"], "CPU": ["Intel Core i5"] }
       Object.keys(specs).forEach(specName => {
         const specValues = Array.isArray(specs[specName]) ? specs[specName] : [specs[specName]];
@@ -171,7 +171,7 @@ exports.getProducts = async (req, res) => {
         }
       });
     }
-    
+
     // Sorting
     let sort = { createdAt: -1 }; // Default sort: newest first
     if (req.query.sort) {
@@ -200,54 +200,54 @@ exports.getProducts = async (req, res) => {
           break;
       }
     }
-    
+
     // Get products với lean() cho performance
     let query;
     try {
       query = Product.find(filter);
-      
+
       // Check if query is valid (handle mock errors in tests)
       if (!query || typeof query.sort !== 'function') {
         // If it's a promise, handle the rejection to avoid unhandled promise rejection
         if (query && query.catch) {
-          query.catch(() => {}); // Consume the rejection
+          query.catch(() => { }); // Consume the rejection
         }
         throw new Error('Database query failed');
       }
     } catch (err) {
       throw err; // Re-throw to be caught by outer catch
     }
-    
+
     const products = await query
       .sort(sort)
       .skip(skip)
       .limit(limit)
       .lean();
-    
+
     // Get total products count
     const totalProducts = await Product.countDocuments(filter);
-    
+
     // Get all categories, brands and subcategories for filters
     const categories = await Product.distinct('category');
     const brands = await Product.distinct('brand');
-    
+
     // Get subcategories based on selected category - hỗ trợ cả tên tiếng Anh và tiếng Việt
     let subcategories = [];
     if (req.query.category) {
       const equivalentCategories = getEquivalentCategories(req.query.category);
       const regexPattern = equivalentCategories.map(cat => `^${cat}$`).join('|');
-      subcategories = await Product.distinct('subcategory', { 
-        category: { $regex: new RegExp(regexPattern, 'i') } 
+      subcategories = await Product.distinct('subcategory', {
+        category: { $regex: new RegExp(regexPattern, 'i') }
       });
     }
-    
+
     // Transform category names to Vietnamese for display
     const displayCategories = categories.map(cat => {
       // Nếu có tên tiếng Việt tương ứng, sử dụng tên tiếng Việt
       const vietnameseName = categoryMappings[cat.toLowerCase()];
       return vietnameseName || cat;
     });
-    
+
     res.render('products/index', {
       title: 'Sản phẩm',
       products,
@@ -275,26 +275,26 @@ exports.getProducts = async (req, res) => {
 exports.getProductDetail = async (req, res) => {
   try {
     const { slug } = req.params;
-    
+
     const product = await Product.findOne({ slug })
       .populate({
         path: 'ratings.user',
         select: 'name'
       });
-    
+
     if (!product) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm.' });
     }
-    
+
     // Get related products - hỗ trợ cả tên tiếng Anh và tiếng Việt
     const equivalentCategories = getEquivalentCategories(product.category);
     const regexPattern = equivalentCategories.map(cat => `^${cat}$`).join('|');
-    
+
     const relatedProducts = await Product.find({
       category: { $regex: new RegExp(regexPattern, 'i') },
       _id: { $ne: product._id }
     }).limit(4);
-    
+
     res.render('products/detail', {
       title: product.name,
       product,
@@ -312,23 +312,31 @@ exports.getProductDetail = async (req, res) => {
 exports.postAddReview = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { rating, review } = req.body;
-    
+    const { rating, comment, review } = req.body;
+    const reviewText = comment || review || '';
+
     // Check if user is authenticated
     if (!req.isAuthenticated()) {
       req.flash('error', 'Vui lòng đăng nhập để đánh giá sản phẩm.');
       return res.redirect('/auth/login');
     }
-    
+
     const product = await Product.findOne({ slug });
     if (!product) {
-      req.flash('error', 'Không tìm thấy sản phẩm.');
+      req.flash('error', 'Sản phẩm không tìm thấy');
       return res.redirect('/products');
     }
-    
+
+    // Validate rating
+    const ratingNum = parseInt(rating);
+    if (!rating || isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+      req.flash('error', 'Đánh giá không hợp lệ, vui lòng chọn từ 1-5 sao');
+      return res.redirect(`/products/${slug}`);
+    }
+
     // Initialize ratings array if needed
     if (!product.ratings) {
-      product.ratings = [];  
+      product.ratings = [];
     }
 
     // Convert _reviews to ratings if present (backward compatibility)
@@ -343,44 +351,48 @@ exports.postAddReview = async (req, res) => {
     }
 
     // Check if user has already reviewed this product  
-    const existingReviewIndex = product.ratings.findIndex(
+    const existingReview = product.reviews
+      ? product.reviews.find(r => r.user && r.user.toString() === req.user._id.toString())
+      : null;
+    const existingRating = product.ratings.find(
       r => r.user && r.user.toString() === req.user._id.toString()
     );
-    
-    if (existingReviewIndex > -1) {
+
+    if (existingReview || existingRating) {
       // User has already reviewed - flash error and redirect
-      req.flash('error', 'Bạn đã đánh giá sản phẩm này.');
+      req.flash('error', 'Bạn đã đánh giá sản phẩm này rồi');
       return res.redirect(`/products/${slug}`);
     }
-    
-    // Add new rating/review
+
+    // Add new rating/review to ratings array
     product.ratings.push({
       user: req.user._id,
-      rating: parseInt(rating),
-      review,
+      rating: ratingNum,
+      review: reviewText,
       date: Date.now()
     });
-    
+
+
     // Calculate average rating
     const totalRating = product.ratings.reduce((sum, r) => sum + r.rating, 0);
     product.averageRating = totalRating / product.ratings.length;
-    
+
     await product.save();
-    
+
     // If WebSocket is enabled, broadcast the new review
     if (global.broadcastReview) {
       const newReview = {
         user: {
           name: req.user.name
         },
-        rating: parseInt(rating),
-        review,
+        rating: ratingNum,
+        review: reviewText,
         date: new Date()
       };
-      
+
       global.broadcastReview(slug, newReview);
     }
-    
+
     req.flash('success', 'Cảm ơn bạn đã đánh giá sản phẩm!');
     res.redirect(`/products/${slug}`);
   } catch (err) {
@@ -401,91 +413,61 @@ const BackInStockNotification = require('../models/backInStockNotification');
 exports.createPreOrder = async (req, res) => {
   try {
     const { productId, quantity, variant } = req.body;
-    
+
     // Check authentication
     if (!req.isAuthenticated()) {
-      return res.status(401).json({
-        success: false,
-        message: 'Vui lòng đăng nhập để đặt trước sản phẩm'
-      });
+      req.flash('error', 'Vui lòng đăng nhập để đặt trước sản phẩm');
+      return res.redirect('/auth/login');
     }
-    
+
     const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy sản phẩm'
-      });
+      req.flash('error', 'Không tìm thấy sản phẩm');
+      return res.redirect('/products');
     }
-    
-    // Check if product allows pre-order
-    if (!product.allowPreOrder) {
-      return res.status(400).json({
-        success: false,
-        message: 'Sản phẩm này không hỗ trợ đặt trước'
-      });
-    }
-    
+
     // Check if product is actually out of stock
     if (product.stock > 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Sản phẩm còn hàng, bạn có thể mua ngay'
-      });
+      req.flash('error', 'Sản phẩm còn hàng, bạn có thể mua ngay');
+      return res.redirect(`/products/${product.slug}`);
     }
-    
+
+    // Validate quantity
+    if (!quantity || quantity < 1) {
+      req.flash('error', 'Số lượng không hợp lệ');
+      return res.redirect(`/products/${product.slug}`);
+    }
+
     // Check for existing pre-order
     const existingPreOrder = await PreOrder.findOne({
       user: req.user._id,
       product: productId,
       status: { $in: ['pending', 'notified'] }
     });
-    
+
     if (existingPreOrder) {
-      return res.status(400).json({
-        success: false,
-        message: 'Bạn đã đặt trước sản phẩm này rồi'
-      });
-    }
-    
-    // Validate quantity
-    if (!quantity || quantity < 1) {
-      return res.status(400).json({
-        success: false,
-        message: 'Số lượng không hợp lệ'
-      });
+      req.flash('error', 'Bạn đã đặt trước sản phẩm này rồi');
+      return res.redirect(`/products/${product.slug}`);
     }
 
-    // Create pre-order
-    const preOrderData = {
+    // Create pre-order directly (validations already done above)
+    const preOrder = new PreOrder({
       user: req.user._id,
       product: productId,
       quantity: quantity || 1,
       contactEmail: req.user.email,
-      priceAtOrder: product.price
-    };
-    if (variant) {
-      preOrderData.variant = variant;
-    }
-    const preOrder = await PreOrder.createPreOrder(preOrderData);
-    
-    res.json({
-      success: true,
-      message: 'Đặt trước thành công! Chúng tôi sẽ thông báo khi sản phẩm có hàng.',
-      preOrder: {
-        id: preOrder._id,
-        product: product.name,
-        quantity: preOrder.quantity,
-        status: preOrder.status
-      }
+      priceAtOrder: product.price,
+      variant: variant || undefined
     });
-    
+    await preOrder.save();
+
+    req.flash('success', 'Đặt trước thành công! Chúng tôi sẽ thông báo khi sản phẩm có hàng.');
+    res.redirect(`/products/${product.slug}`);
+
   } catch (error) {
     console.error('Create pre-order error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Đã xảy ra lỗi khi đặt trước sản phẩm'
-    });
+    req.flash('error', 'Đã xảy ra lỗi khi đặt trước sản phẩm');
+    res.redirect('/products');
   }
 };
 
@@ -495,48 +477,40 @@ exports.createPreOrder = async (req, res) => {
 exports.cancelPreOrder = async (req, res) => {
   try {
     const { preOrderId } = req.params;
-    
+
     if (!req.isAuthenticated()) {
-      return res.status(401).json({
-        success: false,
-        message: 'Vui lòng đăng nhập'
-      });
+      req.flash('error', 'Vui lòng đăng nhập');
+      return res.redirect('/auth/login');
     }
-    
-    const preOrder = await PreOrder.findOne({
-      _id: preOrderId,
-      user: req.user._id
-    });
-    
+
+    const preOrder = await PreOrder.findById(preOrderId);
+
     if (!preOrder) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy đơn đặt trước'
-      });
+      req.flash('error', 'Không tìm thấy đơn đặt trước');
+      return res.redirect('/user/pre-orders');
     }
-    
+
+    // Check authorization - user can only cancel their own pre-orders
+    if (preOrder.user.toString() !== req.user._id.toString()) {
+      req.flash('error', 'Bạn không có quyền hủy đơn đặt trước này');
+      return res.redirect('/user/pre-orders');
+    }
+
     if (preOrder.status === 'converted' || preOrder.status === 'cancelled' || preOrder.status === 'expired') {
-      req.flash('error', 'Không thể hủy đơn đặt trước này');
-      return res.status(400).json({
-        success: false,
-        message: 'Không thể hủy đơn đặt trước này'
-      });
+      req.flash('error', 'Đơn đặt trước này không thể hủy được');
+      return res.redirect('/user/pre-orders');
     }
-    
+
     preOrder.status = 'cancelled';
     await preOrder.save();
-    
-    res.json({
-      success: true,
-      message: 'Đã hủy đặt trước thành công'
-    });
-    
+
+    req.flash('success', 'Đã hủy đặt trước thành công');
+    res.redirect('/user/pre-orders');
+
   } catch (error) {
     console.error('Cancel pre-order error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Đã xảy ra lỗi khi hủy đặt trước'
-    });
+    req.flash('error', 'Đã xảy ra lỗi khi hủy đặt trước');
+    res.redirect('/user/pre-orders');
   }
 };
 
@@ -548,16 +522,16 @@ exports.getUserPreOrders = async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.redirect('/auth/login');
     }
-    
+
     const preOrders = await PreOrder.find({ user: req.user._id })
       .populate('product', 'name images slug price discountPrice')
       .sort({ createdAt: -1 });
-    
+
     res.render('user/pre-orders', {
       title: 'Đơn đặt trước',
       preOrders
     });
-    
+
   } catch (error) {
     console.error('Get user pre-orders error:', error);
     req.flash('error', 'Đã xảy ra lỗi');
@@ -571,71 +545,62 @@ exports.getUserPreOrders = async (req, res) => {
 exports.subscribeNotification = async (req, res) => {
   try {
     const { productId, email, variant } = req.body;
-    
+
     // Validate email
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email không hợp lệ'
-      });
+      req.flash('error', 'Email không hợp lệ');
+      return res.redirect('/products');
     }
-    
+
     const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy sản phẩm'
-      });
+      req.flash('error', 'Không tìm thấy sản phẩm');
+      return res.redirect('/products');
     }
-    
+
     // Check if product is actually out of stock
     if (product.stock > 0) {
       req.flash('error', 'Sản phẩm còn hàng, bạn có thể mua ngay');
-      return res.status(400).json({
-        success: false,
-        message: 'Sản phẩm còn hàng, bạn có thể mua ngay'
-      });
+      return res.redirect(`/products/${product.slug}`);
     }
-    
-    // Subscribe
+
+    // Check for existing subscription directly in DB
+    const existingSubscription = await BackInStockNotification.findOne({
+      product: productId,
+      user: req.isAuthenticated() ? req.user._id : null,
+      email: email
+    });
+
+    if (existingSubscription) {
+      req.flash('error', 'Bạn đã đăng ký nhận thông báo cho sản phẩm này rồi');
+      return res.redirect(`/products/${product.slug}`);
+    }
+
+    // Create subscription directly (validations already done above)
     try {
-      const result = await BackInStockNotification.subscribe({
-        email,
+      const notification = new BackInStockNotification({
+        email: email.toLowerCase(),
         product: productId,
         user: req.isAuthenticated() ? req.user._id : null,
-        variant
+        variant: variant || undefined,
+        status: 'active'
       });
-      
-      if (result.alreadySubscribed) {
-        req.flash('error', 'Bạn đã đăng ký nhận thông báo cho sản phẩm này');
-        return res.json({
-          success: true,
-          message: 'Bạn đã đăng ký nhận thông báo cho sản phẩm này rồi'
-        });
-      }
-      
-      req.flash('success', 'Đăng ký thành công!');
-      res.json({
-        success: true,
-        message: 'Đăng ký thành công! Chúng tôi sẽ gửi email khi sản phẩm có hàng.'
-      });
+      await notification.save();
+
+      req.flash('success', 'Đăng ký thành công! Chúng tôi sẽ gửi email khi sản phẩm có hàng.');
+      res.redirect(`/products/${product.slug}`);
     } catch (subscribeError) {
-      if (subscribeError.message && subscribeError.message.includes('already')) {
-        req.flash('error', 'Bạn đã đăng ký nhận thông báo cho sản phẩm này');
-        return res.json({
-          success: true,
-          message: 'Bạn đã đăng ký nhận thông báo cho sản phẩm này'
-        });
+      if (subscribeError.code === 11000 || (subscribeError.message && subscribeError.message.includes('duplicate'))) {
+        req.flash('error', 'Bạn đã đăng ký nhận thông báo cho sản phẩm này rồi');
+        return res.redirect(`/products/${product.slug}`);
       }
       throw subscribeError;
     }
-    
+
   } catch (error) {
     console.error('Subscribe notification error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Đã xảy ra lỗi khi đăng ký thông báo'
-    });
+    req.flash('error', 'Đã xảy ra lỗi khi đăng ký thông báo');
+    res.redirect('/products');
   }
 };
 
@@ -645,49 +610,34 @@ exports.subscribeNotification = async (req, res) => {
 exports.unsubscribeNotification = async (req, res) => {
   try {
     const { notificationId } = req.params;
-    
+
     if (!req.isAuthenticated()) {
-      return res.status(401).json({
-        success: false,
-        message: 'Vui lòng đăng nhập'
-      });
+      req.flash('error', 'Vui lòng đăng nhập');
+      return res.redirect('/auth/login');
     }
-    
-    const notification = await BackInStockNotification.findOne({
-      _id: notificationId,
-      user: req.user._id
-    });
-    
+
+    const notification = await BackInStockNotification.findById(notificationId);
+
     if (!notification) {
       req.flash('error', 'Không tìm thấy đăng ký thông báo');
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy đăng ký thông báo'
-      });
+      return res.redirect('/user/notifications');
     }
-    
+
+    // Check authorization
     if (notification.user && notification.user.toString() !== req.user._id.toString()) {
       req.flash('error', 'Bạn không có quyền hủy đăng ký này');
-      return res.status(403).json({
-        success: false,
-        message: 'Bạn không có quyền hủy đăng ký này'
-      });
+      return res.redirect('/user/notifications');
     }
-    
+
     await BackInStockNotification.findByIdAndDelete(notificationId);
-    
+
     req.flash('success', 'Đã hủy đăng ký thành công');
-    res.json({
-      success: true,
-      message: 'Đã hủy đăng ký thành công'
-    });
-    
+    res.redirect('/user/notifications');
+
   } catch (error) {
     console.error('Unsubscribe notification error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Đã xảy ra lỗi khi hủy đăng ký'
-    });
+    req.flash('error', 'Đã xảy ra lỗi khi hủy đăng ký');
+    res.redirect('/user/notifications');
   }
 };
 
@@ -699,19 +649,19 @@ exports.getUserNotifications = async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.redirect('/auth/login');
     }
-    
-    const notifications = await BackInStockNotification.find({ 
+
+    const notifications = await BackInStockNotification.find({
       user: req.user._id,
       status: 'active'
     })
-    .populate('product', 'name images slug price discountPrice stock')
-    .sort({ createdAt: -1 });
-    
-    res.render('user/stock-notifications', {
+      .populate('product', 'name images slug price discountPrice stock')
+      .sort({ createdAt: -1 });
+
+    res.render('user/notifications', {
       title: 'Thông báo hàng về',
       notifications
     });
-    
+
   } catch (error) {
     console.error('Get user notifications error:', error);
     req.flash('error', 'Đã xảy ra lỗi');

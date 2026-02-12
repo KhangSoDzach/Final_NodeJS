@@ -475,7 +475,8 @@ describe('Products Controller', () => {
                     product: product._id,
                     user: user2._id,
                     quantity: 1,
-                    email: user2.email,
+                    contactEmail: user2.email,
+                    priceAtOrder: product.price,
                     status: 'pending'
                 });
 
