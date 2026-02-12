@@ -4,8 +4,7 @@
     <div class="admin-header">
         <h1>Quản lý đơn hàng</h1>
         <div class="admin-header-actions">
-            <form action="/admin/orders" method="GET" class="filter-group" style="gap:1rem;">
-                <div class="form-group">
+            <form action="/admin/orders" method="GET" class="filter-group" style="gap:1rem;">                <div class="form-group">
                     <select name="status" class="form-control">
                         <option value="">Tất cả trạng thái</option>
                         <option value="processing" <%= filter && filter.status === 'processing' ? 'selected' : '' %>>Đang xử lý</option>
@@ -13,6 +12,13 @@
                         <option value="shipped" <%= filter && filter.status === 'shipped' ? 'selected' : '' %>>Đang giao hàng</option>
                         <option value="delivered" <%= filter && filter.status === 'delivered' ? 'selected' : '' %>>Đã giao hàng</option>
                         <option value="cancelled" <%= filter && filter.status === 'cancelled' ? 'selected' : '' %>>Đã hủy</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select name="customerType" class="form-control">
+                        <option value="">Tất cả khách hàng</option>
+                        <option value="registered" <%= filter && filter.customerType === 'registered' ? 'selected' : '' %>>Đã đăng ký</option>
+                        <option value="guest" <%= filter && filter.customerType === 'guest' ? 'selected' : '' %>>Khách vãng lai</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -50,7 +56,16 @@
                             <% orders.forEach(order => { %>
                                 <tr>
                                     <td><%= order.orderNumber %></td>
-                                    <td><%= order.users ? order.users.name : 'Khách vãng lai' %></td>
+                                    <td>
+                                        <% if (order.user) { %>
+                                            <%= order.user.name %>
+                                        <% } else { %>
+                                            <span class="badge bg-secondary">Khách vãng lai</span>
+                                            <% if (order.guestEmail) { %>
+                                              <br><small><%= order.guestEmail %></small>
+                                            <% } %>
+                                        <% } %>
+                                    </td>
                                     <td><%= new Date(order.createdAt).toLocaleDateString('vi-VN') %></td>
                                     <td><%= order.totalAmount.toLocaleString('vi-VN') %> ₫</td>
                                     <td>
