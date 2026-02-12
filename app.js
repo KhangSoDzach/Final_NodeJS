@@ -202,7 +202,7 @@ const compareRoutes = require('./routes/compare');
 const questionRoutes = require('./routes/questions');
 const wishlistRoutes = require('./routes/wishlist');
 const searchRoutes = require('./routes/search');
-const seedRoutes = require('./routes/seed'); // TEMPORARY - delete after seeding!
+const importRoutes = require('./routes/import'); // TEMPORARY!
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
@@ -217,7 +217,7 @@ app.use('/compare', compareRoutes);
 app.use('/questions', questionRoutes);
 app.use('/user/wishlist', wishlistRoutes);
 app.use('/search', searchRoutes);
-app.use('/utils', seedRoutes); // TEMPORARY - delete after seeding!
+app.use('/utils', importRoutes); // TEMPORARY!
 
 // API routes (kept parallel to existing EJS routes)
 app.use('/api', require('./routes/api'));
@@ -258,7 +258,7 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
   console.error(err);
-  if (req.originalUrl && req.originalUrl.startsWith('/api')) {
+  if (req.originalUrl && (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/utils'))) {
     return res.status(err.status || 500).json({ success: false, error: process.env.NODE_ENV === 'development' ? err.message : 'Đã xảy ra lỗi trong hệ thống.' });
   }
   res.status(err.status || 500).render('error', {
