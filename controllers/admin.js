@@ -609,7 +609,8 @@ exports.getOrders = async (req, res) => {
       filter.$or = [
         { orderNumber: { $regex: req.query.search, $options: 'i' } },
         { 'shippingAddress.name': { $regex: req.query.search, $options: 'i' } },
-        { 'shippingAddress.phone': { $regex: req.query.search, $options: 'i' } }
+        { 'shippingAddress.phone': { $regex: req.query.search, $options: 'i' } },
+        { 'guestEmail': { $regex: req.query.search, $options: 'i' } }
       ];
     }
 

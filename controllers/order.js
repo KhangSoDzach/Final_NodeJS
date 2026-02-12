@@ -1,6 +1,6 @@
 const Order = require('../models/Order');
 const Cart = require('../models/cart');
-const User = require('../models/user');
+const User = require('../models/user');https://github.com/KhangSoDzach/Final_NodeJS/pull/26/conflict?name=package-lock.json&ancestor_oid=5b55dd347f37ba96a2b06e72fc02fce161c64d3e&base_oid=6e12b0c70176363e9392573c52b41acf74b8d151&head_oid=62096f4f9e20ede86b6c737337f09addb5f8d4cb
 const Product = require('../models/product');
 const nodemailer = require('nodemailer');
 const emailService = require('../utils/emailService');
@@ -27,7 +27,8 @@ exports.trackOrder = async (req, res) => {
     res.render('orders/track', { title: `Theo dõi đơn hàng #${order.orderNumber}`, order });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: 'Đã xảy ra lỗi khi theo dõi đơn hàng.' });
+    req.flash('error', 'Đã xảy ra lỗi khi theo dõi đơn hàng.');
+    res.redirect(req.user ? '/orders/history' : '/');
   }
 };
 
@@ -96,8 +97,16 @@ exports.applyLoyaltyPoints = async (req, res) => {
 
 exports.postCheckout = async (req, res) => {
   try {
-    const { name, address, district, province, phone, paymentMethod, loyaltyPointsToUse } = req.body;    // Lấy giỏ hàng của người dùng
-    const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+    const { name, email, address, district, province, phone, paymentMethod, loyaltyPointsToUse } = req.body;
+    
+    // Find cart based on user or session ID
+    let cart;
+    if (req.user) {
+      cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+    } else if (req.session.cartId) {
+      cart = await Cart.findOne({ sessionId: req.session.cartId }).populate('items.product');
+    }
+
     if (!cart || cart.items.length === 0) {
       req.flash('error', 'Giỏ hàng của bạn đang trống.');
       return res.redirect('/cart');
@@ -155,11 +164,13 @@ exports.postCheckout = async (req, res) => {
     // Lưu thông tin điểm tích lũy vào đơn hàng
     // Điểm tích lũy sẽ được thêm vào tài khoản người dùng khi admin xác nhận đơn hàng đã được giao
 
+
     // Tạo mã đơn hàng duy nhất
-    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;    // Tạo đơn hàng
-    const order = new Order({
-      orderNumber, // Gán giá trị cho orderNumber
-      user: req.user._id,
+    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    
+    // Tạo đơn hàng với thông tin phù hợp cho cả khách và người dùng đã đăng nhập
+    const orderData = {
+      orderNumber,
       items: cart.items,
       totalAmount,
       paymentDetails: { method: paymentMethod },
@@ -174,7 +185,18 @@ exports.postCheckout = async (req, res) => {
       statusHistory: [{ status: 'pending', date: Date.now(), note: 'Đơn hàng đã được tạo.' }],
       loyaltyPointsUsed: loyaltyPointsUsed,
       loyaltyPointsEarned: loyaltyPointsEarned
-    });    // Thêm thông tin giảm giá từ coupon (nếu có)
+    };
+
+    // Thêm thông tin người dùng nếu đã đăng nhập, hoặc email khách nếu là khách
+    if (req.user) {
+      orderData.user = req.user._id;
+    } else if (email) {
+      orderData.guestEmail = email;
+    }
+
+    const order = new Order(orderData);
+
+    // Thêm thông tin giảm giá từ coupon (nếu có)
     if (cart.coupon && cart.coupon.code) {
       order.couponCode = cart.coupon.code;
       order.discount = cart.coupon.discount;
@@ -189,7 +211,6 @@ exports.postCheckout = async (req, res) => {
         console.log(`Coupon ${cart.coupon.code} usage count increased.`);
       } catch (couponError) {
         console.error('Error updating coupon usedCount:', couponError);
-        // Vẫn tiếp tục xử lý đơn hàng ngay cả khi không thể cập nhật số lượng coupon
       }
     }
 
@@ -210,7 +231,6 @@ exports.postCheckout = async (req, res) => {
           product.updateStock(item.quantity);
         }
         await product.save();
-        console.log(`Đã cập nhật tồn kho và số lượng đã bán cho sản phẩm ${product.name}`);
       }
     }
 
@@ -229,15 +249,22 @@ exports.postCheckout = async (req, res) => {
       console.log(`Order confirmation email sent to ${req.user.email}`);
     } catch (emailError) {
       console.error('Error sending order confirmation email:', emailError);
-      // Continue execution even if email fails
+    }    // If guest checkout, store the order ID in session for security verification
+    if (!req.user) {
+      // Initialize the array if it doesn't exist
+      if (!req.session.guestOrderIds) {
+        req.session.guestOrderIds = [];
+      }
+      // Add the current order ID to the session
+      req.session.guestOrderIds.push(order._id.toString());
     }
-
-    // Chuyển hướng đến trang success
-    res.redirect(`/orders/success/${order._id}`);
+    
+    // Chuyển hướng đến trang success với thông tin đơn hàng
+    return res.redirect(`/orders/success/${order._id}`);
   } catch (err) {
     console.error('Lỗi khi xử lý thanh toán:', err);
     req.flash('error', 'Đã xảy ra lỗi khi xử lý thanh toán.');
-    res.redirect('/orders/checkout');
+    return res.redirect('/orders/checkout');
   }
 };
 
@@ -255,26 +282,23 @@ exports.getCheckout = async (req, res) => {
       return res.redirect('/cart');
     }
 
-    // Fetch complete user with addresses
-    const user = await User.findById(req.user._id);
-
-    // Find the default address for auto-selection
+    // Variables for user data
+    let user = null;
     let defaultAddress = null;
-    if (user && user.addresses && user.addresses.length > 0) {
-      defaultAddress = user.addresses.find(addr => addr.default === true);
-    }
+    let loyaltyPoints = 0;
+    let maxPointsApplicable = 0;
 
-    // Tính toán số điểm tích lũy tối đa có thể sử dụng cho đơn hàng này
-    const totalAmount = cart.coupon ? cart.calculateTotalWithDiscount() : cart.calculateTotal();
-    const maxPointsApplicable = Math.min(user.loyaltyPoints, Math.floor(totalAmount / 1000));
+    // If user is logged in, fetch their data
+    if (req.user) {
+      user = await User.findById(req.user._id);
 
     res.render('orders/checkout', {
       title: 'Thanh toán',
       cart,
       user,
       defaultAddress,
-      loyaltyPoints: user.loyaltyPoints,
-      maxPointsApplicable: maxPointsApplicable,
+      loyaltyPoints,
+      maxPointsApplicable,
       loyaltyPointsValue: maxPointsApplicable * 1000
     });
   } catch (err) {
