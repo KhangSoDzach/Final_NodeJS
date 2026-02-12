@@ -258,7 +258,7 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
   console.error(err);
-  if (req.originalUrl && req.originalUrl.startsWith('/api')) {
+  if (req.originalUrl && (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/utils'))) {
     return res.status(err.status || 500).json({ success: false, error: process.env.NODE_ENV === 'development' ? err.message : 'Đã xảy ra lỗi trong hệ thống.' });
   }
   res.status(err.status || 500).render('error', {
