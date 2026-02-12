@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: sourcecomputer
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: npm ci && npm run frontend:build && npm run seed
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 18.20.4
+      - key: MONGODB_URI
+        sync: false # Set manually in Render Dashboard
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALLBACK_URL
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false

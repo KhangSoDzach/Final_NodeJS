@@ -63,7 +63,7 @@ global.broadcastReview = (productSlug, review) => {
 };
 
 // Database connection - Sửa đường dẫn kết nối
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/sourcecomputer')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/sourcecomputer')
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -103,7 +103,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI || 'mongodb://mongo:27017/sourcecomputer',
+    mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/sourcecomputer',
     ttl: 24 * 60 * 60 // Session expire sau 1 ngày
   }),
   cookie: {
@@ -143,13 +143,6 @@ app.use((req, res, next) => {
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.warning = req.flash('warning');
-
-  // For debugging
-  console.log('Session ID:', req.sessionID);
-  console.log('Flash messages:', {
-    success: res.locals.success,
-    error: res.locals.error
-  });
 
   next();
 });
