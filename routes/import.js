@@ -1,58 +1,77 @@
 /**
- * Import route - upload products JSON to production
+ * Import route - Upload data-export.json to production
  * DELETE sau khi import xong!
  */
 
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/product');
-const fs = require('fs');
-const path = require('path');
+const User = require('../models/user');
+const Coupon = require('../models/coupon');
 
-// Import products from products-export.json
-router.get('/import-products', async (req, res) => {
+// Import từ JSON data
+router.post('/import-data', async (req, res) => {
   try {
-    const exportPath = path.join(__dirname, '../products-export.json');
-    
-    if (!fs.existsSync(exportPath)) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'products-export.json not found. Please upload it to server.' 
-      });
+    const { products, admins, coupons } = req.body;
+
+    if (!products || !Array.isArray(products)) {
+      return res.status(400).json({ error: 'Invalid data format' });
     }
 
-    const productsJson = fs.readFileSync(exportPath, 'utf8');
-    const products = JSON.parse(productsJson);
-    
-    // Insert products (skip duplicates)
     const results = {
-      total: products.length,
-      imported: 0,
-      skipped: 0,
-      errors: []
+      products: { imported: 0, skipped: 0 },
+      admins: { imported: 0, skipped: 0 },
+      coupons: { imported: 0, skipped: 0 }
     };
 
+    // Import Products
     for (const product of products) {
-      try {
+      const exists = await Product.findOne({ slug: product.slug });
+      if (!exists) {
+        delete product._id;
         await Product.create(product);
-        results.imported++;
-      } catch (error) {
-        if (error.code === 11000) {
-          results.skipped++;
+        results.products.imported++;
+      } else {
+        results.products.skipped++;
+      }
+    }
+
+    // Import Admins
+    if (admins && Array.isArray(admins)) {
+      for (const admin of admins) {
+        const exists = await User.findOne({ email: admin.email });
+        if (!exists) {
+          delete admin._id;
+          await User.create(admin);
+          results.admins.imported++;
         } else {
-          results.errors.push({ slug: product.slug, error: error.message });
+          results.admins.skipped++;
+        }
+      }
+    }
+
+    // Import Coupons
+    if (coupons && Array.isArray(coupons)) {
+      for (const coupon of coupons) {
+        const exists = await Coupon.findOne({ code: coupon.code });
+        if (!exists) {
+          delete coupon._id;
+          await Coupon.create(coupon);
+          results.coupons.imported++;
+        } else {
+          results.coupons.skipped++;
         }
       }
     }
 
     res.json({
       success: true,
-      message: 'Import completed',
-      results,
-      note: 'Remember to delete routes/import.js after import!'
+      message: 'Import completed!',
+      results
     });
 
   } catch (error) {
+    console.error('Import error:', error);
     res.status(500).json({
       success: false,
       error: error.message
