@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/order');
-const { isAuth } = require('../middleware/auth');
+const { isAuth, allowGuest } = require('../middleware/auth');
 const { initGuestCart } = require('../middleware/guestCart');
 
 // =============================================
