@@ -137,6 +137,13 @@ app.use(i18nMiddleware);
 
 // Flash and User Middleware - setting up global variables for templates
 app.use((req, res, next) => {
+  // Ngăn browser cache HTML pages - đảm bảo auth state luôn fresh
+  if (!req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|webp)$/i)) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+
   // User authentication data
   res.locals.isAuthenticated = req.isAuthenticated();
   res.locals.isAdmin = req.user && req.user.role === 'admin';

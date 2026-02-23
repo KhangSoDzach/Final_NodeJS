@@ -8,7 +8,7 @@
  * - HTML pages: Stale While Revalidate
  */
 
-const CACHE_NAME = 'sourcecomputer-v1.0.0';
+const CACHE_NAME = 'sourcecomputer-v1.1.0';
 const OFFLINE_URL = '/offline.html';
 
 // Assets cần cache ngay khi install
@@ -113,9 +113,13 @@ self.addEventListener('fetch', (event) => {
   } else if (CACHE_PATTERNS.api.test(url.pathname)) {
     // API CALLS: Network First
     event.respondWith(networkFirst(request));
+  } else if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
+    // HTML PAGES: Network First - QUAN TRỌNG: luôn lấy fresh HTML
+    // để header hiển thị đúng trạng thái đăng nhập/đăng xuất ngay lập tức
+    event.respondWith(networkFirstHtml(request));
   } else {
-    // HTML PAGES: Stale While Revalidate
-    event.respondWith(staleWhileRevalidate(request));
+    // Other: Network First
+    event.respondWith(networkFirst(request));
   }
 });
 
@@ -186,33 +190,27 @@ async function networkFirst(request) {
 }
 
 /**
- * Stale While Revalidate - Trả cache ngay, update background
- * Phù hợp cho: HTML pages, content thay đổi không quá thường xuyên
+ * Network First for HTML - Luôn lấy từ network, KHÔNG cache HTML
+ * Đảm bảo trạng thái đăng nhập/đăng xuất luôn được cập nhật ngay
  */
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(CACHE_NAME);
-  const cachedResponse = await caches.match(request);
-  
-  // Fetch từ network trong background
-  const fetchPromise = fetch(request)
-    .then((networkResponse) => {
-      if (networkResponse.ok) {
-        cache.put(request, networkResponse.clone());
-      }
-      return networkResponse;
-    })
-    .catch(async (error) => {
-      console.log('[SW] Network failed for page:', request.url);
-      // Nếu không có cache, trả về offline page
-      if (!cachedResponse) {
-        const offlinePage = await caches.match(OFFLINE_URL);
-        return offlinePage || new Response('Offline', { status: 503 });
-      }
-      throw error;
+async function networkFirstHtml(request) {
+  try {
+    const networkResponse = await fetch(request);
+    // KHÔNG cache HTML pages - để tránh trả cache cũ khi auth state thay đổi
+    return networkResponse;
+  } catch (error) {
+    console.log('[SW] Network failed for HTML page, checking cache:', request.url);
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    // Fallback sang offline page
+    const offlinePage = await caches.match(OFFLINE_URL);
+    return offlinePage || new Response('Đang offline. Vui lòng kiểm tra kết nối mạng.', {
+      status: 503,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' }
     });
-
-  // Trả cached response ngay nếu có, không thì chờ network
-  return cachedResponse || fetchPromise;
+  }
 }
 
 // ============================================

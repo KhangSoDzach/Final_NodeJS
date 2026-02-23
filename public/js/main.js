@@ -541,3 +541,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 });
+
+// ============================================================
+// BFCache fix: khi nhấn Back/Forward, reload nếu trang restore
+// từ bộ nhớ cache của browser để đảm bảo trạng thái auth đúng
+// ============================================================
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
