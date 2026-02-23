@@ -44,6 +44,11 @@ router.post(
 router.get('/google', authController.getGoogleAuth);
 router.get('/google/callback', authController.getGoogleCallback);
 
+// OTP email verification (after register)
+router.get('/verify-otp', authController.getVerifyOtp);
+router.post('/verify-otp', authController.postVerifyOtp);
+router.post('/resend-otp', authController.postResendOtp);
+
 // Forgot password routes
 router.get('/forgot-password', isGuest, authController.getForgotPassword);
 router.post('/forgot-password', isGuest, authController.postForgotPassword);

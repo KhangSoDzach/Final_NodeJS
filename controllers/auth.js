@@ -121,55 +121,184 @@ exports.postRegister = async (req, res) => {
         email: ''
       });
     }
-    
-    // Hash password
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    // Store registration data and OTP in session
+    req.session.pendingRegistration = {
+      name,
+      email,
+      password, // will be hashed after OTP verification
+      otp,
+      otpExpires,
+      attempts: 0
+    };
+
+    // Send OTP email
+    const emailSent = await mailer.sendOtpEmail(email, otp, name);
+    if (!emailSent) {
+      req.flash('error', 'Không thể gửi email xác thực. Vui lòng thử lại.');
+      return res.render('auth/register', {
+        title: 'Đăng ký',
+        error: req.flash('error'),
+        success: req.flash('success'),
+        name,
+        email
+      });
+    }
+
+    req.session.save((err) => {
+      if (err) console.error('Session save error:', err);
+      res.redirect('/auth/verify-otp');
+    });
+
+  } catch (err) {
+    console.error('Registration error:', err);
+    req.flash('error', 'Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại.');
+    res.redirect('/auth/register');
+  }
+};
+
+// OTP Verification controllers
+exports.getVerifyOtp = (req, res) => {
+  if (!req.session.pendingRegistration) {
+    return res.redirect('/auth/register');
+  }
+  const { email } = req.session.pendingRegistration;
+  res.render('auth/verify-otp', {
+    title: 'Xác thực email',
+    email,
+    error: req.flash('error'),
+    success: req.flash('success')
+  });
+};
+
+exports.postVerifyOtp = async (req, res) => {
+  const pending = req.session.pendingRegistration;
+
+  if (!pending) {
+    req.flash('error', 'Phiên đăng ký đã hết hạn. Vui lòng thực hiện lại.');
+    return res.redirect('/auth/register');
+  }
+
+  // Check OTP expiry
+  if (Date.now() > pending.otpExpires) {
+    delete req.session.pendingRegistration;
+    req.flash('error', 'Mã OTP đã hết hạn. Vui lòng đăng ký lại.');
+    return res.redirect('/auth/register');
+  }
+
+  // Max 5 attempts
+  if (pending.attempts >= 5) {
+    delete req.session.pendingRegistration;
+    req.flash('error', 'Bạn đã nhập sai quá nhiều lần. Vui lòng đăng ký lại.');
+    return res.redirect('/auth/register');
+  }
+
+  const enteredOtp = (req.body.otp || '').trim();
+
+  if (enteredOtp !== pending.otp) {
+    pending.attempts += 1;
+    req.session.pendingRegistration = pending;
+    const remaining = 5 - pending.attempts;
+    req.flash('error', `Mã OTP không đúng. Còn ${remaining} lần thử.`);
+    return res.render('auth/verify-otp', {
+      title: 'Xác thực email',
+      email: pending.email,
+      error: req.flash('error'),
+      success: req.flash('success')
+    });
+  }
+
+  // OTP correct — create user
+  try {
+    const { name, email, password } = pending;
+
+    // Final check email not taken during OTP window
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      delete req.session.pendingRegistration;
+      req.flash('error', 'Email đã được đăng ký bởi người khác. Vui lòng dùng email khác.');
+      return res.redirect('/auth/register');
+    }
+
     const hashedPassword = await bcrypt.hash(password, 12);
-    
-    // Create new user
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
       role: 'customer'
     });
-    
     await newUser.save();
-    
-    // Move guest cart to user cart if exists
+
+    // Clear pending registration
+    delete req.session.pendingRegistration;
+
+    // Move guest cart if exists
     if (req.session.cartId) {
       const guestCart = await Cart.findOne({ sessionId: req.session.cartId });
-      
       if (guestCart) {
         guestCart.user = newUser._id;
         guestCart.sessionId = null;
         await guestCart.save();
-        
         delete req.session.cartId;
       }
     }
-    
-    // Login the user after registration
+
+    // Auto login after registration
     req.login(newUser, (err) => {
       if (err) {
         console.error('Error logging in after registration:', err);
         req.flash('success', 'Đăng ký thành công! Vui lòng đăng nhập.');
         return res.redirect('/auth/login');
       }
-      
-      // Save session before redirect to ensure login state is persisted
       req.session.save((err) => {
-        if (err) {
-          console.error('Session save error:', err);
-        }
-        req.flash('success', 'Đăng ký thành công!');
+        if (err) console.error('Session save error:', err);
+        req.flash('success', `Chào mừng ${name} đến với Source Computer! 🎉`);
         res.redirect('/');
       });
     });
+
   } catch (err) {
-    console.error('Registration error:', err);
-    req.flash('error', 'Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại.');
+    console.error('OTP verification error:', err);
+    req.flash('error', 'Đã xảy ra lỗi. Vui lòng thử lại.');
     res.redirect('/auth/register');
   }
+};
+
+exports.postResendOtp = async (req, res) => {
+  const pending = req.session.pendingRegistration;
+
+  if (!pending) {
+    return res.redirect('/auth/register');
+  }
+
+  // Giới hạn resend: 1 lần/phút
+  if (pending.lastResent && Date.now() - pending.lastResent < 60 * 1000) {
+    req.flash('error', 'Vui lòng đợi 1 phút trước khi gửi lại mã.');
+    return res.redirect('/auth/verify-otp');
+  }
+
+  // Tạo OTP mới
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  pending.otp = otp;
+  pending.otpExpires = Date.now() + 10 * 60 * 1000;
+  pending.attempts = 0;
+  pending.lastResent = Date.now();
+  req.session.pendingRegistration = pending;
+
+  const emailSent = await mailer.sendOtpEmail(pending.email, otp, pending.name);
+
+  req.session.save(() => {
+    if (emailSent) {
+      req.flash('success', 'Mã OTP mới đã được gửi đến email của bạn.');
+    } else {
+      req.flash('error', 'Không thể gửi email. Vui lòng thử lại.');
+    }
+    res.redirect('/auth/verify-otp');
+  });
 };
 
 // Google OAuth controllers

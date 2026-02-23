@@ -1,0 +1,90 @@
+<div class="auth-container">
+    <h1>Xác thực Email</h1>
+
+    <p class="otp-subtitle">
+        Chúng tôi đã gửi mã xác thực 6 chữ số đến<br>
+        <strong><%= email %></strong>
+    </p>
+
+    <% if (locals.error && error.length > 0) { %>
+        <div class="alert alert-danger">
+            <%= Array.isArray(error) ? error[0] : error %>
+        </div>
+    <% } %>
+    <% if (locals.success && success.length > 0) { %>
+        <div class="alert alert-success">
+            <%= Array.isArray(success) ? success[0] : success %>
+        </div>
+    <% } %>
+
+    <form action="/auth/verify-otp" method="POST" autocomplete="off">
+        <div class="form-group otp-input-group">
+            <label for="otp">Nhập mã OTP</label>
+            <input
+                type="text"
+                id="otp"
+                name="otp"
+                maxlength="6"
+                pattern="\d{6}"
+                inputmode="numeric"
+                placeholder="• • • • • •"
+                required
+                autofocus
+                style="letter-spacing: 10px; font-size: 24px; text-align: center; font-weight: bold;"
+            >
+        </div>
+
+        <div id="otp-timer" style="text-align:center; margin-bottom: 16px; color: #e53e3e; font-weight: 600;">
+            Mã hết hạn sau: <span id="countdown">10:00</span>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" style="width:100%">Xác nhận</button>
+        </div>
+    </form>
+
+    <div style="text-align:center; margin-top: 20px;">
+        <p style="color: #666; font-size: 14px;">Không nhận được mã?</p>
+        <form action="/auth/resend-otp" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-outline" style="font-size: 14px; padding: 8px 20px;">
+                Gửi lại mã
+            </button>
+        </form>
+    </div>
+
+    <div class="auth-links" style="margin-top: 20px;">
+        <p><a href="/auth/register">← Quay lại đăng ký</a></p>
+    </div>
+</div>
+
+<script>
+    // Đếm ngược 10 phút
+    (function () {
+        let seconds = 10 * 60;
+        const el = document.getElementById('countdown');
+        if (!el) return;
+
+        const timer = setInterval(() => {
+            seconds--;
+            if (seconds <= 0) {
+                clearInterval(timer);
+                el.textContent = '00:00';
+                document.getElementById('otp-timer').style.color = '#e53e3e';
+                document.querySelector('button[type="submit"]').disabled = true;
+                document.querySelector('button[type="submit"]').textContent = 'Mã đã hết hạn';
+                return;
+            }
+            const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+            const s = String(seconds % 60).padStart(2, '0');
+            el.textContent = `${m}:${s}`;
+            if (seconds <= 60) {
+                document.getElementById('otp-timer').style.color = '#e53e3e';
+            }
+        }, 1000);
+    })();
+
+    // Chỉ nhận số trong ô OTP
+    document.getElementById('otp').addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 6);
+    });
+</script>

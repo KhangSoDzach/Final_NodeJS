@@ -344,8 +344,50 @@ exports.sendBackInStockNotification = async (subscription) => {
 };
 
 /**
- * Gửi email cảnh báo tồn kho thấp cho admin
+ * Gửi email OTP xác thực đăng ký tài khoản
  */
+exports.sendOtpEmail = async (email, otp, name) => {
+  try {
+    const mailOptions = {
+      from: `"Source Computer" <${process.env.EMAIL_USER || emailConfig.auth.user}>`,
+      to: email,
+      subject: `[Source Computer] Mã xác thực đăng ký tài khoản: ${otp}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #0066cc;">Source Computer</h1>
+          </div>
+
+          <p>Xin chào <strong>${name}</strong>,</p>
+          <p>Cảm ơn bạn đã đăng ký tài khoản tại <strong>Source Computer</strong>.</p>
+          <p>Vui lòng sử dụng mã OTP bên dưới để hoàn tất xác thực tài khoản:</p>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <div style="display: inline-block; background: #f0f7ff; border: 2px dashed #0066cc; border-radius: 12px; padding: 20px 40px;">
+              <span style="font-size: 36px; font-weight: bold; letter-spacing: 10px; color: #0066cc;">${otp}</span>
+            </div>
+          </div>
+
+          <p style="color: #e53e3e; font-weight: bold;">⏰ Mã này sẽ hết hạn sau <strong>10 phút</strong>.</p>
+          <p>Nếu bạn không thực hiện yêu cầu này, hãy bỏ qua email này.</p>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; font-size: 12px;">
+            <p>© ${new Date().getFullYear()} Source Computer. Mọi quyền được bảo lưu.</p>
+          </div>
+        </div>
+      `,
+      text: `Mã OTP xác thực đăng ký tài khoản Source Computer của bạn là: ${otp}. Mã này hết hạn sau 10 phút.`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('OTP email sent to:', email, '| messageId:', info.messageId);
+    return true;
+  } catch (error) {
+    console.error('OTP email send error:', error);
+    return false;
+  }
+};
+
 exports.sendLowStockAlert = async (products, adminEmail) => {
   try {
     const productList = products.map(p => `
