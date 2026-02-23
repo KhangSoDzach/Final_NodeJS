@@ -163,116 +163,164 @@ exports.postRegister = async (req, res) => {
 
 // OTP Verification controllers
 exports.getVerifyOtp = (req, res) => {
-  if (!req.session.pendingRegistration) {
+  const pending = req.session.pendingRegistration || req.session.pendingGoogleRegistration;
+  if (!pending) {
     return res.redirect('/auth/register');
   }
-  const { email } = req.session.pendingRegistration;
   res.render('auth/verify-otp', {
     title: 'Xác thực email',
-    email,
+    email: pending.email,
+    isGoogle: !!req.session.pendingGoogleRegistration,
     error: req.flash('error'),
     success: req.flash('success')
   });
 };
 
 exports.postVerifyOtp = async (req, res) => {
-  const pending = req.session.pendingRegistration;
+  const isGoogle = !!req.session.pendingGoogleRegistration;
+  const pending = isGoogle ? req.session.pendingGoogleRegistration : req.session.pendingRegistration;
+  const cancelUrl = isGoogle ? '/auth/login' : '/auth/register';
 
   if (!pending) {
     req.flash('error', 'Phiên đăng ký đã hết hạn. Vui lòng thực hiện lại.');
-    return res.redirect('/auth/register');
+    return res.redirect(cancelUrl);
   }
 
   // Check OTP expiry
   if (Date.now() > pending.otpExpires) {
-    delete req.session.pendingRegistration;
-    req.flash('error', 'Mã OTP đã hết hạn. Vui lòng đăng ký lại.');
-    return res.redirect('/auth/register');
+    if (isGoogle) delete req.session.pendingGoogleRegistration;
+    else delete req.session.pendingRegistration;
+    req.flash('error', 'Mã OTP đã hết hạn. Vui lòng thực hiện lại.');
+    return res.redirect(cancelUrl);
   }
 
   // Max 5 attempts
   if (pending.attempts >= 5) {
-    delete req.session.pendingRegistration;
-    req.flash('error', 'Bạn đã nhập sai quá nhiều lần. Vui lòng đăng ký lại.');
-    return res.redirect('/auth/register');
+    if (isGoogle) delete req.session.pendingGoogleRegistration;
+    else delete req.session.pendingRegistration;
+    req.flash('error', 'Bạn đã nhập sai quá nhiều lần. Vui lòng thực hiện lại.');
+    return res.redirect(cancelUrl);
   }
 
   const enteredOtp = (req.body.otp || '').trim();
 
   if (enteredOtp !== pending.otp) {
     pending.attempts += 1;
-    req.session.pendingRegistration = pending;
+    if (isGoogle) req.session.pendingGoogleRegistration = pending;
+    else req.session.pendingRegistration = pending;
     const remaining = 5 - pending.attempts;
     req.flash('error', `Mã OTP không đúng. Còn ${remaining} lần thử.`);
     return res.render('auth/verify-otp', {
       title: 'Xác thực email',
       email: pending.email,
+      isGoogle,
       error: req.flash('error'),
       success: req.flash('success')
     });
   }
 
-  // OTP correct — create user
+  // OTP correct
   try {
-    const { name, email, password } = pending;
+    let newUser;
 
-    // Final check email not taken during OTP window
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      delete req.session.pendingRegistration;
-      req.flash('error', 'Email đã được đăng ký bởi người khác. Vui lòng dùng email khác.');
-      return res.redirect('/auth/register');
-    }
+    if (isGoogle) {
+      // Create Google user
+      const { googleId, name, email, avatar, returnTo } = pending;
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const newUser = new User({
-      name,
-      email,
-      password: hashedPassword,
-      role: 'customer'
-    });
-    await newUser.save();
-
-    // Clear pending registration
-    delete req.session.pendingRegistration;
-
-    // Move guest cart if exists
-    if (req.session.cartId) {
-      const guestCart = await Cart.findOne({ sessionId: req.session.cartId });
-      if (guestCart) {
-        guestCart.user = newUser._id;
-        guestCart.sessionId = null;
-        await guestCart.save();
-        delete req.session.cartId;
+      // Final check
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        // Link Google ID if not linked yet
+        if (!existingUser.googleId) {
+          existingUser.googleId = googleId;
+          await existingUser.save();
+        }
+        newUser = existingUser;
+      } else {
+        newUser = new User({
+          googleId,
+          name,
+          email,
+          avatar,
+          role: 'customer',
+          loyaltyPoints: 0
+        });
+        await newUser.save();
       }
-    }
 
-    // Auto login after registration
-    req.login(newUser, (err) => {
-      if (err) {
-        console.error('Error logging in after registration:', err);
-        req.flash('success', 'Đăng ký thành công! Vui lòng đăng nhập.');
-        return res.redirect('/auth/login');
+      delete req.session.pendingGoogleRegistration;
+
+      // Move guest cart
+      if (req.session.cartId) {
+        const guestCart = await Cart.findOne({ sessionId: req.session.cartId });
+        if (guestCart) {
+          guestCart.user = newUser._id;
+          guestCart.sessionId = null;
+          await guestCart.save();
+          delete req.session.cartId;
+        }
       }
-      req.session.save((err) => {
-        if (err) console.error('Session save error:', err);
-        req.flash('success', `Chào mừng ${name} đến với Source Computer! 🎉`);
-        res.redirect('/');
+
+      return req.login(newUser, (err) => {
+        if (err) return res.redirect('/auth/login');
+        req.session.save(() => {
+          req.flash('success', `Chào mừng ${name} đến với Source Computer! 🎉`);
+          res.redirect(returnTo || '/');
+        });
       });
-    });
+
+    } else {
+      // Create regular user
+      const { name, email, password } = pending;
+
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        delete req.session.pendingRegistration;
+        req.flash('error', 'Email đã được đăng ký bởi người khác. Vui lòng dùng email khác.');
+        return res.redirect('/auth/register');
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 12);
+      newUser = new User({ name, email, password: hashedPassword, role: 'customer' });
+      await newUser.save();
+
+      delete req.session.pendingRegistration;
+
+      if (req.session.cartId) {
+        const guestCart = await Cart.findOne({ sessionId: req.session.cartId });
+        if (guestCart) {
+          guestCart.user = newUser._id;
+          guestCart.sessionId = null;
+          await guestCart.save();
+          delete req.session.cartId;
+        }
+      }
+
+      return req.login(newUser, (err) => {
+        if (err) {
+          req.flash('success', 'Đăng ký thành công! Vui lòng đăng nhập.');
+          return res.redirect('/auth/login');
+        }
+        req.session.save(() => {
+          req.flash('success', `Chào mừng ${name} đến với Source Computer! 🎉`);
+          res.redirect('/');
+        });
+      });
+    }
 
   } catch (err) {
     console.error('OTP verification error:', err);
     req.flash('error', 'Đã xảy ra lỗi. Vui lòng thử lại.');
-    res.redirect('/auth/register');
+    res.redirect(isGoogle ? '/auth/login' : '/auth/register');
   }
 };
 
 exports.postResendOtp = async (req, res) => {
-  const pending = req.session.pendingRegistration;
+  const isGoogle = !!req.session.pendingGoogleRegistration;
+  const pending = isGoogle ? req.session.pendingGoogleRegistration : req.session.pendingRegistration;
 
   if (!pending) {
-    return res.redirect('/auth/register');
+    return res.redirect(isGoogle ? '/auth/login' : '/auth/register');
   }
 
   // Giới hạn resend: 1 lần/phút
@@ -287,7 +335,9 @@ exports.postResendOtp = async (req, res) => {
   pending.otpExpires = Date.now() + 10 * 60 * 1000;
   pending.attempts = 0;
   pending.lastResent = Date.now();
-  req.session.pendingRegistration = pending;
+
+  if (isGoogle) req.session.pendingGoogleRegistration = pending;
+  else req.session.pendingRegistration = pending;
 
   const emailSent = await mailer.sendOtpEmail(pending.email, otp, pending.name);
 
@@ -318,36 +368,54 @@ exports.getGoogleAuth = (req, res, next) => {
 exports.getGoogleCallback = (req, res, next) => {
   const returnTo = req.session.returnTo || '/';
   delete req.session.returnTo;
-  
+
   console.log('Google callback received, session ID:', req.sessionID);
   console.log('Callback URL:', req.originalUrl);
-  
-  passport.authenticate('google', (err, user, info) => {
-    if (err) {
-      return next(err);
-    }
-    
+
+  passport.authenticate('google', async (err, user, info) => {
+    if (err) return next(err);
+
     if (!user) {
       req.flash('error', 'Đăng nhập bằng Google thất bại.');
       return res.redirect('/auth/login');
     }
-      // Check if user is banned
+
+    // NEW Google user — needs OTP verification
+    if (user.needsGoogleOtp) {
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpires = Date.now() + 10 * 60 * 1000;
+
+      req.session.pendingGoogleRegistration = {
+        googleId: user.googleId,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        otp,
+        otpExpires,
+        attempts: 0,
+        returnTo
+      };
+
+      const emailSent = await mailer.sendOtpEmail(user.email, otp, user.name);
+      return req.session.save(() => {
+        if (!emailSent) {
+          req.flash('error', 'Không thể gửi email xác thực. Vui lòng thử lại.');
+          return res.redirect('/auth/login');
+        }
+        res.redirect('/auth/verify-otp');
+      });
+    }
+
+    // Existing user — check banned
     if (user.isBanned) {
-      req.flash('error', 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên để biết thêm chi tiết.');
+      req.flash('error', 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.');
       return res.redirect('/auth/login?banned=true');
     }
-    
-    // If user is valid and not banned, log them in
+
     req.login(user, (err) => {
-      if (err) {
-        return next(err);
-      }
-      
-      // Save session before redirect to ensure login state is persisted
+      if (err) return next(err);
       req.session.save((err) => {
-        if (err) {
-          return next(err);
-        }
+        if (err) return next(err);
         req.flash('success', 'Đăng nhập thành công!');
         return res.redirect(returnTo);
       });

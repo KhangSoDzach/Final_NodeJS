@@ -78,32 +78,15 @@ module.exports = function(passport) {
             return done(null, user);
           }
           
-          console.log('Creating new Google user:', profile.emails[0].value);
-          // Create new user
-          const newUser = new User({
+          console.log('New Google user needs OTP verification:', profile.emails[0].value);
+          // Signal to controller that OTP verification is needed before creating account
+          return done(null, {
+            needsGoogleOtp: true,
             googleId: profile.id,
             name: profile.displayName,
             email: profile.emails[0].value,
-            role: 'customer',
-            loyaltyPoints: 0
+            avatar: profile.photos?.[0]?.value || null
           });
-          
-          await newUser.save();
-          
-          // Move guest cart to user cart if exists
-          if (req.session && req.session.cartId) {
-            const guestCart = await Cart.findOne({ sessionId: req.session.cartId });
-            
-            if (guestCart) {
-              guestCart.user = newUser._id;
-              guestCart.sessionId = null;
-              await guestCart.save();
-              
-              delete req.session.cartId;
-            }
-          }
-          
-          return done(null, newUser);
         } catch (err) {
           console.error('Google authentication error:', err);
           return done(err);
