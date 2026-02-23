@@ -4,7 +4,7 @@ services:
     runtime: node
     region: singapore
     plan: free
-    buildCommand: npm ci && npm run frontend:build && npm run seed
+    buildCommand: npm ci && npm run frontend:build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
