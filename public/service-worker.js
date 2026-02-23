@@ -29,7 +29,7 @@ const PRECACHE_ASSETS = [
 // Patterns để xác định loại request
 const CACHE_PATTERNS = {
   static: /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/i,
-  api: /\/(api|auth|cart|order|products\/.*\/review)/i,
+  api: /\/(api|cart|order|products\/.*\/review)/i,
   page: /^https?:\/\/[^\/]+\/?(?!api|uploads|icons)[^\.]*$/i
 };
 
@@ -98,6 +98,11 @@ self.addEventListener('fetch', (event) => {
   
   // Bỏ qua WebSocket
   if (url.protocol === 'ws:' || url.protocol === 'wss:') {
+    return;
+  }
+
+  // Bỏ qua auth routes - để browser xử lý trực tiếp (quan trọng cho Google OAuth callback)
+  if (url.pathname.startsWith('/auth/')) {
     return;
   }
 
