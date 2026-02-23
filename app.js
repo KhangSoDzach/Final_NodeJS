@@ -244,6 +244,26 @@ if (fs.existsSync(path.join(distPath, 'index.html'))) {
   });
 }
 
+// Health check endpoint - used for keep-alive pings (e.g. UptimeRobot, cron-job.org)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Self-ping to prevent Render free tier from spinning down (every 14 minutes)
+if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
+  const https = require('https');
+  const PING_INTERVAL = 14 * 60 * 1000; // 14 minutes
+  setInterval(() => {
+    const url = `${process.env.RENDER_EXTERNAL_URL}/health`;
+    https.get(url, (res) => {
+      console.log(`[Keep-alive] Pinged ${url} — status: ${res.statusCode}`);
+    }).on('error', (err) => {
+      console.error('[Keep-alive] Ping failed:', err.message);
+    });
+  }, PING_INTERVAL);
+  console.log('[Keep-alive] Self-ping enabled every 14 minutes');
+}
+
 // Error handling
 app.use((req, res, next) => {
   if (req.originalUrl && req.originalUrl.startsWith('/api')) {

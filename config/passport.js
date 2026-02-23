@@ -49,8 +49,11 @@ module.exports = function(passport) {
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost/auth/google/callback',
-        passReqToCallback: true // Bật tùy chọn này để truy cập req trong callback
+        callbackURL: process.env.GOOGLE_CALLBACK_URL ||
+          (process.env.RENDER_EXTERNAL_URL
+            ? `${process.env.RENDER_EXTERNAL_URL}/auth/google/callback`
+            : 'http://localhost:3000/auth/google/callback'),
+        passReqToCallback: true
       },
       async (req, accessToken, refreshToken, profile, done) => {
         try {
