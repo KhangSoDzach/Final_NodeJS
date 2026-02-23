@@ -94,8 +94,10 @@ app.use(helmet({
 }));
 app.use(compression());
 
-// Trust proxy - QUAN TRỌNG khi dùng Nginx reverse proxy
+// Trust proxy - QUAN TRỌNG khi dùng Nginx/Render reverse proxy
 app.set('trust proxy', 1);
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Session configuration
 app.use(session({
@@ -104,13 +106,14 @@ app.use(session({
   saveUninitialized: false,
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/sourcecomputer',
-    ttl: 24 * 60 * 60 // Session expire sau 1 ngày
+    ttl: 24 * 60 * 60, // Session expire sau 1 ngày
+    touchAfter: 24 * 3600 // Chỉ update session sau 24h nếu không thay đổi
   }),
   cookie: {
     maxAge: 1000 * 60 * 60 * 24, // 1 ngày
-    secure: false, // Set true nếu dùng HTTPS
+    secure: isProduction, // true trên Render (HTTPS), false khi local
     httpOnly: true,
-    sameSite: 'lax'
+    sameSite: isProduction ? 'none' : 'lax' // 'none' cho phép cross-site trên production HTTPS
   }
 }));
 
