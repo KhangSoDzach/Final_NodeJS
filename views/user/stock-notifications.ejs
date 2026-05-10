@@ -20,7 +20,7 @@
                                         <% if (notification.product) { %>
                                             <div class="product-image">
                                                 <a href="/products/<%= notification.product.slug %>">
-                                                    <img src="/uploads/products/<%= notification.product.images && notification.product.images[0] ? notification.product.images[0] : 'default.jpg' %>" 
+                                                    <%= notification.product.images && notification.product.images[0] ? notification.product.images[0] : '/image/default.jpg' %> 
                                                          alt="<%= notification.product.name %>">
                                                 </a>
                                             </div>

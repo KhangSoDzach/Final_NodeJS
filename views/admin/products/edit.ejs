@@ -70,7 +70,7 @@
             <input type="file" id="images" name="images" class="form-control" multiple>
             <div id="current-images" style="margin-top: 10px;">
               <% product.images.forEach(image=> { %>
-                <img src="/uploads/products/<%= image %>" alt="Product Image"
+                <img src="<%= image %>" alt="Product Image"
                   style="width: 100px; height: 100px; object-fit: cover; margin-right: 10px;">
                 <% }) %>
             </div>

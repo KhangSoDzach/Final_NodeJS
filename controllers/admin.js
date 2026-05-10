@@ -5,6 +5,7 @@ const Coupon = require('../models/coupon');
 const { validationResult } = require('express-validator');
 const fs = require('fs');
 const path = require('path');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 
 exports.getDashboard = async (req, res) => {
   try {
@@ -321,12 +322,18 @@ exports.postAddProduct = async (req, res) => {
       return res.redirect('/admin/products/add');
     }
 
-    // Process uploaded images
+    // Process uploaded images to Cloudinary
     const images = [];
     if (req.files && req.files.length > 0) {
-      req.files.forEach(file => {
-        images.push(file.filename);
-      });
+      for (const file of req.files) {
+        const result = await uploadToCloudinary(file.path);
+        if (result.success) {
+          images.push(result.url);
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+        }
+      }
     }
 
     // Process specifications
@@ -457,12 +464,18 @@ exports.postUpdateProduct = async (req, res) => {
       return res.redirect('/admin/products');
     }
 
-    // Process uploaded images
+    // Process uploaded images to Cloudinary
     const newImages = [];
     if (req.files && req.files.length > 0) {
-      req.files.forEach(file => {
-        newImages.push(file.filename);
-      });
+      for (const file of req.files) {
+        const result = await uploadToCloudinary(file.path);
+        if (result.success) {
+          newImages.push(result.url);
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+        }
+      }
     }
 
     // Process existing images (remove selected images)
@@ -470,11 +483,13 @@ exports.postUpdateProduct = async (req, res) => {
     if (removeImages) {
       const imagesToRemove = Array.isArray(removeImages) ? removeImages : [removeImages];
 
-      // Delete image files
+      // Delete images from Cloudinary
       imagesToRemove.forEach(img => {
-        const imagePath = path.join(__dirname, '../public/uploads/products', img);
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
+        if (img.includes('cloudinary.com') || img.startsWith('http')) {
+          const publicIdMatch = img.match(/\/upload\/(.+)\./);
+          if (publicIdMatch && publicIdMatch[1]) {
+            deleteFromCloudinary(publicIdMatch[1]).catch(console.error);
+          }
         }
       });
 
@@ -569,18 +584,15 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm.' });
     }
 
-    // Delete product images - BUG-012 FIX: Thống nhất đường dẫn với uploads/products
-    product.images.forEach(img => {
-      // Kiểm tra cả 2 đường dẫn có thể có
-      const uploadPath = path.join(__dirname, '../uploads/products', img);
-      const publicPath = path.join(__dirname, '../public/uploads/products', img);
-
-      if (fs.existsSync(uploadPath)) {
-        fs.unlinkSync(uploadPath);
-      } else if (fs.existsSync(publicPath)) {
-        fs.unlinkSync(publicPath);
+    // Delete product images from Cloudinary
+    for (const img of product.images) {
+      if (img.includes('cloudinary.com') || img.startsWith('http')) {
+        const publicIdMatch = img.match(/\/upload\/(.+)\./);
+        if (publicIdMatch && publicIdMatch[1]) {
+          deleteFromCloudinary(publicIdMatch[1]).catch(console.error);
+        }
       }
-    });
+    }
 
     await Product.deleteOne({ _id: productId });
 

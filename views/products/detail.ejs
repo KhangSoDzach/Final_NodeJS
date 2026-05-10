@@ -12,7 +12,7 @@
         <div class="product-images">
             <div class="main-image">
                 <% if (product.images && product.images.length > 0) { %>
-                    <img src="/uploads/products/<%= product.images[0] %>" alt="<%= product.name %>" id="mainProductImage">
+                    <img src="<%= product.images[0] %>" alt="<%= product.name %>" id="mainProductImage">
                 <% } else { %>
                     <img src="/images/no-image.png" alt="No Image Available">
                 <% } %>
@@ -22,7 +22,7 @@
                 <div class="thumbnails">
                     <% product.images.forEach((image, index) => { %>
                         <div class="thumbnail <%= index === 0 ? 'active' : '' %>" data-index="<%= index %>">
-                            <img src="/uploads/products/<%= image %>" alt="<%= product.name %> - Image <%= index + 1 %>">
+                            <img src="<%= image %>" alt="<%= product.name %> - Image <%= index + 1 %>">
                         </div>
                     <% }) %>
                 </div>

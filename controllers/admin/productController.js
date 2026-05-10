@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Product = require('../../models/product');
 const { validationResult } = require('express-validator');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../../utils/cloudinary');
 
 // Mapping giữa tên danh mục tiếng Anh và tiếng Việt
 const categoryMappings = {
@@ -195,16 +196,26 @@ exports.postAddProduct = async (req, res) => {
             }));
         }
 
+        // Upload images to Cloudinary
+        let imageUrls = [];
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                const result = await uploadToCloudinary(file.path);
+                if (result.success) {
+                    imageUrls.push(result.url);
+                    // Delete temp local file
+                    if (fs.existsSync(file.path)) {
+                        fs.unlinkSync(file.path);
+                    }
+                }
+            }
+        }
+
         // Tạo slug từ tên sản phẩm
         const slug = name
             .toLowerCase()
             .replace(/[^\w ]+/g, '')
             .replace(/ +/g, '-');
-
-        // Chỉ lưu tên file, không lưu toàn bộ đường dẫn
-        const images = req.files && req.files.length > 0 
-            ? req.files.map(file => file.filename) 
-            : ['default-product.jpg'];  // Ảnh mặc định nếu không có ảnh nào được tải lên
 
         const product = new Product({
             name,
@@ -215,9 +226,9 @@ exports.postAddProduct = async (req, res) => {
             category,
             brand, 
             stock: parseInt(stock),
-            images,
+            images: imageUrls.length > 0 ? imageUrls : [],
             featured: featured === 'on',
-            variants // Thêm dòng này
+            variants
         });
 
         await product.save();
@@ -334,22 +345,37 @@ exports.postUpdateProduct = async (req, res) => {
         }
 
         // Xử lý hình ảnh mới tải lên
-        const newImages = req.files.map(file => file.filename);
+        let newImageUrls = [];
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                const result = await uploadToCloudinary(file.path);
+                if (result.success) {
+                    newImageUrls.push(result.url);
+                    if (fs.existsSync(file.path)) {
+                        fs.unlinkSync(file.path);
+                    }
+                }
+            }
+        }
 
         // Xử lý hình ảnh hiện có (xóa hình ảnh đã chọn)
         if (removeImages) {
             const imagesToRemove = Array.isArray(removeImages) ? removeImages : [removeImages];
+            // Filter out cloudinary URLs that are being removed
             imagesToRemove.forEach(img => {
-                const imagePath = path.join(__dirname, '../../uploads/products', img);
-                if (fs.existsSync(imagePath)) {
-                    fs.unlinkSync(imagePath);
+                if (img.includes('cloudinary.com') || img.startsWith('http')) {
+                    // Extract public ID from Cloudinary URL
+                    const publicIdMatch = img.match(/\/upload\/(.+)\./);
+                    if (publicIdMatch && publicIdMatch[1]) {
+                        deleteFromCloudinary(publicIdMatch[1]).catch(console.error);
+                    }
                 }
             });
             product.images = product.images.filter(img => !imagesToRemove.includes(img));
         }
 
         // Thêm hình ảnh mới
-        product.images = [...product.images, ...newImages];
+        product.images = [...product.images, ...newImageUrls];
 
         // Parse variants/options nếu có
         let variants = [];
@@ -406,14 +432,16 @@ exports.deleteProduct = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm.' });
         }
 
-        // Xóa hình ảnh sản phẩm
+        // Xóa hình ảnh từ Cloudinary
         if (product.images && product.images.length) {
-            product.images.forEach(img => {
-                const imagePath = path.join(__dirname, '../../public/uploads/products', img);
-                if (fs.existsSync(imagePath)) {
-                    fs.unlinkSync(imagePath);
+            for (const img of product.images) {
+                if (img.includes('cloudinary.com') || img.startsWith('http')) {
+                    const publicIdMatch = img.match(/\/upload\/(.+)\./);
+                    if (publicIdMatch && publicIdMatch[1]) {
+                        deleteFromCloudinary(publicIdMatch[1]).catch(console.error);
+                    }
                 }
-            });
+            }
         }
 
         // Xóa sản phẩm khỏi database
