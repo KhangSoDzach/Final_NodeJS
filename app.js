@@ -260,18 +260,40 @@ app.get('/health', (req, res) => {
 });
 
 // Self-ping to prevent Render free tier from spinning down (every 14 minutes)
-if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
+if (process.env.NODE_ENV === 'production') {
   const https = require('https');
-  const PING_INTERVAL = 14 * 60 * 1000; // 14 minutes
-  setInterval(() => {
-    const url = `${process.env.RENDER_EXTERNAL_URL}/health`;
-    https.get(url, (res) => {
-      console.log(`[Keep-alive] Pinged ${url} — status: ${res.statusCode}`);
-    }).on('error', (err) => {
-      console.error('[Keep-alive] Ping failed:', err.message);
-    });
-  }, PING_INTERVAL);
-  console.log('[Keep-alive] Self-ping enabled every 14 minutes');
+  const http = require('http');
+
+  let pingUrl = process.env.RENDER_EXTERNAL_URL;
+
+  // Auto-detect Render URL if not set
+  if (!pingUrl && process.env.RENDER_SERVICE_ID) {
+    // Attempt to construct URL from Render's environment
+    const protocol = process.env.RENDER_EXTERNAL_URL ? 'https' : 'https';
+    pingUrl = `https://${process.env.RENDER_SERVICE_ID}.onrender.com`;
+  }
+
+  if (pingUrl) {
+    const PING_INTERVAL = 14 * 60 * 1000; // 14 minutes
+    const pingHealth = () => {
+      const url = `${pingUrl}/health`;
+      https.get(url, (res) => {
+        console.log(`[Keep-alive] Pinged ${url} — status: ${res.statusCode}`);
+      }).on('error', (err) => {
+        console.error('[Keep-alive] Ping failed:', err.message);
+      });
+    };
+
+    // Start pinging after initial delay to allow server to fully start
+    setTimeout(() => {
+      pingHealth(); // Immediate first ping
+      setInterval(pingHealth, PING_INTERVAL);
+    }, 30000);
+
+    console.log('[Keep-alive] Self-ping enabled every 14 minutes to', pingUrl);
+  } else {
+    console.log('[Keep-alive] RENDER_EXTERNAL_URL not set — self-ping disabled. Set this env var on Render for 24/7 uptime.');
+  }
 }
 
 // Error handling
