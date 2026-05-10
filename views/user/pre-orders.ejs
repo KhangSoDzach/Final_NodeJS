@@ -19,7 +19,7 @@
                                         <% if (preOrder.product) { %>
                                             <div class="product-image">
                                                 <a href="/products/<%= preOrder.product.slug %>">
-                                                    <%= preOrder.product.images && preOrder.product.images[0] ? preOrder.product.images[0] : '/image/default.jpg' %> 
+                                                    <%= preOrder.product.images && preOrder.product.images[0] ? '/uploads/products/' + preOrder.product.images[0] : '/image/default.jpg' %> 
                                                          alt="<%= preOrder.product.name %>">
                                                 </a>
                                             </div>

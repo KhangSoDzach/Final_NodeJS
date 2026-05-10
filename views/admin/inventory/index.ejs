@@ -331,7 +331,7 @@
               <tr>
                 <td>
                   <div class="product-info">
-                    <img src="<%= product.images[0] || '/image/placeholder.png' %>" alt="<%= product.name %>">
+                    <img src="<%= '/uploads/products/' + (product.images[0] || '/image/placeholder.png') %>" alt="<%= product.name %>">
                     <div>
                       <div class="name"><%= product.name %></div>
                       <div class="sku"><%= product.sku || 'N/A' %></div>

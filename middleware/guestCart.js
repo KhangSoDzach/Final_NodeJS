@@ -84,7 +84,7 @@ const initGuestCart = (req, res, next) => {
         req.session.guestCart.items.push({
           product: productId,
           productName: product.name,
-          productImage: product.images && product.images.length > 0 ? product.images[0] : null,
+          productImage: product.images && product.images.length > 0 ? '/uploads/products/' + product.images[0] : null,
           price: finalPrice,
           originalPrice: product.price,
           quantity,

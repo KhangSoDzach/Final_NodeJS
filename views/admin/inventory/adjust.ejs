@@ -144,7 +144,7 @@
           <!-- Product Info -->
           <div class="product-info-card">
             <div class="product-header">
-              <img src="<%= product.images[0] || '/image/placeholder.png' %>" alt="<%= product.name %>">
+              <img src="<%= '/uploads/products/' + (product.images[0] || '/image/placeholder.png') %>" alt="<%= product.name %>">
               <div>
                 <h2><%= product.name %></h2>
                 <div class="sku">SKU: <%= product.sku || 'N/A' %></div>

@@ -134,11 +134,11 @@
           <% } else { %>
             <div class="alert-grid">
               <% outOfStockProducts.forEach(product => { %>
-                <div class="alert-card danger">
-                  <div class="product-name">
-                    <img src="<%= product.images[0] || '/image/placeholder.png' %>" alt="">
-                    <%= product.name %>
-                  </div>
+<div class="alert-card danger">
+                   <div class="product-name">
+                     <img src="<%= '/uploads/products/' + (product.images[0] || '/image/placeholder.png') %>" alt="">
+                     <%= product.name %>
+                   </div>
                   <div style="font-size:0.85rem;color:#64748b;">
                     <%= product.category %> | <%= product.brand %>
                   </div>
@@ -181,11 +181,11 @@
           <% } else { %>
             <div class="alert-grid">
               <% lowStockProducts.forEach(product => { %>
-                <div class="alert-card warning">
-                  <div class="product-name">
-                    <img src="<%= product.images[0] || '/image/placeholder.png' %>" alt="">
-                    <%= product.name %>
-                  </div>
+<div class="alert-card warning">
+                   <div class="product-name">
+                     <img src="<%= '/uploads/products/' + (product.images[0] || '/image/placeholder.png') %>" alt="">
+                     <%= product.name %>
+                   </div>
                   <div style="font-size:0.85rem;color:#64748b;">
                     Ngưỡng: <%= product.lowStockThreshold %>
                   </div>

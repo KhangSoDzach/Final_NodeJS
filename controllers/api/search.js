@@ -76,7 +76,7 @@ router.post('/', searchLimiter, validateSearch, async (req, res) => {
                 subcategory: product.subcategory,
                 brand: product.brand,
                 description: product.description,
-                image: product.images && product.images.length > 0 ? product.images[0] : null,
+                image: product.images && product.images.length > 0 ? '/uploads/products/' + product.images[0] : null,
                 price: bestPrice,
                 originalPrice: product.price,
                 discountPrice: product.discountPrice,

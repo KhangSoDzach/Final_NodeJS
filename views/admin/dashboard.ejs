@@ -150,7 +150,7 @@
                                     <td>
                                         <div class="product-cell">
                                             <% if (product.images && product.images.length > 0) { %>
-                                                <img src="<%= product.images[0] %>" alt="<%= product.name %>">
+                                                <img src="<%= '/uploads/products/' + product.images[0] %>" alt="<%= product.name %>">
                                             <% } else { %>
                                                 <img src="/images/no-image.png" alt="No Image">
                                             <% } %>

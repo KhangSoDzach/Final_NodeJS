@@ -52,7 +52,7 @@ exports.getSuggestions = async (req, res) => {
           slug: p.slug,
           category: p.category,
           brand: p.brand,
-          image: p.images && p.images.length > 0 ? p.images[0] : null,
+          image: p.images && p.images.length > 0 ? '/uploads/products/' + p.images[0] : null,
           price: p.discountPrice || p.price
         })),
         queries: historySuggestions.map(s => s.query),

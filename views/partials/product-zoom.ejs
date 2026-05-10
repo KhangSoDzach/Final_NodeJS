@@ -5,7 +5,7 @@
   <!-- Main Image -->
   <div class="main-image-wrapper">
     <div class="zoom-lens" id="zoom-lens"></div>
-    <img src="<%= product.images && product.images[0] ? product.images[0] : '/image/no-image.png' %>" 
+    <img src="<%= product.images && product.images[0] ? '/uploads/products/' + product.images[0] : '/image/no-image.png' %>" 
          alt="<%= product.name %>"
          class="main-image"
          id="main-product-image">

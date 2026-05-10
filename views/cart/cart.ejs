@@ -27,7 +27,7 @@
                         <% cart.items.forEach(item => { %>
                             <tr class="cart-item" data-item-id="<%= item._id %>">
                                 <td class="product">                                        <% if (item.product && item.product.images && item.product.images.length > 0) { %>
-                                        <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>">
+                                        <img src="<%= '/uploads/products/' + item.product.images[0] %>" alt="<%= item.product.name %>">
                                     <% } else { %>
                                         <img src="/images/no-image.png" alt="No Image Available">
                                     <% } %>

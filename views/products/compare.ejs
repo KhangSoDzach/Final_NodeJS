@@ -52,7 +52,7 @@
                         <i class="fas fa-times"></i>
                       </button>
                       <a href="/products/<%= product.slug %>">
-                        <img src="<%= product.images && product.images[0] ? product.images[0] : '/image/no-image.png' %>" 
+                        <img src="<%= product.images && product.images[0] ? '/uploads/products/' + product.images[0] : '/image/no-image.png' %>" 
                              alt="<%= product.name %>"
                              class="img-fluid mb-2"
                              style="max-height: 200px; object-fit: contain;">

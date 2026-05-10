@@ -234,7 +234,7 @@ exports.sendPreOrderNotification = async (preOrder) => {
           <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
             <div style="display: flex; align-items: center; gap: 15px;">
               ${preOrder.product.images && preOrder.product.images[0] ? 
-                `<img src="${preOrder.product.images[0]}" alt="${preOrder.product.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">` : ''
+                `<img src="${'/uploads/products/' + preOrder.product.images[0]}" alt="${preOrder.product.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">` : ''
               }
               <div>
                 <h3 style="margin: 0 0 5px;">${preOrder.product.name}</h3>
@@ -300,7 +300,7 @@ exports.sendBackInStockNotification = async (subscription) => {
           
           <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;">
             ${subscription.product.images && subscription.product.images[0] ? 
-              `<img src="${subscription.product.images[0]}" alt="${subscription.product.name}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">` : ''
+              `<img src="${'/uploads/products/' + subscription.product.images[0]}" alt="${subscription.product.name}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">` : ''
             }
             <h3 style="margin: 10px 0 5px;">${subscription.product.name}</h3>
             ${subscription.variant && subscription.variant.name ? 
